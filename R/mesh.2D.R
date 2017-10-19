@@ -370,3 +370,196 @@ plot.MESH2D<-function(x, ...)
   segments(x$nodes[x$segments[,1],1], x$nodes[x$segments[,1],2],
            x$nodes[x$segments[,2],1], x$nodes[x$segments[,2],2], col="red", ...)
 }
+
+#' Create a \code{MESH.2.5D} object from the connectivty matrix and nodes locations
+#'
+#' @param nodes A nnodes x 3 matrix specifying the locations of each node
+#' @param triangles A ntriangles x 3*order matrix specifying the indices of the nodes in each triangle
+#' @param order{Either "1" or "2". Order of the Finite Element basis default is order = 1
+#' @return A \code{MESH.2.5D} object
+#' @examples
+#' #read the matrix nodes and triangles from file
+#' nodes = read.table(file="mynodes.csv",header=F,sep=",")
+#' triangles = read.table(file="mytriangles.csv",header=F,sep=",")
+#' mesh = create.MESH.2.5D(nodes,triangles)
+
+create.MESH.2.5D<- function(nodes, triangles, order = 1)
+{
+  nnodes = dim(nodes)[1]
+
+  ntriangles = dim(triangles)[1]
+
+  if(dim(triangles)[2]!= 3*order){
+    if (order==1)
+      stop("The matrix 'triangles' has the wrong number of columns. See second.order.mesh(...)")
+  	stop("The matrix 'triangles' has wrong number of columns. Should be 3*order \n")
+  	}
+  out = list(nnodes=nnodes, ntriangles=ntriangles, nodes=c(t(nodes)), triangles = c(t(triangles)), order=as.integer(order))
+
+  class(out)<-"MESH.2.5D"
+
+  return(out)
+}
+
+#' Double the order of a fist order Finite Element mesh by adding middle points to each side of the triangles in the triangulation
+#' @param mesh an object of class 'MESH.2.5D' is the starting mesh of order 1
+#' @param bc A vector specifying the indices of the nodes on which boundary conditions are applied
+#' @return if no boundaries conditions are passed
+#' \item{\code{mesh}} An object of class 'MESH.2.5D' with the mesh of order 2. Otherwhise a \code{\list} with parameters:
+#' \item{\code{mesh}} An object of class 'MESH.2.5D' with the mesh of order 2.
+#' \item{\code{bc_index}} An update of the vector specifying the indices of the nodes on which boundary conditions are applied
+#' @examples
+#' data(hub) #loading mesh hub, order=1
+#' hub_order2 = second.order.MESH.2.5D(hub)
+
+second.order.MESH.2.5D<-function(mesh,bc=NULL){
+  if(class(mesh) != 'MESH.2.5D'){
+    stop('This method is implemented only for a mesh of class MESH.2.5D')
+  }else if(mesh$order != 1){
+    stop('The object mesh must have order = 1')
+  }else{
+    toll=1e-5
+    T = matrix(mesh$triangles,nrow=mesh$ntriangles,ncol=3, byrow = TRUE)
+    V = matrix(mesh$nodes, nrow = mesh$nnodes, ncol= 3, byrow = TRUE)
+    T <- cbind(T, matrix(0,nrow=nrow(T),ncol=3))
+    nnodes=nrow(V)
+    index=nrow(V)
+    points = V[T[1,],]
+    midpoints<-rbind((points[2,]+points[3,])/2,(points[1,]+points[3,])/2, (points[1,]+points[2,])/2);
+    if(!is.null(bc)){
+      isBC<-c( any(bc==T[1,2]) & any(bc==T[1,3]),
+               any(bc==T[1,1]) & any(bc==T[1,3]),
+               any(bc==T[1,2]) & any(bc==T[1,1]))
+    }
+
+    for (side in 1:3){
+      point<-midpoints[side,]
+      index<-index+1;
+      V<-rbind(V,point)
+      T[1,3+side]<-index;
+
+      if(!is.null(bc)&&isBC[side]==1){
+        bc<-c(bc,index)
+      }
+
+    }
+
+    for (i in 2:nrow(T)){
+      points = V[T[i,],]
+      midpoints<-rbind((points[2,]+points[3,])/2,(points[1,]+points[3,])/2, (points[1,]+points[2,])/2);
+      if(!is.null(bc)){
+        isBC<-c( any(bc==T[i,2]) & any(bc==T[i,3]),
+                 any(bc==T[i,1]) & any(bc==T[i,3]),
+                 any(bc==T[i,2]) & any(bc==T[i,1]))
+      }
+
+      for (side in 1:3){
+        point<-midpoints[side,]
+        isthere<-apply(V[(nnodes+1):nrow(V),], 1, function(x) identical(as.vector(x), point))
+        loc = which(isthere)
+        if(length(loc)>0){
+          loc = loc+nnodes
+          T[i,3+side]<-loc[1]
+        }else{
+          index<-index+1;
+          V<-rbind(V,point)
+          T[i,3+side]<-index;
+
+          if(!is.null(bc)&&isBC[side]==1){
+            bc<-c(bc,index)
+          }
+        }
+      }
+    }
+  }
+  if(is.null(bc)){
+    out = list(nnodes=nrow(V), ntriangles=nrow(T), nodes=c(t(V)), triangles = c(t(T)), order=2)
+    class(out)<-"MESH.2.5D"
+    return(out)
+  }else{
+    out = list(nnodes=nrow(V), ntriangles=nrow(T), nodes=c(t(V)), triangles = c(t(T)), order=2)
+    class(out)<-"MESH.2.5D"
+    retlist = list(mesh = out, bc_index=bc)
+    return(retlist)
+  }
+}
+
+
+#' Plot a triangular mesh
+#' @param mesh A \code{MESH.2.5D} object
+#' @param node_values (optional) A vector with nodal values of the function to be rapresented on the mesh, if it is \code{NULL} only the triangulation will be plotted, otherwhise a colormap will be produced
+#' @examples
+#' library(fdaPDE)
+#' data(caramella)
+#' plot.MESH.2.5D(caramella)
+#' @examples
+#' library(fdaPDE)
+#' data(caramella)
+#' ### GENERATE SOME RANDOM DATA, SEE FOR EXAMPLE test_manifold1.R IN THE TEST DIRECTORY ###
+#' output = smooth.FEM.basis( observations = data, FEMbasis = FEMbasis, lambda = 1,GCV = FALSE, CPP_CODE = TRUE)
+#' plot.MESH.2.5D(FEMbasis$mesh, output_CPP$fit.FEM$coeff)
+
+
+plot.MESH.2.5D<-function(mesh,node_values=NULL){
+
+  if(!require(rgl)){
+    stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
+  }
+
+  p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
+  palette(p)
+
+  order=mesh$order
+  nnodes=mesh$nnodes
+  ntriangles=mesh$ntriangles
+
+  if(is.null(node_values)){
+    rgl.open()
+    triangle = c(mesh$triangles[1:3*order])-1
+    vertices = as.numeric(c(
+      mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+      mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+      mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+    bg3d(color = "white")
+    indices=c(1,2,3)
+    wire3d(tmesh3d(vertices,indices) , col="black")
+
+    for(i in 2:ntriangles){
+      #triangle = c(mesh$triangles[3*order*(i-1)+1]-1,mesh$triangles[3*order*(i-1)+2]-1,mesh$triangles[3*order*(i-1)+3]-1)
+      triangle = mesh$triangles[(3*order*(i-1)+1):(3*order*(i-1)+3*order)]-1
+      vertices = as.numeric(c(
+        mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+        mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+        mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+
+      indices=c(1,2,3)
+      wire3d(tmesh3d(vertices,indices) , col="black")
+    }
+  }else{
+    diffrange = max(node_values)-min(node_values)
+    rgl.open()
+    triangle = c(mesh$triangles[1:3*order])-1
+    vertices = as.numeric(c(
+      mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+      mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+      mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+    indices=c(1,2,3)
+    col = mean(node_values[triangle[1]+1],node_values[triangle[2]+1],node_values[triangle[3]+1])
+    col= (col - min(node_values))/diffrange*127+1
+    shade3d( tmesh3d(vertices,indices) , col=col)
+    bg3d(color = "white")
+
+    for(i in 2:ntriangles){
+      triangle = mesh$triangles[(3*order*(i-1)+1):(3*order*(i-1)+3*order)]-1
+      vertices = as.numeric(c(
+        mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+        mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+        mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+      indices=c(1,2,3)
+      col = mean(node_values[triangle+1])
+      col= (col - min(node_values))/diffrange*127+1
+      shade3d( tmesh3d(vertices,indices) , col= col)
+    }
+  }
+
+}

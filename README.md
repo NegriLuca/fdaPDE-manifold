@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## fdaPDE Library
 
 fdaPDE implements a class of spatial regression models in between statistics and numerical analysis. These models are particularly well-suited for situations where a prior knowledge of the underlying phenomenon is known and can be described in terms of a Partial Differential Equation (PDE).
@@ -13,6 +12,4 @@ R package `devtools` as follows:
 
 Some example can be found visualizing the help of the three main smoothing functions i.e.
 `?smooth.FEM.basis` or `?smooth.FEM.PDE.basis` or `?smooth.FEM.PDE.SV.basis`
-=======
-# fdaPDE-manifold
->>>>>>> 1886030e09a19f667fe9922079dc3fa9a7b8322c
+

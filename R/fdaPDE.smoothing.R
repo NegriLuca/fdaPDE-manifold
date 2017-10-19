@@ -5,7 +5,7 @@
 #' Otherwise if only the vector of observations is given, these are consider to be located in the corresponding node in the table
 #' \code{nodes} of the mesh. In this last case, an \code{NA} value in the \code{observations} vector indicates that there is no observation associated to the corresponding
 #'  node.
-#' @param locations A #observations-by-2 matrix where each row specifies the spatial coordinates \code{x} and \code{y} of the corresponding observations in the vector \code{observations}.
+#' @param locations A #observations-by-ndim matrix where each row specifies the spatial coordinates \code{x} and \code{y} (and \code{z} if ndim=3} of the corresponding observations in the vector \code{observations}.
 #' This parameter can be \code{NULL}. In this case the spatial coordinates of the corresponding observations are assigned as specified in \code{observations}.
 #' @param FEMbasis A \code{FEMbasis} object describing the Finite Element basis, as created by \code{\link{create.FEM.basis}}.
 #' @param lambda A scalar or vector of smoothing parameters.
@@ -62,7 +62,15 @@
 
 smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
 {
- 
+ if(class(FEMbasis$mesh) == "MESH2D"){
+ 	ndim = 2
+ 	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ 	ndim = 3
+ 	mydim = 2
+ }else{
+ 	stop('Unknown mesh class')
+ }
   ##################### Checking parameters, sizes and conversion ################################
   checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
   
@@ -79,10 +87,10 @@ smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, cov
     BC$BC_values = as.matrix(BC$BC_values)
   }
   
-  checkSmoothingParametersSize(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
+  checkSmoothingParametersSize(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL,ndim, mydim)
   ################## End checking parameters, sizes and conversion #############################
   
-  
+if(class(FEMbasis$mesh) == 'MESH2D'){	
   bigsol = NULL
   if(CPP_CODE == FALSE)
   {
@@ -101,6 +109,15 @@ smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, cov
   
   numnodes = nrow(FEMbasis$mesh$nodes)
   
+  } else if(class(FEMbasis$mesh) == 'MESH.2.5D'){
+
+	  bigsol = NULL  
+	  print('C++ Code Execution')
+	  bigsol = CPP_smooth.manifold.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV)
+	  
+	  numnodes = FEMbasis$mesh$nnodes
+  }
+  
   f = bigsol[[1]][1:numnodes,]
   g = bigsol[[1]][(numnodes+1):(2*numnodes),]
   
@@ -109,10 +126,10 @@ smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, cov
   PDEmisfit.FEM = FEM(g, FEMbasis)  
   
   reslist = NULL
-  beta = getBetaCoefficients(locations, observations, fit.FEM, covariates, CPP_CODE)
+  beta = getBetaCoefficients(locations, observations, fit.FEM, covariates, CPP_CODE,ndim,mydim)
   if(GCV == TRUE)
   {
-    seq=getGCV(locations = locations, observations = observations, fit.FEM = fit.FEM, covariates = covariates, edf = bigsol[[2]])
+    seq=getGCV(locations = locations, observations = observations, fit.FEM = fit.FEM, covariates = covariates, edf = bigsol[[2]],ndim,mydim)
     reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta, edf = bigsol[[2]], stderr = seq$stderr, GCV = seq$GCV)
   }else{
     reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta)
@@ -181,7 +198,7 @@ smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, cov
 #' 
 #' # Evaluate solution in three points
 #' eval.FEM(FEM_CPP_PDE$fit.FEM, locations = rbind(c(0,0),c(0.5,0),c(-2,-2)))
-smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
+smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE,ndim=2,mydim=2)
 {
   ##################### Checking parameters, sizes and conversion ################################
   checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = PDE_parameters, PDE_parameters_func = NULL)
@@ -231,11 +248,11 @@ smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda,
   PDEmisfit.FEM = FEM(g, FEMbasis)  
   
   reslist = NULL
-  beta = getBetaCoefficients(locations, observations, fit.FEM, covariates, CPP_CODE)
+  beta = getBetaCoefficients(locations, observations, fit.FEM, covariates, CPP_CODE,ndim,mydim)
   if(GCV == TRUE)
   {
     seq=getGCV(locations = locations, observations = observations, fit.FEM = fit.FEM, covariates = covariates, edf = bigsol[[2]])
-    reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta, edf = bigsol[[2]], stderr = seq$stderr, GCV = seq$GCV)
+    reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta, edf = bigsol[[2]], stderr = seq$stderr, GCV = seq$GCV,ndim,mydim)
   }else{
     reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta)
   }
@@ -330,7 +347,7 @@ smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda,
 #' FEM_CPP_PDE = smooth.FEM.PDE.sv.basis(observations = observations, 
 #'              FEMbasis = FEMbasis, lambda = lambda, PDE_parameters = PDE_parameters)
 #' plot(FEM_CPP_PDE$fit.FEM)
-smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
+smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE,ndim=2,mydim=2)
 {
   ##################### Checking parameters, sizes and conversion ################################
   checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = PDE_parameters)
@@ -372,10 +389,10 @@ smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lamb
   PDEmisfit.FEM = FEM(g, FEMbasis)  
   
   reslist = NULL
-  beta = getBetaCoefficients(locations, observations, fit.FEM, covariates, CPP_CODE)
+  beta = getBetaCoefficients(locations, observations, fit.FEM, covariates, CPP_CODE,ndim,mydim)
   if(GCV == TRUE)
   {
-    seq=getGCV(locations = locations, observations = observations, fit.FEM = fit.FEM, covariates = covariates, edf = bigsol[[2]])
+    seq=getGCV(locations = locations, observations = observations, fit.FEM = fit.FEM, covariates = covariates, edf = bigsol[[2]],ndim,mydim)
     reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta, edf = bigsol[[2]], stderr = seq$stderr, GCV = seq$GCV)
   }else{
     reslist=list(fit.FEM=fit.FEM,PDEmisfit.FEM=PDEmisfit.FEM, beta = beta)
@@ -385,7 +402,7 @@ smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lamb
 }
 
 
-getBetaCoefficients<-function(locations, observations, fit.FEM, covariates, CPP_CODE = FALSE)
+getBetaCoefficients<-function(locations, observations, fit.FEM, covariates, CPP_CODE = FALSE,ndim,mydim)
 {
   loc_nodes = NULL
   fnhat = NULL
@@ -411,7 +428,7 @@ getBetaCoefficients<-function(locations, observations, fit.FEM, covariates, CPP_
 }
 
 
-getGCV<-function(locations, observations, fit.FEM, covariates = NULL, edf)
+getGCV<-function(locations, observations, fit.FEM, covariates = NULL, edf,ndim,mydim)
 {
   loc_nodes = NULL
   fnhat = NULL

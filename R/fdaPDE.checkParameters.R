@@ -1,4 +1,4 @@
-checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
+checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim)
 {
   #################### Parameter Check #########################
   if(!is.null(locations))
@@ -78,12 +78,17 @@ checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis,
     stop("'observations' must contain at least one element")
   if(is.null(locations))
   {
-    if(nrow(observations) > nrow(FEMbasis$mesh$nodes))
-      stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
+    if(class(FEMbasis$mesh) == "MESH2D"){
+    	if(nrow(observations) > nrow(FEMbasis$mesh$nodes))
+     	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
+    }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+    	if(nrow(observations) > FEMbasis$mesh$nnodes)
+     	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
+    }
   }
   if(!is.null(locations))
   {
-    if(ncol(locations) != 2)
+    if(ncol(locations) != ndim)
       stop("'locations' must be a 2-columns matrix;")
     if(nrow(locations) != nrow(observations))
       stop("'locations' and 'observations' have incompatible size;")
@@ -106,8 +111,13 @@ checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis,
       stop("'BC_values' must be a column vector")
     if(nrow(BC$BC_indices) != nrow(BC$BC_values))
       stop("'BC_indices' and 'BC_values' have incompatible size;")
-    if(sum(BC$BC_indices>nrow(nrow(FEMbasis$mesh$nodes))) > 0)
-      stop("At least one index in 'BC_indices' larger then the numer of 'noded' in the mesh;")
+     if(class(FEMbasis$mesh) == "MESH2D"){
+	    if(sum(BC$BC_indices>nrow(nrow(FEMbasis$mesh$nodes))) > 0)
+	      stop("At least one index in 'BC_indices' larger then the number of 'nodes' in the mesh;")
+    }else if((class(FEMbasis$mesh) == "MESH2D")){
+    	if(sum(BC$BC_indices>FEMbasis$mesh$nnodes) > 0)
+	      stop("At least one index in 'BC_indices' larger then the number of 'nodes' in the mesh;")
+    	}
   }
   
   if(!is.null(PDE_parameters_constant))
