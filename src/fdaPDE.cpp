@@ -298,7 +298,7 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 
     if(regressionData.getOrder()==1 && ndim==2)
     	return(get_FEM_Matrix_skeleton<IntegratorTriangleP2, 1,2,2>(Rmesh, c*mass+stiff[K]+dot(beta,grad)));
-	if(regressionData.getOrder()==2 & ndim==2)
+	if(regressionData.getOrder()==2 && ndim==2)
 		return(get_FEM_Matrix_skeleton<IntegratorTriangleP4, 2,2,2>(Rmesh, c*mass+stiff[K]+dot(beta,grad)));
 	return(NILSXP);
 }
