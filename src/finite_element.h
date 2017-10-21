@@ -46,7 +46,7 @@ public:
     /*!
       \param t a triangle from which to update the finite element properties
     */
-	void updateElement(Triangle<ORDER*3,2,2> t);
+	void updateElement(const Triangle<ORDER*3,2,2> &t);
 	
 	Real getAreaReference()
 	{
@@ -108,7 +108,7 @@ public:
     /*!
       \param t a triangle from which to update the finite element properties
     */
-	void updateElement(Triangle<ORDER*3,2,3> t);
+	void updateElement(const Triangle<ORDER*3,2,3> &t);
 	
 	Real getAreaReference()
 	{

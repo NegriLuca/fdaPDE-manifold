@@ -287,7 +287,7 @@ private:
 	Eigen::Matrix<Real,2,2> G_J_; //M_J^t*M_J
 	Eigen::Matrix<Real,2,2> metric_; //inv(GJ)
 	Real detJ_;
-	void init(const std::vector<Point> &points);
+	void computeProperties();
 };
 
 

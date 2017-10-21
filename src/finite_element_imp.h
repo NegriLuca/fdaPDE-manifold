@@ -24,7 +24,7 @@ FiniteElement<Integrator, ORDER,2,2>::FiniteElement()
 
 
 template <class Integrator, UInt ORDER>
-void FiniteElement<Integrator, ORDER,2,2>::updateElement(Triangle<ORDER*3,2,2> t)
+void FiniteElement<Integrator, ORDER,2,2>::updateElement(const Triangle<ORDER*3,2,2> &t)
 {
 	t_ = t;
 
@@ -132,7 +132,7 @@ FiniteElement<Integrator, ORDER,2,3>::FiniteElement()
 
 
 template <class Integrator, UInt ORDER>
-void FiniteElement<Integrator, ORDER,2,3>::updateElement(Triangle<ORDER*3,2,3> t)
+void FiniteElement<Integrator, ORDER,2,3>::updateElement(const Triangle<ORDER*3,2,3> &t)
 {
 	t_ = t;
 

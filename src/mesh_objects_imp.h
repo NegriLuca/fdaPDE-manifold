@@ -194,7 +194,7 @@ Eigen::Matrix<Real,3,1> Triangle<NNODES,2,3>::getBaryCoordinates(const Point& po
 template <UInt NNODES>
 bool Triangle<NNODES,2,3>::isPointInside(const Point& point) const
 {
-	Real eps = 2.2204e-016;
+	//Real eps = 2.2204e-016;
 		 //tolerance = 10 * eps;
 // First: check consistency trough Rouchè-Capelli theorem
 

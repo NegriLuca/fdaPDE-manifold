@@ -61,12 +61,12 @@ class Stiff{
 	
 };
 
-template <class Type,UInt mydim, UInt ndim>
+template <class Type>
 class StiffAnys{
 };
 
 template <>
-class StiffAnys<Eigen::Matrix<Real,2,2> ,2,2>{
+class StiffAnys<Eigen::Matrix<Real,2,2>>{
   private:
     //! A reference to FiniteElement<Integrator>
     /*!
@@ -114,10 +114,13 @@ class StiffAnys<Eigen::Matrix<Real,2,2> ,2,2>{
 	   	}
 	   	return s;
 	}
+	
+    template<class Integrator, UInt ORDER>
+	inline Real operator() (FiniteElement<Integrator, ORDER,2,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0){return 0;}
 };
 
 template <>
-class StiffAnys<Diffusivity,2,2>{
+class StiffAnys<Diffusivity>{
   private:
     //! A reference to FiniteElement<Integrator>
     /*!
@@ -164,6 +167,9 @@ class StiffAnys<Diffusivity,2,2>{
 	   	}
 	   	return s;
 	}
+	
+    template <class Integrator, UInt ORDER>
+	inline Real operator() (FiniteElement<Integrator, ORDER,2,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0){return 0;}
 };
 
 //! A Mass class: a class for the mass operator.
@@ -225,10 +231,11 @@ class Grad{
      
      
      // AGGIUNGERE NUOVI METODI PER MESH SUPERFICIALI:
-     /*
+     //E' UNA SORTA DI DUMMY. DA IMPLEMENTARE SERIAMENTE PER ndim=3
+     
      	 template<class Integrator, UInt ORDER>
-     inline Real operator() (FiniteElement<Integrator, ORDER,2,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0)
-     */
+     inline Real operator() (FiniteElement<Integrator, ORDER,2,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0){return 0;};
+     
      
 };
 
@@ -270,18 +277,18 @@ class EOExpr{
      * \param ic is an unsigned int
      * returns a P variable.
      */
-	  EOExpr<StiffAnys<Eigen::Matrix<Real,2,2> ,2,2> >  operator[] (const Eigen::Matrix<Real,2,2>& K)
+	  EOExpr<StiffAnys<Eigen::Matrix<Real,2,2>> >  operator[] (const Eigen::Matrix<Real,2,2>& K)
       {
-		  typedef EOExpr<StiffAnys<Eigen::Matrix<Real,2,2> ,2,2> > ExprT;
-		  StiffAnys<Eigen::Matrix<Real,2,2> ,2,2> anys(K);
+		  typedef EOExpr<StiffAnys<Eigen::Matrix<Real,2,2> > > ExprT;
+		  StiffAnys<Eigen::Matrix<Real,2,2> > anys(K);
     	  return ExprT(anys);
     	  //StiffAnys<Eigen::Matrix<Real,2,2> > a(K);
       }
 
-	  EOExpr<StiffAnys<Diffusivity,2,2> > operator[] (const Diffusivity& K)
+	  EOExpr<StiffAnys<Diffusivity> > operator[] (const Diffusivity& K)
 	  {
-		  typedef EOExpr<StiffAnys<Diffusivity,2,2> > ExprT;
-		  StiffAnys<Diffusivity,2,2> anys(K);
+		  typedef EOExpr<StiffAnys<Diffusivity> > ExprT;
+		  StiffAnys<Diffusivity> anys(K);
 		  return ExprT(anys);
 		  //return EOExpr<P,A>(A(K));
 	  }
