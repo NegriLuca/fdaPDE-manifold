@@ -32,4 +32,3 @@ image(FEM_object)
 \seealso{
 \code{\link{plot.FEM}}
 }
-

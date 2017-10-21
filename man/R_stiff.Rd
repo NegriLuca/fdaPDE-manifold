@@ -20,4 +20,3 @@ of the Finite Element basis. As common practise in Finite Element Analysis, this
 \seealso{
 \code{\link{R_mass}}
 }
-

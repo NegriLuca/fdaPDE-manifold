@@ -23,4 +23,3 @@ mesh <- create.MESH.2D(nodes = MeuseData[,c(2,3)], segments = MeuseBorder, order
 ## Plot it
 plot(mesh)
 }
-

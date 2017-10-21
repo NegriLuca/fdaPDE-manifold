@@ -9,7 +9,7 @@ eval.FEM(FEM, locations, CPP_CODE = TRUE)
 \arguments{
 \item{FEM}{A \code{FEM} object to be evaluated.}
 
-\item{locations}{A 2-colums matrix with the spatial locations where the FEM object should be evaluated.}
+\item{locations}{A 2-colums(in case of planar mesh) or 3-columns(in case of 2D manifold in a 3D space) matrix with the spatial locations where the FEM object should be evaluated.}
 
 \item{CPP_CODE}{Boolean. If \code{TRUE} the computation relies on the C++ implementation of a Visibility Walk Algorithm (Devillers et al. 2001). This usually ensures a fast computation.}
 }
@@ -23,4 +23,3 @@ It evaluates a FEM object the specified set of locations.
 \references{
 Devillers, O. et al. 2001. Walking in a Triangulation, Proceedings of the Seventeenth Annual Symposium on Computational Geometry
 }
-

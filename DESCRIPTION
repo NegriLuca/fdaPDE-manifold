@@ -29,4 +29,4 @@ License: CC BY-NC-SA 4.0
 Copyright: See the individual source files for copyrights information
 NeedsCompilation: yes
 SystemRequirements: C++11
-RoxygenNote: 5.0.0
+RoxygenNote: 6.0.1

@@ -13,4 +13,3 @@ This file provides the boundary of the domain of the {\link{MeuseData}}.
   \item vertex_end. A vector having as entries the row's indices of the location in {\link{MeuseData}} where a boundary segment ends to.
 }
 }
-

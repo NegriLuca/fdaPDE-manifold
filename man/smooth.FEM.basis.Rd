@@ -8,7 +8,7 @@ smooth.FEM.basis(locations = NULL, observations, FEMbasis, lambda,
        covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
 }
 \arguments{
-\item{locations}{A #observations-by-2 matrix where each row specifies the spatial coordinates \code{x} and \code{y} of the corresponding observations in the vector \code{observations}.
+\item{locations}{A #observations-by-ndim matrix where each row specifies the spatial coordinates \code{x} and \code{y} (and \code{z} if ndim=3) of the corresponding observations in the vector \code{observations}.
 This parameter can be \code{NULL}. In this case the spatial coordinates of the corresponding observations are assigned as specified in \code{observations}.}
 
 \item{observations}{A vector of length #observations with the observed data values over the domain. 
@@ -81,4 +81,3 @@ Sangalli, L.M., Ramsay, J.O. & Ramsay, T.O., 2013. Spatial spline regression mod
 \seealso{
 \code{\link{smooth.FEM.PDE.basis}}, \code{\link{smooth.FEM.PDE.sv.basis}}
 }
-

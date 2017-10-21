@@ -6,4 +6,3 @@
 \description{
 A simple mesh. This is a MESH2D object created with \code{create.MESH.2D}.
 }
-

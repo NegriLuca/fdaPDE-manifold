@@ -82,4 +82,3 @@ Azzimonti, L., Sangalli, L.M., Secchi, P., Domanin, M., and Nobile, F., 2014. Bl
 \seealso{
 \code{\link{smooth.FEM.basis}}, \code{\link{smooth.FEM.PDE.sv.basis}}
 }
-

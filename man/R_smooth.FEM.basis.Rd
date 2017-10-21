@@ -40,4 +40,3 @@ Sangalli, L.M., Ramsay, J.O. & Ramsay, T.O., 2013. Spatial spline regression mod
 \seealso{
 \code{\link{smooth.FEM.basis}}, \code{\link{smooth.FEM.PDE.basis}}, \code{\link{smooth.FEM.PDE.sv.basis}}
 }
-

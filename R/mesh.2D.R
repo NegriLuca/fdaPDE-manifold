@@ -375,7 +375,7 @@ plot.MESH2D<-function(x, ...)
 #'
 #' @param nodes A nnodes x 3 matrix specifying the locations of each node
 #' @param triangles A ntriangles x 3*order matrix specifying the indices of the nodes in each triangle
-#' @param order{Either "1" or "2". Order of the Finite Element basis default is order = 1
+#' @param order Either "1" or "2". Order of the Finite Element basis default is order = 1
 #' @return A \code{MESH.2.5D} object
 #' @examples
 #' #read the matrix nodes and triangles from file

@@ -11,15 +11,10 @@ R_elementProperties(mesh)
 }
 \value{
 A list with the following variables:
+\item{\code{transf_coord}}{An object containing 4 vectors of length #triangles. The for of them encode the tranformation matrix [diff1x diff2x; diff1y diff2y] that transforms the nodes of the reference triangle to the nodes of the i-th triangle.}
 \item{\code{detJ}}{A vector of length #triangles. The ith element contains the determinant of the transformation from the reference triangle to the nodes of the i-th triangle. It's values is also the double of the area of each triangle of the basis.}
-\item{\code{transf}}{A matrix #triangles-by-2-by-2. \code{transf[i,,]} is the 2-by-2 tranformation matrix that transforms the nodes of the reference triangle to the nodes of the i-th triangle.}
-\item{\code{metric}}{A matrix #triangles-by-2-by-2. \code{metric[i,,]} is the 2-by-2 matrix \cr 
-\code{transf[i,,]^{-1}*transf[i,,]^{-T}}. This matrix is usuful for the computation
-of the integrals over the elements of the mesh.}
 }
 \description{
-Only executed when the function \code{create.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. 
 It computes some quantities associated to the linear map that transforms the ith triangle in the reference triangular element. 
 These are used for the computation of the integrals necessary to build the mass and stiffness matrix.
 }
-

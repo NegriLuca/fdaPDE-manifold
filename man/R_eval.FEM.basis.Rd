@@ -25,4 +25,3 @@ This version of the function is implemented using only R code. It is called by \
 \seealso{
 \code{\link{R_eval.FEM}}
 }
-

@@ -5,7 +5,7 @@
 #' Otherwise if only the vector of observations is given, these are consider to be located in the corresponding node in the table
 #' \code{nodes} of the mesh. In this last case, an \code{NA} value in the \code{observations} vector indicates that there is no observation associated to the corresponding
 #'  node.
-#' @param locations A #observations-by-ndim matrix where each row specifies the spatial coordinates \code{x} and \code{y} (and \code{z} if ndim=3} of the corresponding observations in the vector \code{observations}.
+#' @param locations A #observations-by-ndim matrix where each row specifies the spatial coordinates \code{x} and \code{y} (and \code{z} if ndim=3) of the corresponding observations in the vector \code{observations}.
 #' This parameter can be \code{NULL}. In this case the spatial coordinates of the corresponding observations are assigned as specified in \code{observations}.
 #' @param FEMbasis A \code{FEMbasis} object describing the Finite Element basis, as created by \code{\link{create.FEM.basis}}.
 #' @param lambda A scalar or vector of smoothing parameters.

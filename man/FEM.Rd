@@ -30,4 +30,3 @@ coeff <- sin(mesh.2D.rectangular$nodes[,1])*cos(mesh.2D.rectangular$nodes[,2])
 FEM_object<- FEM(coeff, FEMbasis)
 plot(FEM_object)
 }
-

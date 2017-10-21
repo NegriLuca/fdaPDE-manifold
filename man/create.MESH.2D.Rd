@@ -85,4 +85,3 @@ plot(mesh)
 \seealso{
 \code{\link{refine.MESH.2D}}, \code{\link{create.FEM.basis}}
 }
-

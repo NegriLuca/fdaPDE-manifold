@@ -28,4 +28,3 @@ as it is used in many examples to illustrate fdaPDE features.
   \item soil: soil type.
 }
 }
-

@@ -1,4 +1,4 @@
-checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim)
+checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
 {
   #################### Parameter Check #########################
   if(!is.null(locations))
@@ -69,7 +69,7 @@ checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lam
   }
 }
 
-checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
+checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim)
 {
   #################### Parameter Check #########################
   if(ncol(observations) != 1)

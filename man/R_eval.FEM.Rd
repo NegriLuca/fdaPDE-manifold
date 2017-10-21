@@ -21,4 +21,3 @@ Only executed when the function \code{smooth.FEM.basis} is run with the option \
 \seealso{
 \code{\link{R_eval.FEM.basis}}
 }
-
