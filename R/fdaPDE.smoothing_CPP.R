@@ -1,6 +1,6 @@
 #dyn.load("../Release/fdaPDE.so")
 
-CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV)
+CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covariates = NULL,ndim, mydim, BC = NULL, GCV)
 {
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
@@ -44,6 +44,8 @@ CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covari
   storage.mode(FEMbasis$order) <- "integer"
   covariates = as.matrix(covariates)
   storage.mode(covariates) <- "double"
+  storage.mode(ndim) <- "integer"
+  storage.mode(mydim) <- "integer"
   storage.mode(lambda)<- "double"
   storage.mode(BC$BC_indices)<- "integer"
   storage.mode(BC$BC_values)<-"double"
@@ -53,13 +55,13 @@ CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covari
   
   ## Call C++ function
   bigsol <- .Call("regression_Laplace", locations, observations, FEMbasis$mesh, 
-                  FEMbasis$order, lambda, covariates,
+                  FEMbasis$order, mydim, ndim, lambda, covariates,
                   BC$BC_indices, BC$BC_values, GCV,
                   PACKAGE = "fdaPDE")
   return(bigsol)
 }
 
-CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV)
+CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, ndim, mydim, BC = NULL, GCV)
 {
 
   # Indexes in C++ starts from 0, in R from 1, opportune transformation  
@@ -105,6 +107,8 @@ CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PD
   storage.mode(FEMbasis$order) <- "integer"
   covariates = as.matrix(covariates)
   storage.mode(covariates) <- "double"
+  storage.mode(ndim) <- "integer"
+  storage.mode(mydim) <- "integer"
   storage.mode(lambda)<- "double"
   storage.mode(BC$BC_indices)<- "integer"
   storage.mode(BC$BC_values)<-"double"
@@ -116,13 +120,13 @@ CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PD
   
   ## Call C++ function
   bigsol <- .Call("regression_PDE", locations, observations, FEMbasis$mesh, 
-                  FEMbasis$order, lambda, PDE_parameters$K, PDE_parameters$b, PDE_parameters$c, covariates,
+                  FEMbasis$order, mydim, ndim, lambda, PDE_parameters$K, PDE_parameters$b, PDE_parameters$c, covariates, 
                   BC$BC_indices, BC$BC_values, GCV,
                   PACKAGE = "fdaPDE")
   return(bigsol)
 }
 
-CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV)
+CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, ndim, mydim, BC = NULL, GCV)
 {
   
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
@@ -175,6 +179,8 @@ CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda,
   storage.mode(FEMbasis$order) <- "integer"
   covariates = as.matrix(covariates)
   storage.mode(covariates) <- "double"
+  storage.mode(ndim) <- "integer"
+  storage.mode(mydim) <- "integer"
   storage.mode(lambda)<- "double"
   storage.mode(BC$BC_indices)<- "integer"
   storage.mode(BC$BC_values)<-"double"
@@ -187,13 +193,13 @@ CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda,
   
   ## Call C++ function
   bigsol <- .Call("regression_PDE_space_varying", locations, observations, FEMbasis$mesh, 
-                  FEMbasis$order, lambda, PDE_param_eval$K, PDE_param_eval$b, PDE_param_eval$c, PDE_param_eval$u, covariates,
+                  FEMbasis$order, lambda, PDE_param_eval$K, PDE_param_eval$b, PDE_param_eval$c, PDE_param_eval$u, covariates, mydim, ndim, 
                   BC$BC_indices, BC$BC_values, GCV,
                   PACKAGE = "fdaPDE")
   return(bigsol)
 }
 
-CPP_eval.FEM = function(FEM, locations, redundancy)
+CPP_eval.FEM = function(FEM, locations, redundancy,ndim,mydim)
 {
   FEMbasis = FEM$FEMbasis
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
@@ -213,17 +219,27 @@ CPP_eval.FEM = function(FEM, locations, redundancy)
   storage.mode(FEMbasis$order) <- "integer"
   coeff = as.matrix(FEM$coeff)
   storage.mode(coeff) <- "double"
+  storage.mode(ndim)<- "integer"
+  storage.mode(mydim)<- "integer"
   storage.mode(locations) <- "double"
   storage.mode(redundancy) <- "integer"
   
   #Calling the C++ function "eval_FEM_fd" in RPDE_interface.cpp
   evalmat = matrix(0,nrow(locations),ncol(coeff))
-  for (i in 1:ncol(coeff))
-  {
-    evalmat[,i] <- .Call("eval_FEM_fd", FEMbasis$mesh, locations[,1], locations[,2], coeff[,i], 
-                   FEMbasis$order, redundancy,
-                   PACKAGE = "fdaPDE")
+
+  if(ndim==2){
+	z=matrix(0,nrow(locations),1)
+ 	for (i in 1:ncol(coeff)){
+    		evalmat[,i] <- .Call("eval_FEM_fd", FEMbasis$mesh, locations[,1], 
+    				locations[,2],z, coeff[,i], FEMbasis$order, redundancy, 				mydim, ndim, package = "fdaPDE")
+  	}
+  }else{
+
+  	evalmat[,i] <- .Call("eval_FEM_fd", FEMbasis$mesh, locations[,1], locations[,2], 				locations[,3], coeff[,i], FEMbasis$order, redundancy, mydim, ndim,
+                   	package = "fdaPDE")
+
   }
+
   #Returning the evaluation matrix
   evalmat
 }
@@ -249,6 +265,17 @@ CPP_get_evaluations_points = function(mesh, order)
   #mesh$neighbors[mesh$neighbors != -1] = mesh$neighbors[mesh$neighbors != -1] - 1
   
   # Imposing types, this is necessary for correct reading from C++
+  if(class(mesh)=="MESH2D"){
+  	ndim=2
+  	mydim=2
+  }else if(class(mesh) == "MESH.2.5D"){
+ 	stop('Function not yet implemented for this mesh class')
+ }else{
+ 	stop('Unknown mesh class')
+ }
+  
+  storage.mode(ndim)<-"integer"
+  storage.mode(mydim)<-"integer"
   storage.mode(mesh$nodes) <- "double"
   storage.mode(mesh$triangles) <- "integer"
   storage.mode(mesh$edges) <- "integer"
@@ -256,7 +283,7 @@ CPP_get_evaluations_points = function(mesh, order)
   storage.mode(order) <- "integer"
   
   #Calling the C++ function "eval_FEM_fd" in RPDE_interface.cpp
-  points <- .Call("get_integration_points",mesh, order,
+  points <- .Call("get_integration_points",mesh, order,mydim, ndim,
                   PACKAGE = "fdaPDE")
   
   #Returning the evaluation matrix
@@ -265,6 +292,16 @@ CPP_get_evaluations_points = function(mesh, order)
 
 CPP_get.FEM.Mass.Matrix<-function(FEMbasis)
 {
+  if(class(FEMbasis$mesh) == "MESH2D"){
+ 	ndim = 2
+ 	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ 	stop('Function not yet implemented for this mesh class')
+ }else{
+ 	stop('Unknown mesh class')
+ }
+
+
   # Indexes in C++ starts from 0, in R from 1, opportune transformation  
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
   FEMbasis$mesh$triangles = FEMbasis$mesh$triangles - 1
@@ -278,10 +315,12 @@ CPP_get.FEM.Mass.Matrix<-function(FEMbasis)
   storage.mode(FEMbasis$mesh$edges) <- "integer"
   storage.mode(FEMbasis$mesh$neighbors) <- "integer"
   storage.mode(FEMbasis$order) <- "integer"
+  storage.mode(ndim)<-"integer"
+  storage.mode(mydim)<-"integer"
   
   ## Call C++ function
   triplets <- .Call("get_FEM_mass_matrix", FEMbasis$mesh, 
-                    FEMbasis$order,
+                    FEMbasis$order,mydim, ndim,
                     PACKAGE = "fdaPDE")
   
   A = sparseMatrix(i = triplets[[1]][,1], j=triplets[[1]][,2], x = triplets[[2]], dims = c(nrow(FEMbasis$mesh$nodes),nrow(FEMbasis$mesh$nodes)))
@@ -290,6 +329,15 @@ CPP_get.FEM.Mass.Matrix<-function(FEMbasis)
 
 CPP_get.FEM.Stiff.Matrix<-function(FEMbasis)
 {
+    if(class(FEMbasis$mesh) == "MESH2D"){
+ 	ndim = 2
+ 	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ 	stop('Function not yet implemented for this mesh class')
+ }else{
+ 	stop('Unknown mesh class')
+ }
+
   # Indexes in C++ starts from 0, in R from 1, opportune transformation  
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
   FEMbasis$mesh$triangles = FEMbasis$mesh$triangles - 1
@@ -303,10 +351,12 @@ CPP_get.FEM.Stiff.Matrix<-function(FEMbasis)
   storage.mode(FEMbasis$mesh$edges) <- "integer"
   storage.mode(FEMbasis$mesh$neighbors) <- "integer"
   storage.mode(FEMbasis$order) <- "integer"
+  storage.mode(ndim)<-"integer"
+  storage.mode(mydim)<-"integer"
   
   ## Call C++ function
   triplets <- .Call("get_FEM_stiff_matrix", FEMbasis$mesh, 
-                    FEMbasis$order,
+                    FEMbasis$order, mydim, ndim,
                     PACKAGE = "fdaPDE")
   
   A = sparseMatrix(i = triplets[[1]][,1], j=triplets[[1]][,2], x = triplets[[2]], dims = c(nrow(FEMbasis$mesh$nodes),nrow(FEMbasis$mesh$nodes)))
@@ -315,6 +365,14 @@ CPP_get.FEM.Stiff.Matrix<-function(FEMbasis)
 
 CPP_get.FEM.PDE.Matrix<-function(FEMbasis, PDE_parameters)
 {
+  if(class(FEMbasis$mesh) == "MESH2D"){
+ 	ndim = 2
+ 	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ 	stop('Function not yet implemented for this mesh class')
+ }else{
+ 	stop('Unknown mesh class')
+ }
   # Indexes in C++ starts from 0, in R from 1, opportune transformation  
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
   FEMbasis$mesh$triangles = FEMbasis$mesh$triangles - 1
@@ -343,6 +401,8 @@ CPP_get.FEM.PDE.Matrix<-function(FEMbasis, PDE_parameters)
   storage.mode(BC$BC_indices)<- "integer"
   storage.mode(BC$BC_values)<-"double"
   storage.mode(GCV)<-"integer"
+  storage.mode(ndim)<-"integer"
+  storage.mode(mydim)<-"integer"
   
   storage.mode(PDE_parameters$K)<-"double"
   storage.mode(PDE_parameters$b)<-"double"
@@ -350,7 +410,7 @@ CPP_get.FEM.PDE.Matrix<-function(FEMbasis, PDE_parameters)
   
   ## Call C++ function
   triplets <- .Call("get_FEM_PDE_matrix", locations, observations, FEMbasis$mesh, 
-                  FEMbasis$order, lambda, PDE_parameters$K, PDE_parameters$b, PDE_parameters$c, covariates,
+                  FEMbasis$order,mydim, ndim, lambda, PDE_parameters$K, PDE_parameters$b, PDE_parameters$c, covariates,
                   BC$BC_indices, BC$BC_values, GCV,
                   PACKAGE = "fdaPDE")
 
@@ -361,6 +421,15 @@ CPP_get.FEM.PDE.Matrix<-function(FEMbasis, PDE_parameters)
 
 CPP_get.FEM.PDE.sv.Matrix<-function(FEMbasis, PDE_parameters)
 {
+
+  if(class(FEMbasis$mesh) == "MESH2D"){
+ 	ndim = 2
+ 	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ 	stop('Function not yet implemented for this mesh class')
+ }else{
+ 	stop('Unknown mesh class')
+ }
   
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
@@ -396,6 +465,8 @@ CPP_get.FEM.PDE.sv.Matrix<-function(FEMbasis, PDE_parameters)
   storage.mode(BC$BC_indices)<- "integer"
   storage.mode(BC$BC_values)<-"double"
   storage.mode(GCV)<-"integer"
+  storage.mode(ndim)<-"integer"
+  storage.mode(mydim)<-"integer"
   
   storage.mode(PDE_param_eval$K)<-"double"
   storage.mode(PDE_param_eval$b)<-"double"
@@ -404,7 +475,7 @@ CPP_get.FEM.PDE.sv.Matrix<-function(FEMbasis, PDE_parameters)
   
   ## Call C++ function
   triplets <- .Call("get_FEM_PDE_space_varying_matrix", locations, observations, FEMbasis$mesh, 
-                  FEMbasis$order, lambda, PDE_param_eval$K, PDE_param_eval$b, PDE_param_eval$c, PDE_param_eval$u, covariates,
+                  FEMbasis$order,mydim, ndim, lambda, PDE_param_eval$K, PDE_param_eval$b, PDE_param_eval$c, PDE_param_eval$u, covariates,
                   BC$BC_indices, BC$BC_values, GCV,
                   PACKAGE = "fdaPDE")
   

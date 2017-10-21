@@ -23,17 +23,19 @@ extern "C" {
 	\param Rmesh an R-object containg the output mesh from Trilibrary
 	\param RX an R-vector containing the x coordinates of the points to be evaluated
 	\param RY an R-vector containing the y coordinates of the points to be evaluated
+	\param RZ an R-vector containing the z coordinates of the points to be evaluated
 	\param Rcoef an R-vector the coeficients of the solution
 	\param Rorder an R integer containg the order of the solution
 	\param Rfast an R integer 0 for Naive location algorithm, 1 for Walking Algorithm (can miss location for non convex meshes)
 */
 
-SEXP eval_FEM_fd(SEXP Rmesh, SEXP RX, SEXP RY, SEXP Rcoef, SEXP Rorder, SEXP Rfast)
+/*
+SEXP eval_FEM_fd(SEXP Rmesh, SEXP RX, SEXP RY, SEXP Rcoef, SEXP Rorder, SEXP Rfast, SEXP Rmydim, SEXP Rndim)
 {
 	//Declare pointer to access data from C++
 
     double *X, *Y, *coef;
-	int order;
+	int order,mydim,ndim;
 	bool fast;
 
 	//int n_coef 	= Rf_length(Rcoef);
@@ -45,6 +47,8 @@ SEXP eval_FEM_fd(SEXP Rmesh, SEXP RX, SEXP RY, SEXP Rcoef, SEXP Rorder, SEXP Rfa
     coef 		= REAL(Rcoef);
     order 		= INTEGER(Rorder)[0];
     fast 		= INTEGER(Rfast)[0];
+    mydim               = INTEGER(Rmydim)[0];
+    ndim                = INTEGER(Rndim)[0];
 
     SEXP result;
 	PROTECT(result=Rf_allocVector(REALSXP, n_X));
@@ -53,15 +57,15 @@ SEXP eval_FEM_fd(SEXP Rmesh, SEXP RX, SEXP RY, SEXP Rcoef, SEXP Rorder, SEXP Rfa
 	//std::cout<<"Length "<<n_X<<"--X0 "<<X[0]<<"--Y0 "<<Y[0];
     if(order == 1)
     {
-    	MeshHandler<1> mesh(Rmesh);
-		Evaluator<1> evaluator(mesh);
+    	MeshHandler<1,2,2> mesh(Rmesh);
+		Evaluator<1,2,2> evaluator(mesh);
 		//std::cout<<"Starting evaluation from FEMeval \n";
 		evaluator.eval(X, Y, n_X, coef, order, fast, REAL(result), isinside);
 	}
 	else if(order == 2)
 	{
-    	MeshHandler<2> mesh(Rmesh);
-    	Evaluator<2> evaluator(mesh);
+    	MeshHandler<2,2,2> mesh(Rmesh);
+    	Evaluator<2,2,2> evaluator(mesh);
 		evaluator.eval(X, Y, n_X, coef, order, fast, REAL(result), isinside);
 	}
 
@@ -77,9 +81,74 @@ SEXP eval_FEM_fd(SEXP Rmesh, SEXP RX, SEXP RY, SEXP Rcoef, SEXP Rorder, SEXP Rfa
 	UNPROTECT(1);
     // result list
     return(result);
+}*/
+
+SEXP eval_FEM_fd(SEXP Rmesh, SEXP RX, SEXP RY, SEXP RZ, SEXP Rcoef, SEXP Rorder, SEXP Rfast, SEXP Rmydim, SEXP Rndim)
+{
+	//Declare pointer to access data from C++
+
+    	double *X, *Y, *Z, *coef;
+	int order,mydim,ndim;
+	bool fast;
+
+	//int n_coef 	= Rf_length(Rcoef);
+	int n_X 	= Rf_length(RX);
+
+    // Cast all computation parameters
+    X 			= REAL(RX);
+    Y 			= REAL(RY);
+    Z 			= REAL(RZ);
+    coef 		= REAL(Rcoef);
+    order 		= INTEGER(Rorder)[0];
+    fast 		= INTEGER(Rfast)[0];
+    mydim               = INTEGER(Rmydim)[0];
+    ndim                = INTEGER(Rndim)[0];
+
+    SEXP result;
+	PROTECT(result=Rf_allocVector(REALSXP, n_X));
+	std::vector<bool> isinside(n_X);
+    //Set the mesh
+	//std::cout<<"Length "<<n_X<<"--X0 "<<X[0]<<"--Y0 "<<Y[0];
+    if(order == 1 && ndim == 2)
+    {
+    	MeshHandler<1,2,2> mesh(Rmesh);
+		Evaluator<1,2,2> evaluator(mesh);
+		//std::cout<<"Starting evaluation from FEMeval \n";
+		evaluator.eval(X, Y, n_X, coef, order, fast, REAL(result), isinside);
+	}
+    else if(order == 2 && ndim == 2)
+	{
+    	MeshHandler<2,2,2> mesh(Rmesh);
+    	Evaluator<2,2,2> evaluator(mesh);
+		  evaluator.eval(X, Y, n_X, coef, order, fast, REAL(result), isinside);
+	}
+    else if(order == 2 && ndim == 3)
+	{
+    	MeshHandler<2,2,3> mesh(Rmesh);
+    	Evaluator<2,2,3> evaluator(mesh);
+		  evaluator.eval(X, Y, Z, n_X, coef, order, fast, REAL(result), isinside);
+	}
+    else if(order == 1 && ndim == 3)
+	{ 
+    	MeshHandler<1,2,3> mesh(Rmesh);
+      //mesh.printTriangles(std::cout);
+      //mesh.printPoints(std::cout);
+    	Evaluator<1,2,3> evaluator(mesh);
+		  evaluator.eval(X, Y, Z, n_X, coef, order, fast, REAL(result), isinside);
+	}
+
+    for (int i=0; i<n_X;++i)
+    {
+    	if(!(isinside[i]))
+    	{
+    		REAL(result)[i]=NA_REAL;
+    	}
+
+    }
+
+	UNPROTECT(1);
+    // result list
+    return(result);
 }
+
 }
-
-
-
-

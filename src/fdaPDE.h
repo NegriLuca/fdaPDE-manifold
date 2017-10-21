@@ -10,6 +10,7 @@
 #endif
 
 #include <stdint.h>
+#include <iostream>
 
 #include <cstdlib>
 //#include <iomanip>
@@ -33,7 +34,7 @@ typedef int UInt;
 
 typedef Eigen::Matrix<Real,Eigen::Dynamic,Eigen::Dynamic> MatrixXr;
 typedef Eigen::Matrix<Real,Eigen::Dynamic,1> VectorXr;
-typedef Eigen::Matrix<int,Eigen::Dynamic,1> VectorXi;
+typedef Eigen::Matrix<UInt,Eigen::Dynamic,1> VectorXi;
 typedef Eigen::SparseMatrix<Real> SpMat;
 typedef Eigen::SparseVector<Real> SpVec;
 typedef Eigen::Triplet<Real> coeff;

@@ -11,12 +11,12 @@
 
 //! A LinearSystem class: A class for the linear system construction and resolution.
 
-template<typename InputHandler, typename Integrator, UInt ORDER>
+template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 class MixedFERegressionBase{
 protected:
 	static constexpr Real pruning_coeff = 2.2204e-013;
 	static constexpr Real dirichlet_penalization = 10e18;
-	const MeshHandler<ORDER> &mesh_;
+	const MeshHandler<ORDER, mydim, ndim> &mesh_;
 	const InputHandler& regressionData_;
 	std::vector<coeff> tripletsData_;
 
@@ -56,7 +56,7 @@ protected:
 
 public:
 	//!A Constructor.
-	MixedFERegressionBase(const MeshHandler<ORDER>& mesh, const InputHandler& regressionData):mesh_(mesh), regressionData_(regressionData){};
+	MixedFERegressionBase(const MeshHandler<ORDER,mydim,ndim>& mesh, const InputHandler& regressionData):mesh_(mesh), regressionData_(regressionData){};
 
 	template<typename A>
 	void apply(EOExpr<A> oper);
@@ -66,11 +66,11 @@ public:
 	inline std::vector<Real> const & getDOF() const{return dof_;};
 };
 
-template<typename InputHandler, typename Integrator, UInt ORDER>
-class MixedFERegression : public MixedFERegressionBase<InputHandler, Integrator, ORDER>
+template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+class MixedFERegression : public MixedFERegressionBase<InputHandler, Integrator, ORDER, mydim, ndim>
 {
 public:
-	MixedFERegression(const MeshHandler<ORDER>& mesh, const InputHandler& regressionData):MixedFERegressionBase<InputHandler, Integrator, ORDER>(mesh, regressionData){};
+	MixedFERegression(const MeshHandler<ORDER, ndim, mydim>& mesh, const InputHandler& regressionData):MixedFERegressionBase<InputHandler, Integrator, ORDER, mydim, ndim>(mesh, regressionData){};
 
 	void apply()
 	{
