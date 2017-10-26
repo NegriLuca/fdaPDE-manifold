@@ -4,5 +4,5 @@
 \alias{caramella}
 \title{Caramella mesh}
 \description{
-A triangular mesh of a manifold representing a candy used as toy geometry.This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
+A triangular mesh of a manifold representing a candy geometry.This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
 }

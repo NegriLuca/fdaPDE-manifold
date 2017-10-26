@@ -3,7 +3,7 @@ library(fdaPDE)
 data(hub)
 
 cat('Plotting the mesh \n')
-plot.MESH.2.5D(hub)
+plot(hub)
 
 ## Generate some random data ##
 
@@ -27,4 +27,4 @@ output_CPP =smooth.FEM.basis(observations = data,
                              CPP_CODE = TRUE)
 
 cat("Showing result")
-plot.MESH.2.5D(hub,output_CPP$fit.FEM$coeff)
+plot(output_CPP$fit.FEM)

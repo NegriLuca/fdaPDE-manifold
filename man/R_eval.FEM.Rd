@@ -16,7 +16,7 @@ A matrix of numeric evaluations of the \code{FEM} object. Each row indicates the
 function evaluated.
 }
 \description{
-Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates a FEM object at the specified set of locations.
+Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates a FEM object at the specified set of locations. This method is implemented and available only for \code{FEMbasis} objects created on planar meshes (\code{MESH2D}) objects.
 }
 \seealso{
 \code{\link{R_eval.FEM.basis}}

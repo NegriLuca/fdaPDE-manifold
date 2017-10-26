@@ -52,23 +52,17 @@ NULL
 #' @name mesh.2D.rectangular
 NULL
 
-#' Internal Carotid Artery mesh
-#'
-#' A triangular mesh of a manifold representing the geometry of an internal carotid artery. This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
-#'
-#'@name ICA
-NULL
 
 #' Hub mesh
 #'
-#'A triangular mesh of a manifold representing a hub used as toy geometry.This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
+#'A triangular mesh of a manifold representing a hub geometry.This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
 #'
 #'@name hub
 NULL
 
 #' Caramella mesh
 #'
-#'A triangular mesh of a manifold representing a candy used as toy geometry.This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
+#'A triangular mesh of a manifold representing a candy geometry.This is a MESH.2.5D object created with \code{create.MESH.2.5D}.
 #'
 #'@name caramella
 NULL

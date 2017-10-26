@@ -7,14 +7,20 @@
 create.MESH.2.5D(nodes, triangles, order = 1)
 }
 \arguments{
-\item{nodes}{A nnodes x 3 matrix specifying the locations of each node}
+\item{nodes}{A #nodes-by-3 matrix specifying the locations of each node}
 
-\item{triangles}{A ntriangles x 3*order matrix specifying the indices of the nodes in each triangle}
+\item{triangles}{A #triangles-by-3*order matrix specifying the indices of the nodes in each triangle}
 
 \item{order}{Either "1" or "2". Order of the Finite Element basis default is order = 1}
 }
 \value{
-A \code{MESH.2.5D} object
+An object of the class \code{MESH.2.5D} with the following output:
+\item{\code{nnodes}}{The #nodes contained in the mesh}
+\item{\code{ntriangles}}{The #triangles contained in the mesh}
+\item{\code{nodes}}{A vector of length #nodes*3 containing the x,y and z coordinate for each point of the mesh}
+\item{\code{triangles}}{A vector of length #triangles*3*order specifying the indices of the nodes in each triangle of the mesh}
+\item{\code{order}}{Either '1' or '2'. It specifies wether each mesh triangle should be represented by 3 nodes (the triangle' vertices) or by 6 nodes (the triangle's vertices and midpoints). 
+These are respectively used for linear (order = 1) and quadratic (order = 2) Finite Elements. Default is \code{order} = 1.}
 }
 \description{
 Create a \code{MESH.2.5D} object from the connectivty matrix and nodes locations

@@ -30,7 +30,7 @@ Otherwise if only the vector of observations is given, these are consider to be 
 \item{GCV}{Boolean. If \code{TRUE} the following quantities are computed: the trace of the smoothing matrix, the estimated error standard deviation,  and 
 the Generalized Cross Validation criterion, for each value of the smoothing parameter specified in \code{lambda}.}
 
-\item{CPP_CODE}{Boolean. If \code{TRUE} the computation relies on the C++ implementation of the algorithm. This usually ensures a much faster computation.}
+\item{CPP_CODE}{Boolean. If \code{TRUE} the computation relies on the C++ implementation of the algorithm. This usually ensures a much faster computation. In case of data over a 2D manifold in a 3D space, only the C++ computation is available.}
 }
 \value{
 A list with the following variables:

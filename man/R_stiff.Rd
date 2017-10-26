@@ -14,8 +14,7 @@ A square matrix with the integrals of all the basis functions' gradients pairwis
 The dimension of the matrix is equal to the number of the nodes of the mesh.
 }
 \description{
-Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the stifness matrix. The element (i,j) of this matrix contains the integral over the domain of the scalar product between the gradient of the ith and kth element 
-of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles.
+Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the stifness matrix. The element (i,j) of this matrix contains the integral over the domain of the scalar product between the gradient of the ith and kth element of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 }
 \seealso{
 \code{\link{R_mass}}

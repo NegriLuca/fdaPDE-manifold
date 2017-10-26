@@ -35,8 +35,11 @@ an entry '0' indicates that the corresponding edge is not a boundary edge.}
 one edge of the triangle is a boundary edge.}
 \item{\code{holes}}{A #holes-by-2 matrix containing the x and y coordinates of a point internal to each hole of the mesh. These points are used to carve holes
 in the triangulation, when the domain has holes.}
-\item{\code{order}}{Either '1' or '2'. It specifies wether each mesh triangle should be represented by 3 nodes (the triangle' vertices) or by 6 nodes (the triangle's vertices and midpoints). 
+\item{\code{order}}{Either '1' or '2'. It specifies wether each mesh triangle should be represented by 3 nodes (the triangle' vertices) or by 6 nodes (the triangle's vertices and midpoints).
 These are respectively used for linear (order = 1) and quadratic (order = 2) Finite Elements. Default is \code{order} = 1.}
+\item{\code{nnodes}}{The #nodes contained in the mesh.}
+\item{\code{ntriangles}}{The #triangles contained in the mesh.}
+\item{\code{nedges}}{The #edges contained in the mesh.}
 }
 \description{
 This function refines a Constrained Delaunay triangulation into a Conforming Delaunay triangulation. This is a wrapper of the Triangle library (http://www.cs.cmu.edu/~quake/triangle.html). It can be used to 

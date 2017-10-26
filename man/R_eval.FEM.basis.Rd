@@ -19,7 +19,7 @@ A matrix of basis function values. Each row indicates the location where the eva
 basis function evaluated
 }
 \description{
-Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates the Finite Element basis functions and their derivatives up to order 2 at the specified set of locations. 
+Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates the Finite Element basis functions and their derivatives up to order 2 at the specified set of locations. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 This version of the function is implemented using only R code. It is called by \link{R_smooth.FEM.basis}.
 }
 \seealso{

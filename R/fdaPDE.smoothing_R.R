@@ -48,8 +48,7 @@ R_elementProperties=function(mesh)
 #' @param FEMbasis A \code{FEM} object representing the Finite Element basis. See \code{\link{create.FEM.basis}}.
 #' @return A square matrix with the integrals of all the basis' functions pairwise products.
 #' The dimension of the matrix is equal to the number of the nodes of the mesh.
-#' @description Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the mass matrix. The element (i,j) of this matrix contains the integral over the domain of the product between the ith and kth element 
-#' of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles. 
+#' @description Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the mass matrix. The element (i,j) of this matrix contains the integral over the domain of the product between the ith and kth element of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 #' @usage R_mass(FEMbasis)
 #' @seealso \code{\link{R_stiff}}
 
@@ -109,8 +108,7 @@ R_mass=function(FEMbasis)
 #' @param FEMbasis A \code{FEMbasis} object representing the basis; See \code{\link{create.FEM.basis}}.
 #' @return A square matrix with the integrals of all the basis functions' gradients pairwise dot products.
 #' The dimension of the matrix is equal to the number of the nodes of the mesh.
-#' @description Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the stifness matrix. The element (i,j) of this matrix contains the integral over the domain of the scalar product between the gradient of the ith and kth element 
-#' of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles. 
+#' @description Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the stifness matrix. The element (i,j) of this matrix contains the integral over the domain of the scalar product between the gradient of the ith and kth element of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 #' @usage R_stiff(FEMbasis)
 #' @seealso \code{\link{R_mass}}
 
@@ -377,7 +375,7 @@ R_smooth.FEM.basis = function(locations, observations, FEMbasis, lambda, covaria
 #' @return 
 #' A matrix of basis function values. Each row indicates the location where the evaluation has been taken, the column indicates the 
 #' basis function evaluated 
-#' @description Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates the Finite Element basis functions and their derivatives up to order 2 at the specified set of locations. 
+#' @description Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates the Finite Element basis functions and their derivatives up to order 2 at the specified set of locations. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 #' This version of the function is implemented using only R code. It is called by \link{R_smooth.FEM.basis}.
 #' @usage R_eval.FEM.basis(FEMbasis, locations, nderivs = matrix(0,1,2))
 #' @seealso \code{\link{R_eval.FEM}}
@@ -548,7 +546,7 @@ R_eval.FEM.basis <- function(FEMbasis, locations, nderivs = matrix(0,1,2))
 #' @return 
 #' A matrix of numeric evaluations of the \code{FEM} object. Each row indicates the location where the evaluation has been taken, the column indicates the 
 #' function evaluated.
-#' @description Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates a FEM object at the specified set of locations. 
+#' @description Only executed when the function \code{smooth.FEM.basis} is run with the option \code{CPP_CODE} = \code{FALSE}. It evaluates a FEM object at the specified set of locations. This method is implemented and available only for \code{FEMbasis} objects created on planar meshes (\code{MESH2D}) objects.
 #' @usage R_eval.FEM(FEM, locations)
 #' @seealso \code{\link{R_eval.FEM.basis}}
 
@@ -1011,3 +1009,50 @@ R_image.ORDN.FEM = function(FEM, num_refinements)
   }
 }
 
+R_plot_manifold<-function(FEM){
+
+  if(!require(rgl)){
+    stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
+  }
+
+  p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
+  palette(p)
+
+  order=FEM$FEMbasis$mesh$order
+  nnodes=FEM$FEMbasis$mesh$nnodes
+  ntriangles=FEM$FEMbasis$mesh$ntriangles
+  
+  nsurf = dim(FEM$coeff)[[2]]
+  for (isurf in 1:nsurf)
+  {
+    diffrange = max(FEM$coeff[,isurf])-min(FEM$coeff[,isurf])
+    rgl.open()
+    triangle = c(FEM$FEMbasis$mesh$triangles[1:3*order])-1
+    vertices = as.numeric(c(
+      FEM$FEMbasis$mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+      FEM$FEMbasis$mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+      FEM$FEMbasis$mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+    indices=c(1,2,3)
+    col = mean(FEM$coeff[triangle[1]+1,isurf],FEM$coeff[triangle[2]+1,isurf],FEM$coeff[triangle[3]+1,isurf])
+    col= (col - min(FEM$coeff[,isurf]))/diffrange*127+1
+    shade3d( tmesh3d(vertices,indices) , col=col)
+    bg3d(color = "white")
+
+    for(i in 2:ntriangles){
+      triangle = FEM$FEMbasis$mesh$triangles[(3*order*(i-1)+1):(3*order*(i-1)+3*order)]-1
+      vertices = as.numeric(c(
+        FEM$FEMbasis$mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+        FEM$FEMbasis$mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+        FEM$FEMbasis$mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+      indices=c(1,2,3)
+      col = mean(FEM$coeff[triangle+1,isurf])
+      col= (col - min(FEM$coeff[,isurf]))/diffrange*127+1
+      shade3d( tmesh3d(vertices,indices) , col= col)
+    }
+    if (nsurf > 1)
+    {readline("Press Enter for the next plot...")
+    invisible(readLines("stdin",n=1))}
+    
+  }
+
+}
