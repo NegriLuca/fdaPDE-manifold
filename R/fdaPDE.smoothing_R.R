@@ -835,7 +835,7 @@ R_plot.ORD1.FEM = function(FEM, ...)
     rgl.viewpoint(0,-45)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
-  }
+    }
 }
 
 R_plot.ORDN.FEM = function(FEM, num_refinements, ...)  
@@ -905,7 +905,7 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
     rgl.viewpoint(0,-45)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
-  }
+    }
 }
 
 R_image.ORD1.FEM = function(FEM)  
@@ -945,7 +945,7 @@ R_image.ORD1.FEM = function(FEM)
     rgl.viewpoint(0,0)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
-  }
+}
 }
 
 R_image.ORDN.FEM = function(FEM, num_refinements)  
@@ -1006,7 +1006,7 @@ R_image.ORDN.FEM = function(FEM, num_refinements)
     rgl.viewpoint(0,0)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
-  }
+}
 }
 
 R_plot_manifold<-function(FEM){
@@ -1049,9 +1049,8 @@ R_plot_manifold<-function(FEM){
       col= (col - min(FEM$coeff[,isurf]))/diffrange*127+1
       shade3d( tmesh3d(vertices,indices) , col= col)
     }
-    if (nsurf > 1)
-    {readline("Press Enter for the next plot...")
-    invisible(readLines("stdin",n=1))}
+    #if (nsurf > 1)
+    #{readline("Press a button for the next plot...")}
     
   }
 
