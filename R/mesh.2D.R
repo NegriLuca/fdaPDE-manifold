@@ -86,9 +86,6 @@ triangulate_native <- function(P, PB, PA, S, SB,H, TR, flags) {
 #' in the triangulation, when the domain has holes.}
 #' \item{\code{order}}{Either '1' or '2'. It specifies wether each mesh triangle should be represented by 3 nodes (the triangle' vertices) or by 6 nodes (the triangle's vertices and midpoints). 
 #' These are respectively used for linear (order = 1) and quadratic (order = 2) Finite Elements. Default is \code{order} = 1.}
-#' \item{\code{nnodes}}{The #nodes contained in the mesh.}
-#' \item{\code{ntriangles}}{The #triangles contained in the mesh.}
-#' \item{\code{nedges}}{The #edges contained in the mesh.}
 #' @examples 
 #' ## Upload the Meuse data
 #' data(MeuseData)
@@ -220,7 +217,6 @@ create.MESH.2D <- function(nodes, nodesattributes = NA, segments = NA, holes = N
   names(out)[8]<-"edgesmarkers"
   names(out)[9]<-"neighbors"
   
-  out[14]<-NULL
   out[13]<-NULL
   out[12]<-NULL
   out[11]<-NULL
@@ -230,12 +226,7 @@ create.MESH.2D <- function(nodes, nodesattributes = NA, segments = NA, holes = N
   names(out)[10]<-"holes"
   out[[11]] = order
   names(out)[11]<-"order"
-  out[[12]] = dim(out$nodes)[1]
-  names(out)[12]<-"nnodes"
-  out[[13]] = dim(out$triangles)[1]
-  names(out)[13]<-"ntriangles"
-  out[[14]] = dim(out$edges)[1]
-  names(out)[14]<-"nedges"
+
   
   class(out)<-"MESH2D"
   
@@ -273,9 +264,6 @@ create.MESH.2D <- function(nodes, nodesattributes = NA, segments = NA, holes = N
 #' in the triangulation, when the domain has holes.}
 #' \item{\code{order}}{Either '1' or '2'. It specifies wether each mesh triangle should be represented by 3 nodes (the triangle' vertices) or by 6 nodes (the triangle's vertices and midpoints).
 #' These are respectively used for linear (order = 1) and quadratic (order = 2) Finite Elements. Default is \code{order} = 1.}
-#' \item{\code{nnodes}}{The #nodes contained in the mesh.}
-#' \item{\code{ntriangles}}{The #triangles contained in the mesh.}
-#' \item{\code{nedges}}{The #edges contained in the mesh.}
 #' @examples 
 #' ## Upload the Meuse data and a domain boundary for these data
 #' data(MeuseData)
@@ -346,7 +334,6 @@ refine.MESH.2D<-function(mesh, minimum_angle = NA, maximum_area = NA, delaunay =
   names(out)[8]<-"edgesmarkers"
   names(out)[9]<-"neighbors"
   
-  out[14]<-NULL
   out[13]<-NULL
   out[12]<-NULL
   out[11]<-NULL
@@ -356,12 +343,6 @@ refine.MESH.2D<-function(mesh, minimum_angle = NA, maximum_area = NA, delaunay =
   names(out)[10]<-"holes"
   out[[11]] = mesh$order
   names(out)[11]<-"order"
-  out[[12]] = dim(out$nodes)[1]
-  names(out)[12]<-"nnodes"
-  out[[13]] = dim(out$triangles)[1]
-  names(out)[13]<-"ntriangles"
-  out[[14]] = dim(out$edges)[1]
-  names(out)[14]<-"nedges"
   
   class(out)<-"MESH2D"
   
