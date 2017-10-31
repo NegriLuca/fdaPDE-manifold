@@ -1,0 +1,270 @@
+#ifndef __MIXEDFEFPCA_IMP_HPP__
+#define __MIXEDFEFPCA_IMP_HPP__
+
+#include <iostream>
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEfpcaBase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
+
+	//std::cout<<"Data Matrix Computation by Basis Evaluation.."<<std::endl;
+	UInt nnodes = mesh_.num_nodes();
+	UInt nlocations = fPCAData_.getNumberofObservations();
+	Real eps = 2.2204e-016,
+		 tolerance = 100 * eps;
+
+	Psi_.resize(nlocations, nnodes);
+	//Psi_.reserve(Eigen::VectorXi::Constant(nlocations,ORDER*3));
+
+	Triangle<ORDER*3, mydim, ndim> tri_activated;
+	Eigen::Matrix<Real,ORDER * 3,1> coefficients;
+
+	Real evaluator;
+	for(UInt i=0; i<nlocations;i++)
+	{
+		tri_activated = mesh_.findLocationNaive(fPCAData_.getLocations()[i]);
+		if(tri_activated.getId() == Identifier::NVAL)
+		{
+			#ifdef R_VERSION_
+			Rprintf("WARNING: Observation %d is not in the domain, remove point and re-perform smoothing\n", i+1);
+			#else
+			std::cout << "WARNING: Observation " << i+1 <<" is not in the domain\n";
+			#endif
+		}else
+		{
+			for(UInt node = 0; node < ORDER*3 ; ++node)
+			{
+				coefficients = Eigen::Matrix<Real,ORDER * 3,1>::Zero();
+				coefficients(node) = 1; //Activates only current base
+				evaluator = evaluate_point<ORDER, mydim, ndim>(tri_activated, fPCAData_.getLocations()[i], coefficients);
+				Psi_.insert(i, tri_activated[node].getId()) = evaluator;
+			}
+		}
+	}
+
+	Psi_.prune(tolerance);
+	Psi_.makeCompressed();
+}
+
+
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEfpcaBase<Integrator,ORDER, mydim, ndim>::buildCoeffMatrix(const SpMat& DMat,  const SpMat& AMat,  const SpMat& MMat)
+{
+	UInt nnodes = mesh_.num_nodes();
+
+	std::vector<coeff> tripletAll;
+	tripletAll.reserve(DMat.nonZeros() + 2*AMat.nonZeros() + MMat.nonZeros());
+
+	for (int k=0; k<DMat.outerSize(); ++k)
+	  for (SpMat::InnerIterator it(DMat,k); it; ++it)
+	  {
+		  tripletAll.push_back(coeff(it.row(), it.col(),it.value()));
+	  }
+	for (int k=0; k<MMat.outerSize(); ++k)
+	  for (SpMat::InnerIterator it(MMat,k); it; ++it)
+	  {
+		  tripletAll.push_back(coeff(it.row()+nnodes, it.col()+nnodes,it.value()));
+	  }
+	for (int k=0; k<AMat.outerSize(); ++k)
+	  for (SpMat::InnerIterator it(AMat,k); it; ++it)
+	  {
+		  tripletAll.push_back(coeff(it.col(), it.row()+nnodes,it.value()));
+	  }
+	for (int k=0; k<AMat.outerSize(); ++k)
+	  for (SpMat::InnerIterator it(AMat,k); it; ++it)
+	  {
+		  tripletAll.push_back(coeff(it.row()+nnodes, it.col(), it.value()));
+	  }
+
+	coeffmatrix_.setZero();
+	coeffmatrix_.resize(2*nnodes,2*nnodes);
+	coeffmatrix_.setFromTriplets(tripletAll.begin(),tripletAll.end());
+	coeffmatrix_.makeCompressed();
+}
+
+//construct NW block of the system matrix when basis evaluation is necessary
+//!! Depends on computeBasisEvaluations and computeProjOnCovMatrix
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFERegressionBase<Integrator,ORDER, mydim, ndim>::computeDataMatrix(SpMat& DMat)
+{
+		UInt nnodes = mesh_.num_nodes();
+		DMat.resize(nnodes,nnodes);
+		DMat = Psi_.transpose()*Psi_;
+}
+
+//construct NW block of the system matrix in Ramsay when locations of observations are
+//a subset of the meshe's nodes
+//!! Depends on computeBasisEvaluations and computeProjOnCovMatrix
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEfpcaBase<Integrator,ORDER, mydim, ndim>::computeDataMatrixByIndices(SpMat& DMat)
+{
+		UInt nnodes = mesh_.num_nodes();
+		UInt nlocations = fPCAData_.getNumberofObservations();
+
+		DMat.resize(nnodes,nnodes);
+
+		if (fPCAData_.getCovariates().rows() == 0)
+		{
+			DMat.reserve(1);
+			for (auto i = 0; i<nlocations; ++i)
+			{
+				auto index = fPCAData_.getObservationsIndices()[i];
+				DMat.insert(index,index) = 1;
+			}
+		}
+		else
+		{
+			//May be inefficient
+			for (auto i = 0; i<nlocations; ++i)
+			{
+				auto index_i = fPCAData_.getObservationsIndices()[i];
+				for (auto j = 0; j<nlocations; ++j)
+				{
+					auto index_j = fPCAData_.getObservationsIndices()[j];
+					DMat.insert(index_i,index_j) = P_(i,j);
+				}
+			}
+		}
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFERegressionBase<Integrator,ORDER, mydim, ndim>::computeRightHandData(VectorXr& rightHandData)
+{
+	UInt nnodes = mesh_.num_nodes();
+	UInt nlocations = fPCAData_.getNumberofObservations();
+	//rightHandData.resize(nnodes);
+	rightHandData = VectorXr::Zero(nnodes);
+		if(fPCAData_.isLocationsByNodes())
+		{
+
+			for (auto i=0; i<nlocations;++i)
+			{
+				auto index_i = fPCAData_.getObservationsIndices()[i];
+				rightHandData(index_i) = fPCAData_.getObservations()[i];
+			}
+		}
+		else
+		{
+			rightHandData=Psi_.transpose()*fPCAData_.getObservations();
+		}
+
+}
+
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEfpcaBase<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt output_index)
+{
+	UInt nnodes = mesh_.num_nodes();
+	UInt nlocations = fPCAData_.getNumberofObservations();
+
+	Eigen::SparseLU<SpMat> solver;
+	solver.compute(coeffmatrix_);
+	SpMat I(coeffmatrix_.rows(),coeffmatrix_.cols());
+	I.setIdentity();
+	SpMat coeff_inv = solver.solve(I);
+
+
+	Real degrees=0;
+
+		if(fPCAData_.isLocationsByNodes())
+		{
+			VectorXr d = coeff_inv.diagonal();
+
+			for (auto i=0; i<nlocations;++i)
+			{
+				auto index_i = fPCAData_.getObservationsIndices()[i];
+				degrees+=d(index_i);
+			}
+		}
+		else
+		{
+			MatrixXr An(coeff_inv.topLeftCorner(nnodes, nnodes));
+			MatrixXr S = Psi_*An*Psi_.transpose();
+			for (auto i=0; i<nlocations;++i)
+			{
+				degrees+=S(i,i);
+			}
+		}
+
+
+
+	//std::cout<<"TRACE "<<degrees<<std::endl;
+
+	dof_[output_index] = degrees;
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+template<typename A>
+void MixedFEfpcaBase<Integrator,ORDER, mydim, ndim>::apply(EOExpr<A> oper)
+{
+	UInt nnodes=mesh_.num_nodes();
+	FiniteElement<Integrator, ORDER, mydim, ndim> fe;
+
+	//std::cout << "HERE1" << std::endl;
+	if(!fPCAData_.isLocationsByNodes())
+		computeBasisEvaluations();
+	if(!fPCAData_.isLocationsByNodes())
+		computeDataMatrix(DMat_);
+	else
+		computeDataMatrixByIndices(DMat_);
+
+	//std::cout << "HERE2" << std::endl;
+	typedef EOExpr<Mass> ETMass; Mass EMass; ETMass mass(EMass);
+	Assembler::operKernel(oper, mesh_, fe, AMat_);
+	Assembler::operKernel(mass, mesh_, fe, MMat_);
+	//std::cout << "HERE3" << std::endl;
+	VectorXr rightHandData;
+	computeRightHandData(rightHandData);
+	b_ = VectorXr::Zero(2*nnodes);
+	b_.topRows(nnodes)=rightHandData;
+	//std::cout << "HERE4" << std::endl;
+	solution_.resize(fPCAData_.getLambda().size());
+	dof_.resize(fPCAData_.getLambda().size());
+
+	for(UInt i = 0; i<fPCAData_.getLambda().size(); ++i)
+	{
+		Real lambda = fPCAData_.getLambda()[i];
+		SpMat AMat_lambda = (-lambda)*AMat_;
+		SpMat MMat_lambda = (-lambda)*MMat_;
+		this->buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda);
+		//std::cout << coeffmatrix_ << std::endl;
+		//Applying boundary conditions if necessary
+		if(fPCAData_.getDirichletIndices().size() != 0)
+			applyDirichletBC(fPCAData_.getDirichletIndices(), fPCAData_.getDirichletValues());
+
+		this-> template solve<SpLU>(i);
+		if(fPCAData_.computeDOF())
+			computeDegreesOfFreedom(i);
+		else
+			dof_[i] = -1;
+	}
+	//std::cout << "HERE5" << std::endl;
+}
+
+//solve sparse system with P method
+
+template<typename Integrator, UInt ORDER,UInt mydim, UInt ndim>
+template <typename P>
+void MixedFEfpcaBase<Integrator,ORDER,mydim,ndim>::solve(UInt output_index)
+{
+	//std::cout<<this->coeffmatrix_;
+	this->solution_[output_index].resize(this->coeffmatrix_.rows());
+	P::solve(this->coeffmatrix_,this->b_,this->solution_[output_index]);
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+class MixedFEfpca<Integrator, ORDER, mydim, ndim> : public MixedFEfpcaBase<Integrator, ORDER, mydim, ndim>
+{
+public:
+	MixedFEfpca(const MeshHandler<ORDER, mydim, ndim>& mesh, const FPCAData& fPCAData):MixedFEfpcaBase<Integrator, ORDER, mydim, ndim>(mesh, fPCAData){};
+
+	void apply()
+	{
+		typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
+	    MixedFEfpcaBase<Integrator, ORDER, mydim, ndim>::apply(stiff);
+	}
+};
+
+
+
+#endif

@@ -8,6 +8,8 @@
 #include "mesh.h"
 #include "finite_element.h"
 #include "matrix_assembler.h"
+#include "FPCAData.h"
+#include "mixedFEfpca.h"
 
 #include "mixedFERegression.h"
 
@@ -43,6 +45,40 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	UNPROTECT(1);
 	return(result);
 }
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
+{
+	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
+	MixedFEfpca<Integrator,ORDER, mydim, ndim> fpca(mesh,fPCAData);
+
+	fpca.apply();
+
+	const std::vector<VectorXr>& solution = fpca.getSolution();
+	const std::vector<Real>& dof = fpca.getDOF();
+
+	//Copy result in R memory
+	SEXP result = NILSXP;
+	result = PROTECT(Rf_allocVector(VECSXP, 2));
+	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
+	SET_VECTOR_ELT(result, 1, Rf_allocVector(REALSXP, solution.size()));
+	Real *rans = REAL(VECTOR_ELT(result, 0));
+	for(UInt j = 0; j < solution.size(); j++)
+	{
+		for(UInt i = 0; i < solution[0].size(); i++)
+			rans[i + solution[0].size()*j] = solution[j][i];
+	}
+
+	Real *rans2 = REAL(VECTOR_ELT(result, 1));
+	for(UInt i = 0; i < solution.size(); i++)
+	{
+		rans2[i] = dof[i];
+	}
+	UNPROTECT(1);
+	return(result);
+}
+
+
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP get_integration_points_skeleton(SEXP Rmesh)
@@ -301,6 +337,25 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 	if(regressionData.getOrder()==2 && ndim==2)
 		return(get_FEM_Matrix_skeleton<IntegratorTriangleP4, 2,2,2>(Rmesh, c*mass+stiff[K]+dot(beta,grad)));
 	return(NILSXP);
+}
+
+SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP DOF, SEXP RnPC){
+//Set data
+	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, DOF);
+
+	SEXP result = NILSXP;
+
+	UInt mydim=INTEGER(Rmydim)[0];
+	UInt ndim=INTEGER(Rndim)[0];
+	
+	//std::cout<<fPCAdata.getNPC()<<std::endl;
+	
+	
+	if(fPCAdata.getOrder()==1 && ndim==3)
+    	return(FPCA_skeleton<fPCAdata,IntegratorTriangleP2, 1, 2, 3>(FPCAData, Rmesh));
+    	return(NILSXP);
+
+
 }
 
 }
