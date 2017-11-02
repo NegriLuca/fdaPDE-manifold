@@ -9,11 +9,13 @@
 #include "finite_element.h"
 #include "matrix_assembler.h"
 #include "FPCAData.h"
-#include "mixedFEfpca.h"
+#include "mixedFE.h"
+#include "FPCAObject.h"
 
+#include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
 
-
+//PRovaea
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 {
@@ -46,37 +48,55 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	return(result);
 }
 
-template<UInt ORDER, UInt mydim, UInt ndim>
+template<typename InputHandler, typename Integrator,UInt ORDER, UInt mydim, UInt ndim>
 SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 {
 	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
-	MixedFEfpca<Integrator,ORDER, mydim, ndim> fpca(mesh,fPCAData);
+	MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim> fpca(mesh,fPCAData);
 
 	fpca.apply();
 
-	const std::vector<VectorXr>& solution = fpca.getSolution();
+	const std::vector<VectorXr>& loadings = fpca.getLoadingsMat();
+	const std::vector<VectorXr>& scores = fpca.getScoresMat();
+	const std::vector<Real>& lambdas = fpca.getLambdaPC();
 	const std::vector<Real>& dof = fpca.getDOF();
 
 	//Copy result in R memory
 	SEXP result = NILSXP;
-	result = PROTECT(Rf_allocVector(VECSXP, 2));
-	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
-	SET_VECTOR_ELT(result, 1, Rf_allocVector(REALSXP, solution.size()));
+	result = PROTECT(Rf_allocVector(VECSXP, 4));
+	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, loadings[0].size(), loadings.size()));
+	SET_VECTOR_ELT(result, 1, Rf_allocMatrix(REALSXP, scores[0].size(), scores.size()));
+	SET_VECTOR_ELT(result, 2, Rf_allocVector(REALSXP, lambdas.size()));
+	SET_VECTOR_ELT(result, 3, Rf_allocVector(REALSXP, dof.size()));
 	Real *rans = REAL(VECTOR_ELT(result, 0));
-	for(UInt j = 0; j < solution.size(); j++)
+	for(UInt j = 0; j < loadings.size(); j++)
 	{
-		for(UInt i = 0; i < solution[0].size(); i++)
-			rans[i + solution[0].size()*j] = solution[j][i];
+		for(UInt i = 0; i < loadings[0].size(); i++)
+			rans[i + loadings[0].size()*j] = loadings[j][i];
+	}
+	
+	Real *rans1 = REAL(VECTOR_ELT(result, 1));
+	for(UInt j = 0; j < scores.size(); j++)
+	{
+		for(UInt i = 0; i < scores[0].size(); i++)
+			rans1[i + scores[0].size()*j] = scores[j][i];
+	}
+	
+	Real *rans2 = REAL(VECTOR_ELT(result, 2));
+	for(UInt i = 0; i < lambdas.size(); i++)
+	{
+		rans2[i] = lambdas[i];
 	}
 
-	Real *rans2 = REAL(VECTOR_ELT(result, 1));
-	for(UInt i = 0; i < solution.size(); i++)
+	Real *rans3 = REAL(VECTOR_ELT(result, 3));
+	for(UInt i = 0; i < dof.size(); i++)
 	{
-		rans2[i] = dof[i];
+		rans3[i] = dof[i];
 	}
 	UNPROTECT(1);
 	return(result);
 }
+
 
 
 
@@ -232,31 +252,6 @@ SEXP get_integration_points(SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim)
     return(NILSXP);
 }
 
-/*SEXP get_FEM_PDE_Matrix(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder,SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RK, SEXP Rbeta, SEXP Rc,
-				   SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF)
-{
-	RegressionDataElliptic regressionData(Rlocations, Robservations, Rorder, Rlambda, RK, Rbeta, Rc, Rcovariates, RBCIndices, RBCValues, DOF);
-	
-	//Get mydim and ndim
-	UInt mydim=INTEGER(Rmydim)[0];
-	UInt ndim=INTEGER(Rndim)[0];
-
-	typedef EOExpr<Mass> ETMass;   Mass EMass;   ETMass mass(EMass);
-	typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
-	typedef EOExpr<Grad> ETGrad;   Grad EGrad;   ETGrad grad(EGrad);
-
-	const Real& c = regressionData.getC();
-	const Eigen::Matrix<Real,2,2>& K = regressionData.getK();
-	const Eigen::Matrix<Real,2,1>& beta = regressionData.getBeta();
-	
-    if(regressionData.getOrder()==1 && ndim==2)
-    	return(get_FEM_Matrix_skeleton<IntegratorTriangleP2, 1,2,2>(Rmesh, c*mass+stiff[K]+dot(beta,grad)));
-	if(regressionData.getOrder()==2 && ndim==2)
-		return(get_FEM_Matrix_skeleton<IntegratorTriangleP4, 2,2,2>(Rmesh, c*mass+stiff[K]+dot(beta,grad)));
-	return(NILSXP);
-}
-*/
-
 SEXP get_FEM_mass_matrix(SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim)
 {
 	int order = INTEGER(Rorder)[0];
@@ -347,15 +342,21 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SE
 
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
+	 
+	//std::cout<<"NPC:      "<<fPCAdata.getNPC()<<std::endl;
 	
-	//std::cout<<fPCAdata.getNPC()<<std::endl;
+	//fPCAdata.printDatamatrix(std::cout);
+	return (FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3>(fPCAdata,Rmesh));
+
 	
+	}
 	
+/*	
 	if(fPCAdata.getOrder()==1 && ndim==3)
     	return(FPCA_skeleton<fPCAdata,IntegratorTriangleP2, 1, 2, 3>(FPCAData, Rmesh));
     	return(NILSXP);
+*/
 
 
-}
 
 }

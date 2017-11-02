@@ -4,6 +4,7 @@
 #include "fdaPDE.h"
 #include "mesh_objects.h"
 #include "param_functors.h"
+#include "inputData.h"
 
 //!  An IO handler class for objects passed from R
 /*!
@@ -11,32 +12,18 @@
  * series of method for their access, so isolating the more the possible the specific
  * code for R/C++ data conversion.
 */
-class  FPCAData{
+class  FPCAData: public InputData{
 	private:
-
-		// Design matrix pointer and dimensions
-		std::vector<Point> locations_;
-		
-		
 		//Design matrix
 		MatrixXr datamatrix_;
+		std::vector<UInt> observations_indices_;
 		UInt n_;
 		UInt p_;
-		std::vector<UInt> datamatrix_indices_;
-		bool locations_by_nodes_;
-
-		//Other parameters
-		UInt order_;
-		std::vector<Real> lambda_;
-
-		//bool inputType;
-		bool DOF_;
 		
 		//Number of Principal Components
 		UInt nPC_;
 		
 		#ifdef R_VERSION_
-		void setLocations(SEXP Rlocations);
 		void setDatamatrix(SEXP Rdatamatrix);
 		#endif
 
@@ -78,30 +65,21 @@ class  FPCAData{
 		#endif
 
 				
-		
-		
 		explicit FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix,
 		UInt order, std::vector<Real> lambda, UInt nPC, bool DOF);
 
 
 		void printDatamatrix(std::ostream & out) const;
-		void printLocations(std::ostream & out) const;
 		
-
+		//void newDatamatrix(const VectorXr& scores_,const VectorXr& loadings_);
+		
 		//! A method returning a reference to the observations vector
 		inline MatrixXr const & getDatamatrix() const {return datamatrix_;}
 		
 		//! A method returning the number of observations
-		inline UInt const getNumberofDatamatrix() const {return datamatrix_.rows();}
-		//! A method returning the locations of the observations
-		inline std::vector<Point> const & getLocations() const {return locations_;}
-		inline bool isLocationsByNodes() const {return locations_by_nodes_;}
-		inline bool computeDOF() const {return DOF_;}
-		inline std::vector<UInt> const & getDatamatrixIndices() const {return datamatrix_indices_;}
-		//! A method returning the the penalization term
-		inline std::vector<Real> const & getLambda() const {return lambda_;}
-		//! A method returning the input order
-		inline UInt const getOrder() const {return order_;}
+		inline UInt const getNumberofObservations() const {return datamatrix_.cols();}
+		inline std::vector<UInt> const & getObservationsIndices() const {return observations_indices_;}
+
 		//! A method returning the number of Principal Components to compute
 		inline UInt const getNPC() const {return nPC_;}
 };

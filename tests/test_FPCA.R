@@ -25,25 +25,32 @@ for (i in 0:(nnodes-1)){
 }
 
 data=func_evaluation+rnorm(nnodes,mean=0,sd=0.5)
-datamatrix<-cbind(datamatrix,data)
+datamatrix<-rbind(datamatrix,data)
 }
 
-#SVD<-svd(t(datamatrix),nu=1,nv=1,LINPACK=FALSE)
-#u_hat<-SVD$u
-#str(u_hat)
-#datamatrix%*%u_hat
-#cat("U of SVD\n")
-#SVD$u
+#datamatrix
 
-#cat("V of SVD\n")
-#SVD$v
+data_bar=colMeans(datamatrix)
+data_demean=matrix(rep(data_bar,50),nrow=50,byrow=TRUE)
+
+#data_demean
+
+datamatrix_demeaned=datamatrix-data_demean
+
+
 
 FEMbasis <- create.FEM.basis(hub)
 
 lambda=c(0.00375)
-output_CPP =smooth.FEM.FPCA(datamatrix = datamatrix,
+output_CPP =smooth.FEM.FPCA(datamatrix = datamatrix_demeaned,
                              FEMbasis = FEMbasis, lambda = lambda,
                              CPP_CODE = TRUE,nPC=2)
+                             
+str(output_CPP)
+
+
+plot(output_CPP$loadings.FEM)
+
 
 #cat("Showing result")
 #plot.MESH2.5D(hub,output_CPP$fit.FEM$coeff)
