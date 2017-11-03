@@ -2,6 +2,8 @@
 #define __MIXEDFEFPCA_IMP_HPP__
 
 #include <iostream>
+#include<iterator>
+#include <numeric>
 
 
 //construct NW block of the system matrix when basis evaluation is necessary
@@ -96,6 +98,41 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::computeDegrees
 
 	this->dof_[output_index] = degrees;
 }
+
+
+template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::computeVarianceExplained()
+{	
+
+	MatrixXr U_not_normalized(scores_mat_[0].size(),scores_mat_.size());
+	for(UInt i=0;i<scores_mat_.size();i++)
+		U_not_normalized.col(i)=scores_mat_[i];
+	Eigen::HouseholderQR<MatrixXr> qr(U_not_normalized);
+	MatrixXr R=qr.matrixQR().triangularView<Eigen::Upper>();
+	variance_explained_.resize(this->inputData_.getNPC());
+	for(UInt i=0;i<variance_explained_.size();i++)
+	variance_explained_[i]=(R.diagonal()*R.diagonal().transpose()).diagonal()[i]/scores_mat_[0].size();
+	}
+	
+template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained()
+{	
+	Eigen::JacobiSVD<MatrixXr> svd(this->inputData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
+	MatrixXr U_ALL(this->inputData_.getDatamatrix().rows(),this->inputData_.getDatamatrix().rows());
+	for(UInt i=0;i<svd.singularValues().rows();i++)
+		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt(svd.matrixV().col(i).transpose()*this->MMat_*svd.matrixV().col(i));
+	Real TotVar=(U_ALL.transpose()*U_ALL).trace()/this->inputData_.getDatamatrix().rows();
+	/*std::cout<<(U_ALL.transpose()*U_ALL)<<std::endl;
+	std::cout<<(U_ALL.transpose()*U_ALL).trace()<<std::endl;
+	std::cout<<this->inputData_.getDatamatrix().rows()<<std::endl;
+	std::cout<<TotVar<<std::endl;
+	*/
+	
+	cumsum_percentage_.resize(this->inputData_.getNPC());
+	
+	std::partial_sum(variance_explained_.begin(),variance_explained_.end(), cumsum_percentage_.begin());
+	std::for_each(cumsum_percentage_.begin(), cumsum_percentage_.end(), [&TotVar](Real& i){i=i/TotVar;});
+	}
 
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 template<typename A>
@@ -228,6 +265,8 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 	//std::cout<<"NewDataMAT"<<std::endl;
 	//std::cout<<this->inputData_.getDatamatrix()-scores_mat_[np]*loadings_mat_[np].transpose()<<std::endl;
 	}
+	computeVarianceExplained();
+	computeCumulativePercentageExplained();
 }
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
