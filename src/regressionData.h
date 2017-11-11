@@ -4,6 +4,7 @@
 #include "fdaPDE.h"
 #include "mesh_objects.h"
 #include "param_functors.h"
+#include "inputData.h"
 
 //!  An IO handler class for objects passed from R
 /*!
@@ -11,15 +12,11 @@
  * series of method for their access, so isolating the more the possible the specific
  * code for R/C++ data conversion.
 */
-class  RegressionData{
+class  RegressionData: public InputData{
 	private:
-
-		// Design matrix pointer and dimensions
-		std::vector<Point> locations_;
 
 		VectorXr observations_;
 		std::vector<UInt> observations_indices_;
-		bool locations_by_nodes_;
 
 
 		//Design matrix
@@ -27,18 +24,10 @@ class  RegressionData{
 		UInt n_;
 		UInt p_;
 
-		//Other parameters
-		UInt order_;
-		std::vector<Real> lambda_;
-
 		std::vector<Real> bc_values_;
 		std::vector<UInt> bc_indices_;
 
-		//bool inputType;
-		bool DOF_;
-
 		#ifdef R_VERSION_
-		void setLocations(SEXP Rlocations);
 		void setObservations(SEXP Robservations);
 		void setCovariates(SEXP Rcovariates);
 		#endif
@@ -85,7 +74,6 @@ class  RegressionData{
 
 		void printObservations(std::ostream & out) const;
 		void printCovariates(std::ostream & out) const;
-		void printLocations(std::ostream & out) const;
 
 		//! A method returning a reference to the observations vector
 		inline VectorXr const & getObservations() const {return observations_;}
@@ -93,15 +81,7 @@ class  RegressionData{
 		inline MatrixXr const & getCovariates() const {return covariates_;}
 		//! A method returning the number of observations
 		inline UInt const getNumberofObservations() const {return observations_.size();}
-		//! A method returning the locations of the observations
-		inline std::vector<Point> const & getLocations() const {return locations_;}
-		inline bool isLocationsByNodes() const {return locations_by_nodes_;}
-		inline bool computeDOF() const {return DOF_;}
 		inline std::vector<UInt> const & getObservationsIndices() const {return observations_indices_;}
-		//! A method returning the the penalization term
-		inline std::vector<Real> const & getLambda() const {return lambda_;}
-		//! A method returning the input order
-		inline UInt const getOrder() const {return order_;}
 		//! A method returning the indexes of the nodes for which is needed to apply Dirichlet Conditions
 		inline std::vector<UInt> const & getDirichletIndices() const {return bc_indices_;}
 		//! A method returning the values to apply for Dirichlet Conditions

@@ -39,5 +39,16 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = 
 	  lambda, ndim, mydim, GCV,nPC)
 	  numnodes = FEMbasis$mesh$nnodes
   }
-  return(bigsol)
+  
+  loadings=bigsol[[1]]
+  loadings.FEM=FEM(loadings,FEMbasis)
+  
+  scores=bigsol[[2]]
+  
+  lambda=bigsol[[3]]
+  
+  dof=bigsol[[4]]
+  
+  reslist=list(loadings.FEM=loadings.FEM, scores=scores, lambda=lambda, dof=dof)
+  return(reslist)
   }

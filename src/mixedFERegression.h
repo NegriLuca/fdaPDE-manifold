@@ -8,37 +8,20 @@
 #include "param_functors.h"
 #include "regressionData.h"
 #include "solver.h"
+#include "mixedFE.h"
 
 //! A LinearSystem class: A class for the linear system construction and resolution.
 
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
-class MixedFERegressionBase{
+class MixedFERegressionBase: public MixedFE<InputHandler, Integrator, ORDER, mydim, ndim>
+{
 protected:
-	static constexpr Real pruning_coeff = 2.2204e-013;
 	static constexpr Real dirichlet_penalization = 10e18;
-	const MeshHandler<ORDER, mydim, ndim> &mesh_;
-	const InputHandler& regressionData_;
-	std::vector<coeff> tripletsData_;
 
-	//SpMat NWblock_;
-	SpMat DMat_;
-	SpMat AMat_;
-	SpMat MMat_;
-
-	SpMat Psi_;
 	MatrixXr P_;
 
-	SpMat coeffmatrix_;       //!A Eigen::VectorXr: Stores the system right hand side.
-	VectorXr b_;			  //!A Eigen::VectorXr : Stores the system solution
-	std::vector<VectorXr> solution_;
-	std::vector<Real> dof_;
-
-	void computeBasisEvaluations();
 	void computeProjOnCovMatrix();
 
-	//	|DMat | AMat^T  |
-	//	|AMat | MMat	|
-	void buildCoeffMatrix(const SpMat& DMat,  const SpMat& AMat,  const SpMat& MMat);
 	//! A normal member taking two arguments: Dirichlet Boundary condition
 	/*!
 	 * This member applies Dirichlet boundary conditions on the linear system with the penalization method.
@@ -50,27 +33,20 @@ protected:
 	void computeDataMatrixByIndices(SpMat& DMat);
 	void computeRightHandData(VectorXr& rightHandData);
 	void computeDegreesOfFreedom(UInt output_index);
-	 //! A template for the system resolution: SpLu, SpQR, SpCholesky,SpConjGrad
-	template<typename P>
-	void solve(UInt output_index);
 
 public:
 	//!A Constructor.
-	MixedFERegressionBase(const MeshHandler<ORDER,mydim,ndim>& mesh, const InputHandler& regressionData):mesh_(mesh), regressionData_(regressionData){};
+	MixedFERegressionBase(const MeshHandler<ORDER,mydim,ndim>& mesh, const InputHandler& inputData):MixedFE<InputHandler, Integrator, ORDER, mydim, ndim>(mesh, inputData){};
 
 	template<typename A>
 	void apply(EOExpr<A> oper);
-
-	//! A inline member that returns a VectorXr, returns the whole solution_.
-	inline std::vector<VectorXr> const & getSolution() const{return solution_;};
-	inline std::vector<Real> const & getDOF() const{return dof_;};
 };
 
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 class MixedFERegression : public MixedFERegressionBase<InputHandler, Integrator, ORDER, mydim, ndim>
 {
 public:
-	MixedFERegression(const MeshHandler<ORDER, ndim, mydim>& mesh, const InputHandler& regressionData):MixedFERegressionBase<InputHandler, Integrator, ORDER, mydim, ndim>(mesh, regressionData){};
+	MixedFERegression(const MeshHandler<ORDER, ndim, mydim>& mesh, const InputHandler& inputData):MixedFERegressionBase<InputHandler, Integrator, ORDER, mydim, ndim>(mesh, inputData){};
 
 	void apply()
 	{

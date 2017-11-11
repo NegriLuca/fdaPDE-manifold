@@ -1,18 +1,10 @@
 #ifndef __REGRESSIONDATA_IMP_HPP__
 #define __REGRESSIONDATA_IMP_HPP__
 
-RegressionData::RegressionData(std::vector<Point>& locations, VectorXr& observations, UInt order, std::vector<Real> lambda, MatrixXr& covariates , std::vector<UInt>& bc_indices, std::vector<Real>& bc_values, bool DOF):
-					locations_(locations), observations_(observations), covariates_(covariates), order_(order), lambda_(lambda),
-					bc_values_(bc_values), bc_indices_(bc_indices), DOF_(DOF)
+RegressionData::RegressionData(std::vector<Point>& locations, VectorXr& observations, UInt order, std::vector<Real> lambda, MatrixXr& covariates , std::vector<UInt>& bc_indices, std::vector<Real>& bc_values, bool DOF):InputData(locations, order, lambda,DOF), observations_(observations), covariates_(covariates), bc_values_(bc_values), bc_indices_(bc_indices)
 {
-	if(locations_.size()==0)
-	{
-		locations_by_nodes_= true;
+	if(locations.size()==0){
 		for(int i = 0; i<observations_.size();++i) observations_indices_.push_back(i);
-	}
-	else
-	{
-		locations_by_nodes_= false;
 	}
 }
 
@@ -29,26 +21,14 @@ RegressionDataEllipticSpaceVarying::RegressionDataEllipticSpaceVarying(std::vect
 
 #ifdef R_VERSION_
 RegressionData::RegressionData(SEXP Rlocations, SEXP Robservations, SEXP Rorder, SEXP Rlambda, SEXP Rcovariates,
-			   SEXP RBCIndices, SEXP RBCValues, SEXP DOF)
+			   SEXP RBCIndices, SEXP RBCValues, SEXP DOF):InputData(Rlocations, Rorder, Rlambda, DOF)
 {
-	setLocations(Rlocations);
-	//std::cout<< "Locations set"<<std::endl;
 	setObservations(Robservations);
-	//std::cout<< "Observations set"<<std::endl;
 	setCovariates(Rcovariates);
-	//std::cout<< "Covariates set"<<std::endl;
-
-	order_ =  INTEGER(Rorder)[0];
-	DOF_ = INTEGER(DOF)[0];
 
 	UInt length_indexes = Rf_length(RBCIndices);
-    //for (UInt i = 0; i<length_indexes; ++i)  bc_indices_.push_back(INTEGER(RBCIndices)[i]);
-    //for (UInt i = 0; i<length_indexes; ++i)  bc_values_.push_back(REAL(RBCValues)[i]);
 	bc_indices_.assign(INTEGER(RBCIndices), INTEGER(RBCIndices) +  length_indexes);
 	bc_values_.assign(REAL(RBCValues),REAL(RBCValues) + Rf_length(RBCIndices));
-
-    UInt length_lambda = Rf_length(Rlambda);
-    for (UInt i = 0; i<length_lambda; ++i)  lambda_.push_back(REAL(Rlambda)[i]);
 
 }
 
@@ -98,9 +78,8 @@ void RegressionData::setObservations(SEXP Robservations)
 	observations_indices_.reserve(n_obs_);
 
 	UInt count = 0;
-	if(locations_.size() == 0)
+	if(this->getLocations().size() == 0)
 	{
-		locations_by_nodes_ = true;
 		for(auto i=0;i<n_obs_;++i)
 		{
 			if(!ISNA(REAL(Robservations)[i]))
@@ -114,7 +93,6 @@ void RegressionData::setObservations(SEXP Robservations)
 	}
 	else
 	{
-		locations_by_nodes_ = false;
 		for(auto i=0;i<n_obs_;++i)
 		{
 			observations_[i] = REAL(Robservations)[i];
@@ -143,16 +121,6 @@ void RegressionData::setCovariates(SEXP Rcovariates)
 	}
 }
 
-void RegressionData::setLocations(SEXP Rlocations)
-{
-	n_ = INTEGER(Rf_getAttrib(Rlocations, R_DimSymbol))[0];
-
-	for(auto i=0; i<n_; ++i)
-	{
-		locations_.emplace_back(REAL(Rlocations)[i+ n_*0],REAL(Rlocations)[i+ n_*1]);
-	}
-}
-
 #endif
 
 void RegressionData::printObservations(std::ostream & out) const
@@ -177,14 +145,5 @@ void RegressionData::printCovariates(std::ostream & out) const
 	}
 }
 
-void RegressionData::printLocations(std::ostream & out) const
-{
-
-	for(std::vector<Point>::size_type i=0;i<locations_.size(); i++)
-	{
-		locations_[i].print(out);
-		//std::cout<<std::endl;
-	}
-}
 
 #endif
