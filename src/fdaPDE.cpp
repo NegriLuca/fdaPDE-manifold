@@ -59,15 +59,19 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 	const std::vector<VectorXr>& loadings = fpca.getLoadingsMat();
 	const std::vector<VectorXr>& scores = fpca.getScoresMat();
 	const std::vector<Real>& lambdas = fpca.getLambdaPC();
-	const std::vector<Real>& dof = fpca.getDOF();
+	//const std::vector<Real>& dof = fpca.getDOF();
+	const std::vector<Real>& variance_explained = fpca.getVarianceExplained();
+	const std::vector<Real>& cumsum_percentage = fpca.getCumulativePercentage();
+	
 
 	//Copy result in R memory
 	SEXP result = NILSXP;
-	result = PROTECT(Rf_allocVector(VECSXP, 4));
+	result = PROTECT(Rf_allocVector(VECSXP, 5));
 	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, loadings[0].size(), loadings.size()));
 	SET_VECTOR_ELT(result, 1, Rf_allocMatrix(REALSXP, scores[0].size(), scores.size()));
 	SET_VECTOR_ELT(result, 2, Rf_allocVector(REALSXP, lambdas.size()));
-	SET_VECTOR_ELT(result, 3, Rf_allocVector(REALSXP, dof.size()));
+	SET_VECTOR_ELT(result, 3, Rf_allocVector(REALSXP, variance_explained.size()));
+	SET_VECTOR_ELT(result, 4, Rf_allocVector(REALSXP, cumsum_percentage.size()));
 	Real *rans = REAL(VECTOR_ELT(result, 0));
 	for(UInt j = 0; j < loadings.size(); j++)
 	{
@@ -89,9 +93,15 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 	}
 
 	Real *rans3 = REAL(VECTOR_ELT(result, 3));
-	for(UInt i = 0; i < dof.size(); i++)
+	for(UInt i = 0; i < variance_explained.size(); i++)
 	{
-		rans3[i] = dof[i];
+		rans3[i] = variance_explained[i];
+	}
+	
+	Real *rans4 = REAL(VECTOR_ELT(result, 4));
+	for(UInt i = 0; i < cumsum_percentage.size(); i++)
+	{
+		rans4[i] = cumsum_percentage[i];
 	}
 	UNPROTECT(1);
 	return(result);
@@ -343,7 +353,7 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SE
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
 	 
-	//std::cout<<"NPC:      "<<fPCAdata.getNPC()<<std::endl;
+	//std::cout<<"NPC:               "<<fPCAdata.getNPC()<<std::endl;
 	
 	//fPCAdata.printDatamatrix(std::cout);
 	return (FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3>(fPCAdata,Rmesh));

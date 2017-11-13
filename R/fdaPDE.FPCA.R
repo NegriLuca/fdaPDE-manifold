@@ -47,8 +47,10 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = 
   
   lambda=bigsol[[3]]
   
-  dof=bigsol[[4]]
+  variance_explained=bigsol[[4]]
   
-  reslist=list(loadings.FEM=loadings.FEM, scores=scores, lambda=lambda, dof=dof)
+  cumsum_percentage=bigsol[[5]]
+  
+  reslist=list(loadings.FEM=loadings.FEM, scores=scores, lambda=lambda, variance_explained=variance_explained, cumsum_percentage=cumsum_percentage)
   return(reslist)
   }
