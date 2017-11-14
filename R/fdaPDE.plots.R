@@ -21,14 +21,17 @@
 
 plot.FEM = function(x, num_refinements = NULL, ...)  
 {
+if(class(x$FEMbasis$mesh)=="MESH2D"){
   if(x$FEMbasis$order == 1)
   {
     R_plot.ORD1.FEM(x, ...)
   }else{
     R_plot.ORDN.FEM(x, num_refinements, ...)
   }
+}else if(class(x$FEMbasis$mesh)=="MESH.2.5D"){
+	R_plot_manifold(x,...)
 }
-
+}
 
 #' Image Plot of a FEM
 #' 
