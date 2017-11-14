@@ -810,28 +810,62 @@ R_plot.ORD1.FEM = function(FEM, ...)
   #     stop('FDOBJ is not an FD object')
   #   }
   
-  nodes = FEM$FEMbasis$mesh$nodes
-  triangles = FEM$FEMbasis$mesh$triangles
-  
+  if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
+  	triangles = FEM$FEMbasis$mesh$triangles
+  	ntriangles = FEM$FEMbasis$mesh$ntriangles
+  	nodes=matrix(FEM$FEMbasis$mesh$nodes,nrow=FEM$FEMbasis$mesh$nnodes,ncol=3,byrow=TRUE)
+  edges=matrix(rep(0,6*ntriangles),ncol=2)
+  for(i in 0:(ntriangles-1)){
+  edges[3*i+1,]=c(triangles[3*order*i+1],triangles[3*order*i+2])
+  edges[3*i+2,]=c(triangles[3*order*i+1],triangles[3*order*i+3])
+  edges[3*i+3,]=c(triangles[3*order*i+2],triangles[3*order*i+3])
+  }
+  edges=edges[!duplicated(edges),]
+  edges<-as.vector(t(edges))
+  }else if(class(FEM$FEMbasis$mesh)=="MESH2D"){
+   	nodes = FEM$FEMbasis$mesh$nodes
+  	triangles = as.vector(t(FEM$FEMbasis$mesh$triangles))
+  }
+  	
   coeff = FEM$coeff
   
-  FEMbasis = FEM$basis
+  FEMbasis = FEM$FEMbasis
   
   mesh = FEMbasis$mesh
   
-  heat = heat.colors(100)
+  p = heat.colors(100)
+  
+   #p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
+  palette(p)
+  
+  ncolor=length(p)
   
   nsurf = dim(coeff)[[2]]
   for (isurf in 1:nsurf)
   {
     open3d()
     axes3d()
+    rgl.pop("lights") 
+    light3d(specular="black") 
     
-    z = coeff[as.vector(t(triangles)),isurf]
-    rgl.triangles(x = nodes[as.vector(t(triangles)) ,1], y = nodes[as.vector(t(triangles)) ,2], 
-                  z=coeff[as.vector(t(triangles)),isurf], 
-                  color = heat[round(99*(z- min(z))/(max(z)-min(z)))+1],...)
-    aspect3d(2,2,1)
+    diffrange = max(coeff[,isurf])-min(coeff[,isurf])
+    
+    col = coeff[triangles,isurf]
+     col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
+    
+    if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
+    rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
+                  z=nodes[triangles,3], 
+                  color = col,...)
+    rgl.triangles(x = nodes[edges ,1], y = nodes[edges ,2], 
+                  z=nodes[edges,3], 
+                  color = "black",...)
+    }else if(class(FEM$FEMbasis$mesh)=="MESH2D"){
+    rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
+                  z=coeff[triangles,isurf], 
+                  color = col,...)
+    }
+    aspect3d("iso")
     rgl.viewpoint(0,-45)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
@@ -1007,51 +1041,4 @@ R_image.ORDN.FEM = function(FEM, num_refinements)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
 }
-}
-
-R_plot_manifold<-function(FEM){
-
-  if(!require(rgl)){
-    stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
-  }
-
-  p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
-  palette(p)
-
-  order=FEM$FEMbasis$mesh$order
-  nnodes=FEM$FEMbasis$mesh$nnodes
-  ntriangles=FEM$FEMbasis$mesh$ntriangles
-  
-  nsurf = dim(FEM$coeff)[[2]]
-  for (isurf in 1:nsurf)
-  {
-    diffrange = max(FEM$coeff[,isurf])-min(FEM$coeff[,isurf])
-    rgl.open()
-    triangle = c(FEM$FEMbasis$mesh$triangles[1:3*order])-1
-    vertices = as.numeric(c(
-      FEM$FEMbasis$mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
-      FEM$FEMbasis$mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
-      FEM$FEMbasis$mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
-    indices=c(1,2,3)
-    col = mean(FEM$coeff[triangle[1]+1,isurf],FEM$coeff[triangle[2]+1,isurf],FEM$coeff[triangle[3]+1,isurf])
-    col= (col - min(FEM$coeff[,isurf]))/diffrange*127+1
-    shade3d( tmesh3d(vertices,indices) , col=col)
-    bg3d(color = "white")
-
-    for(i in 2:ntriangles){
-      triangle = FEM$FEMbasis$mesh$triangles[(3*order*(i-1)+1):(3*order*(i-1)+3*order)]-1
-      vertices = as.numeric(c(
-        FEM$FEMbasis$mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
-        FEM$FEMbasis$mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
-        FEM$FEMbasis$mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
-      indices=c(1,2,3)
-      col = mean(FEM$coeff[triangle+1,isurf])
-      col= (col - min(FEM$coeff[,isurf]))/diffrange*127+1
-      shade3d( tmesh3d(vertices,indices) , col= col)
-    }
-    #if (nsurf > 1)
-    #{readline("Press a button for the next plot...")}
-    
-  }
-
 }

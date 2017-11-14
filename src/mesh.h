@@ -148,8 +148,8 @@ public:
 	typedef int UInt;
 	//! A constructor.
     
-    MeshHandler(Real* points, UInt* triangles, UInt num_nodes, UInt num_triangles):
-			points_(points), triangles_(triangles), num_nodes_(num_nodes), num_triangles_(num_triangles) {};
+    MeshHandler(Real* points, UInt* triangles,UInt* edges, UInt num_nodes, UInt num_triangles,UInt num_edges):
+			points_(points), triangles_(triangles), edges_(edges), num_nodes_(num_nodes), num_triangles_(num_triangles),num_edges_(num_edges) {};
 	
 	//! A constructor.
     /*!
@@ -223,9 +223,10 @@ private:
 
 	std::vector<Real> points_;
 	std::vector<UInt> triangles_;
+	std::vector<UInt> edges_;
 
 
-	UInt num_nodes_, num_triangles_;
+	UInt num_nodes_, num_triangles_, num_edges_;
 
 };
 

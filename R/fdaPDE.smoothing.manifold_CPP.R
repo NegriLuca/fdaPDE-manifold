@@ -40,6 +40,8 @@ CPP_smooth.manifold.FEM.basis<-function(locations, observations, mesh, lambda, c
   storage.mode(mesh$ntriangles) <- "integer"
   storage.mode(mesh$nodes) <- "double"
   storage.mode(mesh$triangles) <- "integer"
+  storage.mode(mesh$edges) <- "integer"
+  storage.mode(mesh$nedges) <- "integer"
   covariates = as.matrix(covariates)
   storage.mode(covariates) <- "double"
   storage.mode(lambda) <- "double"
@@ -67,7 +69,7 @@ CPP_eval.manifold.FEM = function(FEM, locations, redundancy, ndim, mydim)
   ## Set propr type for correct C++ reading
   locations <- as.matrix(locations)
   storage.mode(locations) <- "double"
-  storage.mode(FEMbasis$mesh$points) <- "double"
+  storage.mode(FEMbasis$mesh$nodes) <- "double"
   storage.mode(FEMbasis$mesh$triangles) <- "integer"
   storage.mode(FEMbasis$order) <- "integer"
   coeff = as.matrix(FEM$coeff)

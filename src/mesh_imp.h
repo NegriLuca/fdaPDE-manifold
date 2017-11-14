@@ -191,9 +191,12 @@ MeshHandler<ORDER,2,3>::MeshHandler(SEXP mesh)
 	mesh_ = mesh;
 	num_nodes_ = INTEGER(VECTOR_ELT(mesh_,0))[0];
 	num_triangles_ = INTEGER(VECTOR_ELT(mesh_,1))[0];
-	points_.assign(REAL(VECTOR_ELT(mesh_, 2)) , REAL(VECTOR_ELT(mesh_, 2)) + 3*num_nodes_);
-	triangles_.assign(INTEGER(VECTOR_ELT(mesh_, 3)), INTEGER(VECTOR_ELT(mesh_, 3))+ 3*ORDER*num_triangles_);
+	num_edges_ = INTEGER(VECTOR_ELT(mesh_,2))[0];
+	points_.assign(REAL(VECTOR_ELT(mesh_, 3)) , REAL(VECTOR_ELT(mesh_, 3)) + 3*num_nodes_);
+	triangles_.assign(INTEGER(VECTOR_ELT(mesh_, 4)), INTEGER(VECTOR_ELT(mesh_, 4))+ 3*ORDER*num_triangles_);
+	edges_.assign(INTEGER(VECTOR_ELT(mesh_, 5)), INTEGER(VECTOR_ELT(mesh_, 5))+ 2*num_edges_);
 	std::for_each(triangles_.begin(), triangles_.end(), [](int& i){i-=1;});
+	std::for_each(edges_.begin(), edges_.end(), [](int& i){i-=1;});
 }
 #endif
 

@@ -347,13 +347,15 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP DOF, SEXP RnPC){
 //Set data
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, DOF);
+	
+	std::cout<<"QUi arrivo"<<std::endl;
 
 	SEXP result = NILSXP;
 
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
 	 
-	//std::cout<<"NPC:               "<<fPCAdata.getNPC()<<std::endl;
+	//std::cout<<"NPC:                 "<<fPCAdata.getNPC()<<std::endl;
 	
 	//fPCAdata.printDatamatrix(std::cout);
 	return (FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3>(fPCAdata,Rmesh));

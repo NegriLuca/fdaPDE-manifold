@@ -63,6 +63,8 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   storage.mode(mesh$ntriangles) <- "integer"
   storage.mode(mesh$nodes) <- "double"
   storage.mode(mesh$triangles) <- "integer"
+  storage.mode(mesh$edges) <- "integer"
+  storage.mode(mesh$nedges) <- "integer"
   storage.mode(lambda) <- "double"
   storage.mode(ndim) <- "integer"
   storage.mode(mydim) <- "integer"
