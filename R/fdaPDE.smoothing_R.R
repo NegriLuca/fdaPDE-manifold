@@ -951,10 +951,9 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
     light3d(specular="black")
     diffrange = max(coeff[,isurf])-min(coeff[,isurf])
     
+    if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
     col = coeff[triangles,isurf]
      col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
-    
-    if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
     rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
                   z=nodes[triangles,3], 
                   color = col,...)
@@ -962,6 +961,8 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
                   z=nodes[edges,3], 
                   color = "black",...)
     }else if(class(FEM$FEMbasis$mesh)=="MESH2D"){
+    col = locations[as.vector(t(triangles)), 2 + isurf]
+     col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
     rgl.triangles(x = locations[as.vector(t(triangles)) ,1], y = locations[as.vector(t(triangles)) ,2], 
                   z = locations[as.vector(t(triangles)), 2 + isurf], 
                   color = col,...)
