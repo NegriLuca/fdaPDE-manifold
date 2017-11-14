@@ -21,11 +21,15 @@
 
 plot.FEM = function(x, num_refinements = NULL, ...)  
 {
+if(class(x$FEMbasis$mesh)=="MESH2D"){
   if(x$FEMbasis$order == 1)
   {
     R_plot.ORD1.FEM(x, ...)
   }else{
     R_plot.ORDN.FEM(x, num_refinements, ...)
+  }
+}else if(class(x$FEMbasis$mesh)=="MESH.2.5D"){
+  R_plot_manifold(x)
   }
 }
 
@@ -94,41 +98,36 @@ plot.MESH2D<-function(x, ...)
 #' plot.MESH.2.5D(caramella)
 
 
-plot.MESH.2.5D<-function(mesh,...){
+plot.MESH.2.5D<-function(mesh){
 
   if(!require(rgl)){
     stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
   }
-  
-  triangles = mesh$triangles
-  ntriangles=mesh$ntriangles
-  
+
   order=mesh$order
-  
-  nodes=matrix(mesh$nodes,nrow=mesh$nnodes,ncol=3,byrow=TRUE)
-  
-  edges=matrix(rep(0,6*ntriangles),ncol=2)
-  for(i in 0:(ntriangles-1)){
-  edges[3*i+1,]=c(triangles[3*order*i+1],triangles[3*order*i+2])
-  edges[3*i+2,]=c(triangles[3*order*i+1],triangles[3*order*i+3])
-  edges[3*i+3,]=c(triangles[3*order*i+2],triangles[3*order*i+3])
-  }
-  edges=edges[!duplicated(edges),]
-  edges<-as.vector(t(edges))
-  open3d()
-  axes3d()
-  rgl.pop("lights") 
-  light3d(specular="black") 
-  
-  rgl.points(x = nodes[ ,1], y = nodes[ ,2], 
-                  z=nodes[,3],col="black", ...)
-                  
-  rgl.lines(x = nodes[edges ,1], y = nodes[edges ,2], 
-                  z=nodes[edges,3],col="black",...)
-    
-  aspect3d("iso")
-  rgl.viewpoint(0,-45)
+  nnodes=mesh$nnodes
+  ntriangles=mesh$ntriangles
+
+    rgl.open()
+    triangle = c(mesh$triangles[1:3*order])-1
+    vertices = as.numeric(c(
+      mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+      mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+      mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+    bg3d(color = "white")
+    indices=c(1,2,3)
+    wire3d(tmesh3d(vertices,indices) , col="black")
+
+    for(i in 2:ntriangles){
+      #triangle = c(mesh$triangles[3*order*(i-1)+1]-1,mesh$triangles[3*order*(i-1)+2]-1,mesh$triangles[3*order*(i-1)+3]-1)
+      triangle = mesh$triangles[(3*order*(i-1)+1):(3*order*(i-1)+3*order)]-1
+      vertices = as.numeric(c(
+        mesh$nodes[(3*triangle[1]+1):(3*triangle[1]+3)],1,
+        mesh$nodes[(3*triangle[2]+1):(3*triangle[2]+3)],1,
+        mesh$nodes[(3*triangle[3]+1):(3*triangle[3]+3)],1))
+
+      indices=c(1,2,3)
+      wire3d(tmesh3d(vertices,indices) , col="black")
+    }
 
 }
-
-

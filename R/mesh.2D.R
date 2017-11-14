@@ -378,18 +378,7 @@ create.MESH.2.5D<- function(nodes, triangles, order = 1)
       stop("The matrix 'triangles' has the wrong number of columns. See second.order.mesh(...)")
   	stop("The matrix 'triangles' has wrong number of columns. Should be 3*order \n")
   	}
-  
-  edges=matrix(rep(0,6*ntriangles),ncol=2)
-  for(i in 0:(ntriangles-1)){
-  edges[3*i+1,]=c(triangles[(i+1),1],triangles[(i+1),2])
-  edges[3*i+2,]=c(triangles[(i+1),1],triangles[(i+1),3])
-  edges[3*i+3,]=c(triangles[(i+1),2],triangles[(i+1),3])
-  }
-  edges=edges[!duplicated(edges),]
-  
-  nedges=dim(edges)[1]
-  
-  out = list(nnodes=nnodes, ntriangles=ntriangles, nedges=nedges, nodes=c(t(nodes)), triangles = c(t(triangles)), edges=c(t(edges)), order=as.integer(order))
+  out = list(nnodes=nnodes, ntriangles=ntriangles, nodes=c(t(nodes)), triangles = c(t(triangles)), order=as.integer(order))
 
   class(out)<-"MESH.2.5D"
 
@@ -472,11 +461,11 @@ second.order.MESH.2.5D<-function(mesh,bc=NULL){
     }
   }
   if(is.null(bc)){
-    out = list(nnodes=nrow(V), ntriangles=nrow(T), nedges=mesh$nedges, nodes=c(t(V)), triangles = c(t(T)), edges=mesh$edges, order=2)
+    out = list(nnodes=nrow(V), ntriangles=nrow(T), nodes=c(t(V)), triangles = c(t(T)), order=2)
     class(out)<-"MESH.2.5D"
     return(out)
   }else{
-    out = list(nnodes=nrow(V), ntriangles=nrow(T), nedges=mesh$nedges, nodes=c(t(V)), triangles = c(t(T)), edges=mesh$edges, order=2)
+    out = list(nnodes=nrow(V), ntriangles=nrow(T), nodes=c(t(V)), triangles = c(t(T)), order=2)
     class(out)<-"MESH.2.5D"
     retlist = list(mesh = out, bc_index=bc)
     return(retlist)
