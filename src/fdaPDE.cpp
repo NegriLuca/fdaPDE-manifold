@@ -352,12 +352,16 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SE
 
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
-	 
-	//std::cout<<"NPC:               "<<fPCAdata.getNPC()<<std::endl;
-	
-	//fPCAdata.printDatamatrix(std::cout);
-	return (FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3>(fPCAdata,Rmesh));
 
+	if(fPCAdata.getOrder() == 1 && ndim==2)
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 2>(fPCAdata, Rmesh));
+	else if(fPCAdata.getOrder() == 2 && ndim==2)
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 2>(fPCAdata, Rmesh));
+	else if(fPCAdata.getOrder() == 1 && ndim==3)
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3>(fPCAdata, Rmesh));
+	else if(fPCAdata.getOrder() == 2 && ndim==3)
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 3>(fPCAdata, Rmesh));
+	return(NILSXP);
 	
 	}
 	
