@@ -810,81 +810,43 @@ R_plot.ORD1.FEM = function(FEM, ...)
   #     stop('FDOBJ is not an FD object')
   #   }
   
-  if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
-  	triangles = FEM$FEMbasis$mesh$triangles
-  	ntriangles = FEM$FEMbasis$mesh$ntriangles
-  	order=FEM$FEMbasis$mesh$order
-  	nodes=matrix(FEM$FEMbasis$mesh$nodes,nrow=FEM$FEMbasis$mesh$nnodes,ncol=3,byrow=TRUE)
-  edges=matrix(rep(0,6*ntriangles),ncol=2)
-  for(i in 0:(ntriangles-1)){
-  edges[3*i+1,]=c(triangles[3*order*i+1],triangles[3*order*i+2])
-  edges[3*i+2,]=c(triangles[3*order*i+1],triangles[3*order*i+3])
-  edges[3*i+3,]=c(triangles[3*order*i+2],triangles[3*order*i+3])
-  }
-  edges=edges[!duplicated(edges),]
-  edges<-as.vector(t(edges))
-  }else if(class(FEM$FEMbasis$mesh)=="MESH2D"){
-   	nodes = FEM$FEMbasis$mesh$nodes
-  	triangles = as.vector(t(FEM$FEMbasis$mesh$triangles))
-  }
-  	
+  nodes = FEM$FEMbasis$mesh$nodes
+  triangles = FEM$FEMbasis$mesh$triangles
+  
   coeff = FEM$coeff
   
-  FEMbasis = FEM$FEMbasis
+  FEMbasis = FEM$basis
   
   mesh = FEMbasis$mesh
   
-  p = heat.colors(100)
-  
-   #p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
-  palette(p)
-  
-  ncolor=length(p)
+  heat = heat.colors(100)
   
   nsurf = dim(coeff)[[2]]
   for (isurf in 1:nsurf)
   {
     open3d()
     axes3d()
-    rgl.pop("lights") 
-    light3d(specular="black") 
     
-    diffrange = max(coeff[,isurf])-min(coeff[,isurf])
-    
-    col = coeff[triangles,isurf]
-     col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
-    
-    if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
-    rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
-                  z=nodes[triangles,3], 
-                  color = col,...)
-    rgl.lines(x = nodes[edges ,1], y = nodes[edges ,2], 
-                  z=nodes[edges,3], 
-                  color = "black",...)
-    }else if(class(FEM$FEMbasis$mesh)=="MESH2D"){
-    rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
-                  z=coeff[triangles,isurf], 
-                  color = col,...)
-    }
-    aspect3d("iso")
+    z = coeff[as.vector(t(triangles)),isurf]
+    rgl.triangles(x = nodes[as.vector(t(triangles)) ,1], y = nodes[as.vector(t(triangles)) ,2], 
+                  z=coeff[as.vector(t(triangles)),isurf], 
+                  color = heat[round(99*(z- min(z))/(max(z)-min(z)))+1],...)
+    aspect3d(2,2,1)
     rgl.viewpoint(0,-45)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
-    }
+  }
 }
 
 R_plot.ORDN.FEM = function(FEM, num_refinements, ...)  
 {
+  coeff = FEM$coeff
   
   FEMbasis = FEM$FEMbasis
   
   mesh = FEMbasis$mesh
   
-  p = heat.colors(100)
-  
-  palette(p)
-  
-  ncolor=length(p)
+  heat = heat.colors(100)
   
   coeff = FEM$coeff
   
@@ -893,21 +855,6 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
   {
     num_refinements = 10
   }
-  
-  if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
-  	triangles = FEM$FEMbasis$mesh$triangles
-  	ntriangles = FEM$FEMbasis$mesh$ntriangles
-  	order=FEM$FEMbasis$mesh$order
-  	nodes=matrix(FEM$FEMbasis$mesh$nodes,nrow=FEM$FEMbasis$mesh$nnodes,ncol=3,byrow=TRUE)
-  edges=matrix(rep(0,6*ntriangles),ncol=2)
-  for(i in 0:(ntriangles-1)){
-  edges[3*i+1,]=c(triangles[3*order*i+1],triangles[3*order*i+2])
-  edges[3*i+2,]=c(triangles[3*order*i+1],triangles[3*order*i+3])
-  edges[3*i+3,]=c(triangles[3*order*i+2],triangles[3*order*i+3])
-  }
-  edges=edges[!duplicated(edges),]
-  edges<-as.vector(t(edges))
-  } else if (class(FEM$FEMbasis$mesh)=="MESH2D"){
   
   # For the reference triangles we construct a regular mesh
   x = seq(from = 0, to = 1, length.out = num_refinements+1)
@@ -929,9 +876,8 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
   
   for (i in 1:nrow(mesh$triangles))
   {
-    # For each triangle we define a fine mesh as the transformation of the one constructed for the reference
-    transf<-rbind(cbind(FEMbasis$transf_coord$diff1x[i],FEMbasis$transf_coord$diff2x[i]),c(FEMbasis$transf_coord$diff1y[i],FEMbasis$transf_coord$diff2y[i]))
-    pointsi = t(transf%*%t(meshi$nodes) + mesh$nodes[mesh$triangles[i,1],])
+    # For each traingle we define a fine mesh as the transofrmation of the one constructed for the reference
+    pointsi = t(FEMbasis$transf[i,,]%*%t(meshi$nodes) + mesh$nodes[mesh$triangles[i,1],])
     #We evaluate the fine mesh OBS: we know the triangle we are working on no need for point location
     z = R_eval_local.FEM(FEM, locations = pointsi, element_index = i)
     
@@ -940,7 +886,8 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
     triangles[((i-1)*nrow(meshi$triangles)+1):(i*nrow(meshi$triangles)),] = meshi$triangles+tot
     tot = tot + nrow(meshi$nodes)
   }
-  }
+  
+  heat = heat.colors(100)
   
   nsurf = dim(coeff)[[2]]
   for (isurf in 1:nsurf)
@@ -948,30 +895,16 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
     open3d()
     axes3d()
     rgl.pop("lights") 
-    light3d(specular="black")
-    diffrange = max(coeff[,isurf])-min(coeff[,isurf])
-    
-    if(class(FEM$FEMbasis$mesh)=="MESH.2.5D"){
-    col = coeff[triangles,isurf]
-     col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
-    rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
-                  z=nodes[triangles,3], 
-                  color = col,...)
-    rgl.lines(x = nodes[edges ,1], y = nodes[edges ,2], 
-                  z=nodes[edges,3], 
-                  color = "black",...)
-    }else if(class(FEM$FEMbasis$mesh)=="MESH2D"){
-    col = locations[as.vector(t(triangles)), 2 + isurf]
-     col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
+    light3d(specular="black") 
+    z = locations[as.vector(t(triangles)), 2 + isurf]
     rgl.triangles(x = locations[as.vector(t(triangles)) ,1], y = locations[as.vector(t(triangles)) ,2], 
-                  z = locations[as.vector(t(triangles)), 2 + isurf], 
-                  color = col,...)
-                  }
-    aspect3d("iso")
+                  z = z, 
+                  color = heat[round(99*(z-min(z))/(max(z)-min(z)))+1],...)
+    aspect3d(2,2,1)
     rgl.viewpoint(0,-45)
     if (nsurf > 1)
     {readline("Press a button for the next plot...")}
-    }
+  }
 }
 
 R_image.ORD1.FEM = function(FEM)  
@@ -1074,3 +1007,55 @@ R_image.ORDN.FEM = function(FEM, num_refinements)
     {readline("Press a button for the next plot...")}
 }
 }
+
+R_plot_manifold = function(FEM, ...){
+  triangles = FEM$FEMbasis$mesh$triangles
+  ntriangles = FEM$FEMbasis$mesh$ntriangles
+  order=FEM$FEMbasis$mesh$order
+  nodes=matrix(FEM$FEMbasis$mesh$nodes,nrow=FEM$FEMbasis$mesh$nnodes,ncol=3,byrow=TRUE)
+  edges=matrix(rep(0,6*ntriangles),ncol=2)
+  for(i in 0:(ntriangles-1)){
+  edges[3*i+1,]=c(triangles[3*order*i+1],triangles[3*order*i+2])
+  edges[3*i+2,]=c(triangles[3*order*i+1],triangles[3*order*i+3])
+  edges[3*i+3,]=c(triangles[3*order*i+2],triangles[3*order*i+3])
+  }
+  edges=edges[!duplicated(edges),]
+  edges<-as.vector(t(edges))
+  	
+  coeff = FEM$coeff
+  
+  FEMbasis = FEM$FEMbasis
+  
+  mesh = FEMbasis$mesh
+  
+  p = heat.colors(100)
+  palette(p)
+  
+  ncolor=length(p)
+  
+  nsurf = dim(coeff)[[2]]
+  for (isurf in 1:nsurf)
+  {
+    open3d()
+    axes3d()
+    rgl.pop("lights") 
+    light3d(specular="black") 
+    
+    diffrange = max(coeff[,isurf])-min(coeff[,isurf])
+    
+    col = coeff[triangles,isurf]
+     col= (col - min(coeff[,isurf]))/diffrange*(ncolor-1)+1
+    
+    rgl.triangles(x = nodes[triangles ,1], y = nodes[triangles ,2], 
+                  z=nodes[triangles,3], 
+                  color = col,...)
+    rgl.lines(x = nodes[edges ,1], y = nodes[edges ,2], 
+                  z=nodes[edges,3], 
+                  color = "black",...)
+    aspect3d("iso")
+    rgl.viewpoint(0,-45)
+    if (nsurf > 1)
+    {readline("Press a button for the next plot...")}
+    }
+}
+
