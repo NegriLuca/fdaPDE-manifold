@@ -877,7 +877,8 @@ R_plot.ORDN.FEM = function(FEM, num_refinements, ...)
   for (i in 1:nrow(mesh$triangles))
   {
     # For each traingle we define a fine mesh as the transofrmation of the one constructed for the reference
-    pointsi = t(FEMbasis$transf[i,,]%*%t(meshi$nodes) + mesh$nodes[mesh$triangles[i,1],])
+    transf<-rbind(cbind(FEMbasis$transf_coord$diff1x[i],FEMbasis$transf_coord$diff2x[i]),c(FEMbasis$transf_coord$diff1y[i],FEMbasis$transf_coord$diff2y[i]))
+    pointsi = t(transf%*%t(meshi$nodes) + mesh$nodes[mesh$triangles[i,1],])
     #We evaluate the fine mesh OBS: we know the triangle we are working on no need for point location
     z = R_eval_local.FEM(FEM, locations = pointsi, element_index = i)
     
