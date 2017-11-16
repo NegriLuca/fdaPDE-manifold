@@ -344,7 +344,7 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 	return(NILSXP);
 }
 
-SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP DOF, SEXP RnPC){
+SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP DOF, SEXP RnPC){
 //Set data
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, DOF);
 
@@ -364,13 +364,5 @@ SEXP FPCA_Laplace(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SE
 	return(NILSXP);
 	
 	}
-	
-/*	
-	if(fPCAdata.getOrder()==1 && ndim==3)
-    	return(FPCA_skeleton<fPCAdata,IntegratorTriangleP2, 1, 2, 3>(FPCAData, Rmesh));
-    	return(NILSXP);
-*/
-
-
 
 }

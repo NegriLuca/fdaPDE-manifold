@@ -34,7 +34,7 @@ triangulate_native <- function(P, PB, PA, S, SB,H, TR, flags) {
   return(out)
 }
 
-#' Create a triangular mesh
+#' Create a 2D triangular mesh
 #' 
 #' @param nodes A #nodes-by-2 matrix containing the x and y coordinates of the mesh nodes.
 #' @param nodesattributes A matrix with #nodes rows containing nodes' attributes. 
@@ -233,7 +233,7 @@ create.MESH.2D <- function(nodes, nodesattributes = NA, segments = NA, holes = N
   return(out)
 }
 
-#' Refine a triangular mesh
+#' Refine a 2D triangular mesh
 #' 
 #' @param mesh A MESH2D object representing the triangular mesh, created by \link{create.MESH.2D}.
 #' @param minimum_angle A scalar specifying a minimun value for the triangles angles.
@@ -362,10 +362,17 @@ refine.MESH.2D<-function(mesh, minimum_angle = NA, maximum_area = NA, delaunay =
 #' \item{\code{order}}{Either '1' or '2'. It specifies wether each mesh triangle should be represented by 3 nodes (the triangle' vertices) or by 6 nodes (the triangle's vertices and midpoints). 
 #' These are respectively used for linear (order = 1) and quadratic (order = 2) Finite Elements. Default is \code{order} = 1.}
 #' @examples
-#' #read the matrix nodes and triangles from file
-#' nodes = read.table(file="mynodes.csv",header=F,sep=",")
-#' triangles = read.table(file="mytriangles.csv",header=F,sep=",")
-#' mesh = create.MESH.2.5D(nodes,triangles)
+#' #Load the matrix nodes and triangles
+#'
+#' library(fdaPDE)
+#' data(sphereData)
+#'
+#' nodes=sphere$nodes
+#' triangles=sphere$triangles
+#'
+#' #Create the triangulated mesh from the connectivity matrix and nodes locations
+#' mesh=create.MESH.2.5D(nodes,triangles)
+#' 
 
 create.MESH.2.5D<- function(nodes, triangles, order = 1)
 {
@@ -384,6 +391,7 @@ create.MESH.2.5D<- function(nodes, triangles, order = 1)
 
   return(out)
 }
+
 
 #' Double the order of a fist order Finite Element mesh by adding middle points to each side of the triangles in the triangulation
 #' @param mesh an object of class 'MESH.2.5D' that is the starting mesh of order 1

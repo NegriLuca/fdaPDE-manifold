@@ -29,7 +29,7 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
   storage.mode(GCV)<-"integer"
   
   ## Call C++ function
-  bigsol <- .Call("FPCA_Laplace", locations, datamatrix, FEMbasis$mesh, 
+  bigsol <- .Call("Smooth_FPCA", locations, datamatrix, FEMbasis$mesh, 
                   FEMbasis$order,mydim,ndim, 
                   lambda,GCV,nPC,
                   package = "fdaPDE")
@@ -73,7 +73,7 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   storage.mode(GCV)<-"integer"
   
   ## Call C++ function
-  bigsol <- .Call("FPCA_Laplace", locations, datamatrix, mesh, 
+  bigsol <- .Call("Smooth_FPCA", locations, datamatrix, mesh, 
                   mesh$order, mydim, ndim, lambda,
                   GCV, nPC,
                   package = "fdaPDE")

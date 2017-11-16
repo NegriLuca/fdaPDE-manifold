@@ -26,8 +26,15 @@ These are respectively used for linear (order = 1) and quadratic (order = 2) Fin
 Create a \code{MESH.2.5D} object from the connectivty matrix and nodes locations
 }
 \examples{
-#read the matrix nodes and triangles from file
-nodes = read.table(file="mynodes.csv",header=F,sep=",")
-triangles = read.table(file="mytriangles.csv",header=F,sep=",")
-mesh = create.MESH.2.5D(nodes,triangles)
+#Load the matrix nodes and triangles
+
+library(fdaPDE)
+data(sphereData)
+
+nodes=sphere$nodes
+triangles=sphere$triangles
+
+#Create the triangulated mesh from the connectivity matrix and nodes locations
+mesh=create.MESH.2.5D(nodes,triangles)
+
 }
