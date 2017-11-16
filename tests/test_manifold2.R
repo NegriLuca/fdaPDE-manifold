@@ -1,13 +1,13 @@
 library(fdaPDE)
 
-data(caramella)
+data(candy)
 
 cat('Plotting the mesh \n')
-plot(caramella)
+plot(candy)
 
 ## Generate some random data ##
 
-nnodes = caramella$nnodes
+nnodes = candy$nnodes
 a1 = rnorm(1,mean = 1, sd = 1)
 a2 = rnorm(1,mean = 1, sd = 1)
 a3 = rnorm(1,mean = 1, sd = 1)
@@ -15,11 +15,11 @@ a3 = rnorm(1,mean = 1, sd = 1)
 func_evaluation = numeric(nnodes)
 
 for (i in 0:(nnodes-1)){
-  func_evaluation[i+1] = a1* sin(2*pi*caramella$nodes[3*i+1]) +  a2* sin(2*pi*caramella$nodes[3*i+2]) +  a3*sin(2*pi*caramella$nodes[3*i+3]) +1
+  func_evaluation[i+1] = a1* sin(2*pi*candy$nodes[3*i+1]) +  a2* sin(2*pi*candy$nodes[3*i+2]) +  a3*sin(2*pi*candy$nodes[3*i+3]) +1
 }
 
 data=func_evaluation+rnorm(nnodes,mean=0,sd=0.5)
-FEMbasis <- create.FEM.basis(caramella)
+FEMbasis <- create.FEM.basis(candy)
 
 lambda=c(0.1,0.2,0.3,0.4)
 output_CPP =smooth.FEM.basis(observations = data,

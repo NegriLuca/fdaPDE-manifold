@@ -2,7 +2,7 @@
 % Please edit documentation in R/mesh.2D.R
 \name{create.MESH.2D}
 \alias{create.MESH.2D}
-\title{Create a triangular mesh}
+\title{Create a 2D triangular mesh}
 \usage{
 create.MESH.2D(nodes, nodesattributes = NA, segments = NA, holes = NA, 
                      triangles = NA, order = 1, verbosity = 0)

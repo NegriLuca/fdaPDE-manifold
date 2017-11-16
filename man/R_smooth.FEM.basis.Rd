@@ -13,7 +13,7 @@ R_smooth.FEM.basis(locations, observations, FEMbasis, lambda, covariates, GCV)
 Otherwise if only the vector of observations is given, these are consider to be located in the corresponding node in the table nodes of the mesh. In this last
 case, an \code{NA} value in the observations vector indicates that there is no observation associated to the corresponding node.}
 
-\item{FEMbasis}{A F\code{EMbasis} object describing the Finite Element basis, as created by \code{\link{create.FEM.basis}}.}
+\item{FEMbasis}{A \code{FEMbasis} object describing the Finite Element basis, as created by \code{\link{create.FEM.basis}}.}
 
 \item{lambda}{A scalar or vector of smoothing parameters.}
 
@@ -25,14 +25,14 @@ the Generalized Cross Validation criterion, for each value of the smoothing para
 \value{
 A list with the following quantities:
    \item{\code{fit.FEM}}{A \code{FEM} object that represents the fitted spatial field.}
-   \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}
+   \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
    \item{\code{beta}}{If covariates is not \code{NULL}, a vector of length #covariates with the regression coefficients associated with each covariate.}
    \item{\code{edf}}{If GCV is \code{TRUE}, a scalar or vector with the trace of the smoothing matrix for each value of the smoothing parameter specified in \code{lambda}.}
    \item{\code{stderr}}{If GCV is \code{TRUE}, a scalar or vector with the estimate of the standard deviation of the error for each value of the smoothing parameter specified in \code{lambda}.}
    \item{\code{GCV}}{If GCV is \code{TRUE}, a  scalar or vector with the value of the GCV criterion for each value of the smoothing parameter specified in \code{lambda}.}
 }
 \description{
-Spatial regression with differential regularization (fully implemented in R code)
+Executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. This function implements a spatial regression model with differential regularization; isotropic and stationary case. In particular, the regularizing term involves the Laplacian of the spatial field. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 }
 \references{
 Sangalli, L.M., Ramsay, J.O. & Ramsay, T.O., 2013. Spatial spline regression models. Journal of the Royal Statistical Society. Series B: Statistical Methodology, 75(4), pp.681.703.

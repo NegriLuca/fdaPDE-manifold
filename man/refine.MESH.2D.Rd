@@ -2,7 +2,7 @@
 % Please edit documentation in R/mesh.2D.R
 \name{refine.MESH.2D}
 \alias{refine.MESH.2D}
-\title{Refine a triangular mesh}
+\title{Refine a 2D triangular mesh}
 \usage{
 refine.MESH.2D(mesh, minimum_angle, maximum_area, delaunay, verbosity)
 }

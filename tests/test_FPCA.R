@@ -43,8 +43,7 @@ FEMbasis <- create.FEM.basis(hub)
 
 lambda=c(0.00375)
 output_CPP =smooth.FEM.FPCA(datamatrix = datamatrix_demeaned,
-                             FEMbasis = FEMbasis, lambda = lambda,
-                             CPP_CODE = TRUE,nPC=2)
+                             FEMbasis = FEMbasis, lambda = lambda,nPC=2)
                              
 str(output_CPP)
 

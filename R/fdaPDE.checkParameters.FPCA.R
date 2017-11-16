@@ -1,4 +1,4 @@
-checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, CPP_CODE = TRUE)
+checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE)
 {
   #################### Parameter Check #########################
   if(!is.null(locations))
@@ -21,14 +21,10 @@ checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, l
     stop("GCV required;  is NULL.")
   if(!is.logical(GCV))
     stop("'GCV' is not logical")
-  if (is.null(CPP_CODE)) 
-    stop("CPP_CODE required;  is NULL.")
-  if(!is.logical(CPP_CODE))
-    stop("'CPP_CODE' is not logical")
 
 }
 
-checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, CPP_CODE = TRUE, ndim, mydim)
+checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, ndim, mydim)
 {
   #################### Parameter Check #########################
   if(nrow(datamatrix) < 1)

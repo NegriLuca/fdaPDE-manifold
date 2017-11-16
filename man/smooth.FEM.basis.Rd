@@ -13,7 +13,7 @@ This parameter can be \code{NULL}. In this case the spatial coordinates of the c
 
 \item{observations}{A vector of length #observations with the observed data values over the domain. 
 The locations of the observations can be specified with the \code{locations} argument. 
-Otherwise if only the vector of observations is given, these are consider to be located in the corresponding node in the table
+Otherwise if only the vector of observations is given, these are considered to be located in the corresponding node in the table
 \code{nodes} of the mesh. In this last case, an \code{NA} value in the \code{observations} vector indicates that there is no observation associated to the corresponding
  node.}
 

@@ -6,6 +6,7 @@
 #' \item{\code{detJ}}{A vector of length #triangles. The ith element contains the determinant of the transformation from the reference triangle to the nodes of the i-th triangle. It's values is also the double of the area of each triangle of the basis.}
 #' @description It computes some quantities associated to the linear map that transforms the ith triangle in the reference triangular element. 
 #' These are used for the computation of the integrals necessary to build the mass and stiffness matrix.
+#' This method is implemented and available only for \code{MESH2D} mesh objects.
 #' @usage R_elementProperties(mesh)
 
 R_elementProperties=function(mesh)
@@ -45,7 +46,7 @@ R_elementProperties=function(mesh)
 
 #' Compute the mass matrix
 #' 
-#' @param FEMbasis A \code{FEM} object representing the Finite Element basis. See \code{\link{create.FEM.basis}}.
+#' @param FEMbasis A \code{FEMbasis} object representing the Finite Element basis. See \code{\link{create.FEM.basis}}.
 #' @return A square matrix with the integrals of all the basis' functions pairwise products.
 #' The dimension of the matrix is equal to the number of the nodes of the mesh.
 #' @description Only executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. It computes the mass matrix. The element (i,j) of this matrix contains the integral over the domain of the product between the ith and kth element of the Finite Element basis. As common practise in Finite Element Analysis, this quantities are computed iterating over all the mesh triangles. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
@@ -198,18 +199,19 @@ R_stiff= function(FEMbasis)
 #' Otherwise if only the vector of observations is given, these are consider to be located in the corresponding node in the table nodes of the mesh. In this last
 #' case, an \code{NA} value in the observations vector indicates that there is no observation associated to the corresponding node.
 #' @param locations A #observations-by-2 matrix where each row specifies the spatial coordinates of the corresponding observations in the vector \code{observations}.
-#' @param FEMbasis A F\code{EMbasis} object describing the Finite Element basis, as created by \code{\link{create.FEM.basis}}.
+#' @param FEMbasis A \code{FEMbasis} object describing the Finite Element basis, as created by \code{\link{create.FEM.basis}}.
 #' @param lambda A scalar or vector of smoothing parameters.
 #' @param covariates A #observations-by-#covariates matrix where each row represents the covariates associated with the corresponding observed data value in \code{observations}.
 #' @param GCV Boolean. If \code{TRUE} the following quantities are computed: the trace of the smoothing matrix, the estimated error standard deviation,  and 
 #'        the Generalized Cross Validation criterion, for each value of the smoothing parameter specified in \code{lambda}.
 #' @return A list with the following quantities:
 #'    \item{\code{fit.FEM}}{A \code{FEM} object that represents the fitted spatial field.}
-#'    \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}
+#'    \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 #'    \item{\code{beta}}{If covariates is not \code{NULL}, a vector of length #covariates with the regression coefficients associated with each covariate.}
 #'    \item{\code{edf}}{If GCV is \code{TRUE}, a scalar or vector with the trace of the smoothing matrix for each value of the smoothing parameter specified in \code{lambda}.}
 #'    \item{\code{stderr}}{If GCV is \code{TRUE}, a scalar or vector with the estimate of the standard deviation of the error for each value of the smoothing parameter specified in \code{lambda}.}
 #'    \item{\code{GCV}}{If GCV is \code{TRUE}, a  scalar or vector with the value of the GCV criterion for each value of the smoothing parameter specified in \code{lambda}.}
+#' @description Executed when \code{smooth.FEM.basis} is run with the option  \code{CPP_CODE} = \code{FALSE}. This function implements a spatial regression model with differential regularization; isotropic and stationary case. In particular, the regularizing term involves the Laplacian of the spatial field. This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
 #' @usage R_smooth.FEM.basis(locations, observations, FEMbasis, lambda, covariates, GCV)
 #' @seealso \code{\link{smooth.FEM.basis}}, \code{\link{smooth.FEM.PDE.basis}}, \code{\link{smooth.FEM.PDE.sv.basis}}
 #' @references Sangalli, L.M., Ramsay, J.O. & Ramsay, T.O., 2013. Spatial spline regression models. Journal of the Royal Statistical Society. Series B: Statistical Methodology, 75(4), pp.681.703.

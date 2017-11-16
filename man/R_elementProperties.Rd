@@ -17,4 +17,5 @@ A list with the following variables:
 \description{
 It computes some quantities associated to the linear map that transforms the ith triangle in the reference triangular element. 
 These are used for the computation of the integrals necessary to build the mass and stiffness matrix.
+This method is implemented and available only for \code{MESH2D} mesh objects.
 }
