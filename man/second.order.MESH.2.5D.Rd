@@ -21,7 +21,7 @@ If no boundaries conditions are passed:
 Double the order of a fist order Finite Element mesh by adding middle points to each side of the triangles in the triangulation
 }
 \examples{
-#Loading mesh hub, a \\code{MESH.2.5D} object of order=1 contained in the package
+#Loading mesh hub, a MESH.2.5D object of order=1 contained in the package
 data(hub)
 #Apply the function to generate a surface mesh of order 2
 hub_order2 = second.order.MESH.2.5D(hub)

@@ -137,7 +137,9 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::computeCumulat
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 template<typename A>
 void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::apply(EOExpr<A> oper)
-{
+{	
+	std::chrono::high_resolution_clock::time_point t7= std::chrono::high_resolution_clock::now();
+
 	UInt nnodes=this->mesh_.num_nodes();
 	FiniteElement<Integrator, ORDER, mydim, ndim> fe;
 
@@ -151,6 +153,12 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::apply(EOExpr<A
 	typedef EOExpr<Mass> ETMass; Mass EMass; ETMass mass(EMass);
 	Assembler::operKernel(oper, this->mesh_, fe, this->AMat_);
 	Assembler::operKernel(mass, this->mesh_, fe, this->MMat_);
+	
+	std::chrono::high_resolution_clock::time_point t8= std::chrono::high_resolution_clock::now();
+	
+	std::chrono::duration<double> duration4 =t8-t7;
+	
+	std::cout<<"Time elapsed for computing stiff and mass: "<<duration4.count()<<std::endl;	
 	
 	///Fino a qui devo farlo una volta sola
 	
@@ -174,6 +182,7 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::apply(EOExpr<A
 	file2<<MatrixXr(this->AMat_).format(CSVFormat);
 	*/
 	
+	std::chrono::high_resolution_clock::time_point t11= std::chrono::high_resolution_clock::now();
 	
 for(UInt np=0;np<this->inputData_.getNPC();np++){
 	//std::cout<<"Datamatrix"<<std::endl;
@@ -186,6 +195,9 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 	std::cout<<"ObservationData";
 	FPCAinput.printObservationData(std::cout);
 	*/
+	
+	std::chrono::high_resolution_clock::time_point t9= std::chrono::high_resolution_clock::now();
+	
 	this->solution_.resize(this->inputData_.getLambda().size());
 	this->dof_.resize(this->inputData_.getLambda().size());
 	for(UInt i = 0; i<this->inputData_.getLambda().size(); ++i)
@@ -246,6 +258,13 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 		else
 			this->dof_[i] = -1;
 	}
+	
+	std::chrono::high_resolution_clock::time_point t10= std::chrono::high_resolution_clock::now();
+	
+	std::chrono::duration<double> duration5 =t10-t9;
+	
+	std::cout<<"Time elapsed for computing a single NPC: "<<duration5.count()<<std::endl;
+	
 	scores_mat_[np]=FPCAinput.getScores();
 	loadings_mat_[np]=FPCAinput.getLoadings();
 	lambda_PC_[np]=this->inputData_.getLambda()[0];
@@ -265,8 +284,19 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 	//std::cout<<"NewDataMAT"<<std::endl;
 	//std::cout<<this->inputData_.getDatamatrix()-scores_mat_[np]*loadings_mat_[np].transpose()<<std::endl;
 	}
+	
+	std::chrono::high_resolution_clock::time_point t12= std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration6 =t12-t11;
+	
+	std::cout<<"Time elapsed for computing all NPC: "<<duration6.count()<<std::endl;
+	
+	std::chrono::high_resolution_clock::time_point t13= std::chrono::high_resolution_clock::now();
 	computeVarianceExplained();
 	computeCumulativePercentageExplained();
+	std::chrono::high_resolution_clock::time_point t14= std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration7 =t14-t13;
+	
+	std::cout<<"Time elapsed for computing variances: "<<duration7.count()<<std::endl;
 }
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>

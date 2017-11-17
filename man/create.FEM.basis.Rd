@@ -11,6 +11,7 @@ create.FEM.basis(mesh)
 }
 \value{
 A  \code{FEMbasis} object. This contains the \code{mesh}, along with some additional quantities:
+
 if \code{class(mesh) == MESH2D}
 	\item{\code{order}}{Either "1" or "2". Order of the Finite Element basis.} 
 	\item{\code{nbasis}}{Scalar. The number of basis.} 
@@ -36,5 +37,5 @@ plot(mesh)
 FEMbasis = create.FEM.basis(mesh)
 }
 \seealso{
-\code{\link{create.MESH.2D}} \code{\link{create.MESH.2.5D}}
+\code{\link{create.MESH.2D}}, \code{\link{create.MESH.2.5D}}
 }

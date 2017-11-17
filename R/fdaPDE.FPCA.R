@@ -19,7 +19,7 @@
 #' \item{\code{variance_explained}}{A vector of length #PrincipalComponents where each value represent the variance explained by that component.}
 #' \item{\code{ cumsum_percentage}}{A vector of length #PrincipalComponents containing the cumulative percentage of the variance explained by the first components.}
 #' @description This function implements a smooth functional principal component analysis over a planar mesh or a smooth manifold. In order to perform some regularization, the calculation involves the Laplacian of the spatial field. The computation relies only on the C++ implementation of the algorithm.
-#' @usage smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, nPC=1)
+#' @usage smooth.FEM.FPCA(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, nPC=1)
 #' @references Sangalli, L.M., Ramsay, J.O. & Ramsay, T.O., 2013. Spatial spline regression models. Journal of the Royal Statistical Society. Series B: Statistical Methodology, 75(4), pp. 681-703.
 #' @examples
 #' library(fdaPDE)

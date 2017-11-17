@@ -403,7 +403,7 @@ create.MESH.2.5D<- function(nodes, triangles, order = 1)
 #' @usage second.order.MESH.2.5D(mesh,bc=NULL)
 #' @seealso \code{\link{create.MESH.2.5D}}
 #' @examples
-#' #Loading mesh hub, a \code{MESH.2.5D} object of order=1 contained in the package
+#' #Loading mesh hub, a MESH.2.5D object of order=1 contained in the package
 #' data(hub)
 #' #Apply the function to generate a surface mesh of order 2
 #' hub_order2 = second.order.MESH.2.5D(hub)
