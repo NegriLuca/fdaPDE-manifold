@@ -126,4 +126,39 @@ class SpConjGrad{
 		}
 	};
 };
+
+class BiCGSTABILUT{
+	public:
+	static void solve(SpMat const & A, VectorXr const & b, VectorXr &x )
+	{
+		Eigen::BiCGSTAB<SpMat,Eigen::IncompleteLUT<Real>> solver;
+		solver.compute(A);
+		if(solver.info()!=Eigen::Success){
+		//std::cerr<<"Decomposition failed!"<<std::endl;
+		}
+		x=solver.solve(b);
+		if(solver.info()!=Eigen::Success)
+		{
+		//std::cerr<<"solving failed!"<<std::endl;
+		}
+	};
+};
+
+class BiCGSTAB{
+	public:
+	static void solve(SpMat const & A, VectorXr const & b, VectorXr &x )
+	{
+		Eigen::BiCGSTAB<SpMat> solver;
+		solver.compute(A);
+		if(solver.info()!=Eigen::Success){
+		//std::cerr<<"Decomposition failed!"<<std::endl;
+		}
+		x=solver.solve(b);
+		if(solver.info()!=Eigen::Success)
+		{
+		//std::cerr<<"solving failed!"<<std::endl;
+		}
+	};
+};
+
 #endif
