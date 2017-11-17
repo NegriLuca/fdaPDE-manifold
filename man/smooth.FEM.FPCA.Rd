@@ -4,7 +4,7 @@
 \alias{smooth.FEM.FPCA}
 \title{Smooth Functional Principal Component Analysis}
 \usage{
-smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, nPC=1)
+smooth.FEM.FPCA(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, nPC=1)
 }
 \arguments{
 \item{locations}{A #observations-by-ndim matrix where each row specifies the spatial coordinates \code{x} and \code{y} (and \code{z} if ndim=3) of the corresponding column of observations in the matrix \code{datamatrix}.

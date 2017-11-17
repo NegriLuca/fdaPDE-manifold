@@ -25,7 +25,7 @@ the Generalized Cross Validation criterion, for each value of the smoothing para
 \value{
 A list with the following quantities:
    \item{\code{fit.FEM}}{A \code{FEM} object that represents the fitted spatial field.}
-   \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}This method is implemented and available only for \code{FEMbasis} objects created on planar mesh (\code{MESH2D}) objects.
+   \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}
    \item{\code{beta}}{If covariates is not \code{NULL}, a vector of length #covariates with the regression coefficients associated with each covariate.}
    \item{\code{edf}}{If GCV is \code{TRUE}, a scalar or vector with the trace of the smoothing matrix for each value of the smoothing parameter specified in \code{lambda}.}
    \item{\code{stderr}}{If GCV is \code{TRUE}, a scalar or vector with the estimate of the standard deviation of the error for each value of the smoothing parameter specified in \code{lambda}.}

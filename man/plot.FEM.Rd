@@ -10,7 +10,7 @@
 \item{x}{A \code{FEM} object.}
 
 \item{num_refinements}{A natural number specifying how many bisections should be applied to each triangular element for
-plotting purposes. This functionality is useful where a discretization with 2nd order Finite Element is applied. This parameter can be specified only when a planar mesh (\code{MESH2D} object is plotted.}
+plotting purposes. This functionality is useful where a discretization with 2nd order Finite Element is applied. This parameter can be specified only when a planar mesh (\code{MESH2D}) object is plotted.}
 
 \item{...}{Arguments representing graphical options to be passed to \link[rgl]{plot3d}.}
 }

@@ -2,6 +2,7 @@
 #' 
 #' @param mesh A \code{MESH2D} or \code{MESH.2.5D} object representing the domain triangulation. See \link{create.MESH.2D}, \link{create.MESH.2.5D}.
 #' @return A  \code{FEMbasis} object. This contains the \code{mesh}, along with some additional quantities:
+#'
 #' if \code{class(mesh) == MESH2D}
 #' 	\item{\code{order}}{Either "1" or "2". Order of the Finite Element basis.} 
 #' 	\item{\code{nbasis}}{Scalar. The number of basis.} 
@@ -15,7 +16,7 @@
 #' Linear if (\code{order = 1}) in the input \code{mesh} and quadratic if (\code{order = 2}) in the input \code{mesh}
 #' Finite Element are currently implemented.
 #' @usage create.FEM.basis(mesh)
-#' @seealso \code{\link{create.MESH.2D}} \code{\link{create.MESH.2.5D}}
+#' @seealso \code{\link{create.MESH.2D}}, \code{\link{create.MESH.2.5D}}
 #' @examples 
 #' ## Creates a simple triangulated domain with a concavity; this is a MESH2D object  
 #' mesh<-create.MESH.2D(nodes=rbind(c(0, 0), c(0, 1), c(0.5, 0.5), c(1, 1), c(1, 0)),
