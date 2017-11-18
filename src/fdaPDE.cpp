@@ -9,14 +9,13 @@
 #include "finite_element.h"
 #include "matrix_assembler.h"
 #include "FPCAData.h"
-#include "mixedFE.h"
 #include "FPCAObject.h"
-#include <chrono>
+//#include <chrono>
 
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
-
-//P     Ro v   aea
+ 
+//P         R o v   aea
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 {
