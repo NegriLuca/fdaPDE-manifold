@@ -206,9 +206,9 @@ for(auto np=0;np<this->inputData_.getNPC();np++){
 		solver2.analyzePattern(this->coeffmatrix_);
 		solver2.factorize(this->coeffmatrix_);
 		*/
-		Eigen::SparseLU<SpMat> solver3;
-		solver3.analyzePattern(this->coeffmatrix_);
-		solver3.factorize(this->coeffmatrix_);
+		Eigen::SparseLU<SpMat> solver;
+		solver.analyzePattern(this->coeffmatrix_);
+		solver.factorize(this->coeffmatrix_);
 		/*
 		std::string name("Coefmatrix.csv");
 		std::ofstream file(name.c_str());
@@ -273,7 +273,7 @@ for(auto np=0;np<this->inputData_.getNPC();np++){
 	*/
 	/*std::chrono::high_resolution_clock::time_point t33= std::chrono::high_resolution_clock::now();*/
 			
-	this->solution_[i].resize(this->coeffmatrix_.rows());
+		this->solution_[i].resize(this->coeffmatrix_.rows());
 		this->solution_[i]=solver3.solve(this->b_);
 		if(solver3.info()!=Eigen::Success)
 		{
