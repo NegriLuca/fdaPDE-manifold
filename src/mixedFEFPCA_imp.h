@@ -138,8 +138,6 @@ template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UIn
 template<typename A>
 void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::apply(EOExpr<A> oper)
 {	
-	std::chrono::high_resolution_clock::time_point t7= std::chrono::high_resolution_clock::now();
-
 	UInt nnodes=this->mesh_.num_nodes();
 	FiniteElement<Integrator, ORDER, mydim, ndim> fe;
 
@@ -154,14 +152,7 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::apply(EOExpr<A
 	Assembler::operKernel(oper, this->mesh_, fe, this->AMat_);
 	Assembler::operKernel(mass, this->mesh_, fe, this->MMat_);
 	
-	std::chrono::high_resolution_clock::time_point t8= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration4 =t8-t7;
-	
-	std::cout<<"Time elapsed for computing stiff and mass: "<<duration4.count()<<std::endl;	
-	
 	///Fino a qui devo farlo una volta sola
-	
 	UInt niter=20;
 	
 	scores_mat_.resize(this->inputData_.getNPC());
@@ -182,9 +173,9 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim>::apply(EOExpr<A
 	file2<<MatrixXr(this->AMat_).format(CSVFormat);
 	*/
 	
-	std::chrono::high_resolution_clock::time_point t11= std::chrono::high_resolution_clock::now();
+	//std::chrono::high_resolution_clock::time_point t11= std::chrono::high_resolution_clock::now();
 	
-for(UInt np=0;np<this->inputData_.getNPC();np++){
+for(auto np=0;np<this->inputData_.getNPC();np++){
 	//std::cout<<"Datamatrix"<<std::endl;
 	
 	//FPCAinput.printDatamatrix(std::cout);
@@ -196,11 +187,11 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 	FPCAinput.printObservationData(std::cout);
 	*/
 	
-	std::chrono::high_resolution_clock::time_point t9= std::chrono::high_resolution_clock::now();
+	//std::chrono::high_resolution_clock::time_point t9= std::chrono::high_resolution_clock::now();
 	
 	this->solution_.resize(this->inputData_.getLambda().size());
 	this->dof_.resize(this->inputData_.getLambda().size());
-	for(UInt i = 0; i<this->inputData_.getLambda().size(); ++i)
+	for(auto i = 0; i<this->inputData_.getLambda().size(); ++i)
 	{
 		Real lambda = this->inputData_.getLambda()[i];
 		//std::cout<<"Lambda: "<<lambda<<std::endl;
@@ -208,19 +199,32 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 		SpMat MMat_lambda = (-lambda)*this->MMat_;
 		this->buildCoeffMatrix(this->DMat_, AMat_lambda, MMat_lambda);
 		
-		
+		/*Eigen::BiCGSTAB<SpMat,Eigen::IncompleteLUT<Real>> solver;
+		Eigen::BiCGSTAB<SpMat> solver2;
+		solver.analyzePattern(this->coeffmatrix_);
+		solver.factorize(this->coeffmatrix_);
+		solver2.analyzePattern(this->coeffmatrix_);
+		solver2.factorize(this->coeffmatrix_);
+		*/
+		Eigen::SparseLU<SpMat> solver3;
+		solver3.analyzePattern(this->coeffmatrix_);
+		solver3.factorize(this->coeffmatrix_);
 		/*
 		std::string name("Coefmatrix.csv");
 		std::ofstream file(name.c_str());
 		file<<MatrixXr(this->coeffmatrix_).format(CSVFormat);
 		*/
-		for(UInt j=0;j<niter;j++)
-		{
+		for(auto j=0;j<niter;j++)
+		{	
 			FPCAinput.setObservationData();
+
+			
+			
 			VectorXr rightHandData;
 			computeRightHandData(rightHandData,FPCAinput);
 			this->b_ = VectorXr::Zero(2*nnodes);
 			this->b_.topRows(nnodes)=rightHandData;
+			
 			/*if(j==0){
 			std::cout<<"Size: "<<std::endl;
 			std::cout<<rightHandData.size()<<std::endl;
@@ -236,14 +240,95 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 			std::ofstream file3(name3.c_str());
 			file1<<this->b_.format(CSVFormat);
 			}*/
+/*			
+			std::chrono::high_resolution_clock::time_point t19= std::chrono::high_resolution_clock::now();
 			
+	this->solution_[i].resize(this->coeffmatrix_.rows());
+		this->solution_[i]=solver.solve(this->b_);
+		if(solver.info()!=Eigen::Success)
+		{
+		//std::cerr<<"solving failed!"<<std::endl;
+		}
+			
+			std::chrono::high_resolution_clock::time_point t20= std::chrono::high_resolution_clock::now();
+			
+			std::chrono::duration<double> duration10 =t20-t19;
+	
+	std::cout<<"Time elapsed for solving sistem BiCGSTAB ILUT: "<<duration10.count()<<std::endl;
+	
+	std::chrono::high_resolution_clock::time_point t31= std::chrono::high_resolution_clock::now();
+			
+	this->solution_[i].resize(this->coeffmatrix_.rows());
+		this->solution_[i]=solver2.solve(this->b_);
+		if(solver2.info()!=Eigen::Success)
+		{
+		//std::cerr<<"solving failed!"<<std::endl;
+		}
+			
+			std::chrono::high_resolution_clock::time_point t32= std::chrono::high_resolution_clock::now();
+			
+			std::chrono::duration<double> duration16 =t32-t31;
+	
+	std::cout<<"Time elapsed for solving sistem BiCGSTAB: "<<duration16.count()<<std::endl;
+	*/
+	/*std::chrono::high_resolution_clock::time_point t33= std::chrono::high_resolution_clock::now();*/
+			
+	this->solution_[i].resize(this->coeffmatrix_.rows());
+		this->solution_[i]=solver3.solve(this->b_);
+		if(solver3.info()!=Eigen::Success)
+		{
+		//std::cerr<<"solving failed!"<<std::endl;
+		}
+			
+		/*	std::chrono::high_resolution_clock::time_point t34= std::chrono::high_resolution_clock::now();
+			
+			std::chrono::duration<double> duration17 =t34-t33;
+	
+	std::cout<<"Time elapsed for solving sistem SpLU: "<<duration17.count()<<std::endl;*/
+	/*
+	std::chrono::high_resolution_clock::time_point t25= std::chrono::high_resolution_clock::now();
+	
+	
+			this-> template solve<BiCGSTAB>(i);
+			
+			std::chrono::high_resolution_clock::time_point t26= std::chrono::high_resolution_clock::now();
+			
+			std::chrono::duration<double> duration13 =t26-t25;
+	
+	std::cout<<"Time elapsed for solving sistem BiCGSTAB: "<<duration13.count()<<std::endl;
+	
+	std::chrono::high_resolution_clock::time_point t15= std::chrono::high_resolution_clock::now();
+	
+	
 			this-> template solve<SpLU>(i);
+			
+			std::chrono::high_resolution_clock::time_point t16= std::chrono::high_resolution_clock::now();
+			
+			std::chrono::duration<double> duration8 =t16-t15;
+	
+	std::cout<<"Time elapsed for solving sistem SpLU : "<<duration8.count()<<std::endl;
+	
+	std::chrono::high_resolution_clock::time_point t17= std::chrono::high_resolution_clock::now();
+	
+	
+			this-> template solve<SpConjGrad>(i);
+			
+			std::chrono::high_resolution_clock::time_point t18= std::chrono::high_resolution_clock::now();
+			
+			std::chrono::duration<double> duration9 =t18-t17;
+	
+	std::cout<<"Time elapsed for solving sistem ConjGrad: "<<duration9.count()<<std::endl;
+	*/
+			
 			if(this->inputData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, this->solution_[i]);
 			else
 				FPCAinput.setLoadingsPsi(nnodes, this->solution_[i],this->Psi_);
 	
+			
 			FPCAinput.setScores();
+
+			
 			/*if(j==0){
 			std::cout<<"Scores";
 			FPCAinput.printScores(std::cout);
@@ -253,17 +338,18 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 			FPCAinput.printObservationData(std::cout);
 			}*/
 		}
-		if(this->inputData_.computeDOF())
+		/*if(this->inputData_.computeDOF())
 			computeDegreesOfFreedom(i);
 		else
 			this->dof_[i] = -1;
+			*/
 	}
 	
-	std::chrono::high_resolution_clock::time_point t10= std::chrono::high_resolution_clock::now();
+/*	std::chrono::high_resolution_clock::time_point t10= std::chrono::high_resolution_clock::now();
 	
 	std::chrono::duration<double> duration5 =t10-t9;
 	
-	std::cout<<"Time elapsed for computing a single NPC: "<<duration5.count()<<std::endl;
+	std::cout<<"Time elapsed for computing a single NPC: "<<duration5.count()<<std::endl;*/
 	
 	scores_mat_[np]=FPCAinput.getScores();
 	loadings_mat_[np]=FPCAinput.getLoadings();
@@ -285,18 +371,19 @@ for(UInt np=0;np<this->inputData_.getNPC();np++){
 	//std::cout<<this->inputData_.getDatamatrix()-scores_mat_[np]*loadings_mat_[np].transpose()<<std::endl;
 	}
 	
-	std::chrono::high_resolution_clock::time_point t12= std::chrono::high_resolution_clock::now();
+	/*std::chrono::high_resolution_clock::time_point t12= std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration6 =t12-t11;
 	
 	std::cout<<"Time elapsed for computing all NPC: "<<duration6.count()<<std::endl;
 	
-	std::chrono::high_resolution_clock::time_point t13= std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point t13= std::chrono::high_resolution_clock::now();*/
 	computeVarianceExplained();
 	computeCumulativePercentageExplained();
-	std::chrono::high_resolution_clock::time_point t14= std::chrono::high_resolution_clock::now();
+/*	std::chrono::high_resolution_clock::time_point t14= std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration7 =t14-t13;
 	
 	std::cout<<"Time elapsed for computing variances: "<<duration7.count()<<std::endl;
+*/
 }
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>

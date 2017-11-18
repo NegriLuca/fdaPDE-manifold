@@ -16,7 +16,7 @@
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
 
-//PRovaea
+//P     Ro v   aea
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 {
@@ -53,19 +53,9 @@ template<typename InputHandler, typename Integrator,UInt ORDER, UInt mydim, UInt
 SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 {
 	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
-	
-	std::chrono::high_resolution_clock::time_point t1= std::chrono::high_resolution_clock::now();
 	MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim> fpca(mesh,fPCAData);
 
 	fpca.apply();
-	
-	std::chrono::high_resolution_clock::time_point t2= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration =t2-t1;
-	
-	std::cout<<"Time elapsed for function apply : "<<duration.count()<<std::endl;	
-	
-	std::chrono::high_resolution_clock::time_point t3= std::chrono::high_resolution_clock::now();
 
 	const std::vector<VectorXr>& loadings = fpca.getLoadingsMat();
 	const std::vector<VectorXr>& scores = fpca.getScoresMat();
@@ -117,12 +107,7 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 		rans4[i] = cumsum_percentage[i];
 	}
 	UNPROTECT(1);
-	
-	std::chrono::high_resolution_clock::time_point t4= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration2 =t4-t3;
-	
-	std::cout<<"Time elapsed for converting things for R: "<<duration2.count()<<std::endl;
+
 	return(result);
 }
 
@@ -365,18 +350,12 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 
 SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP DOF, SEXP RnPC){
 //Set data
-std::chrono::high_resolution_clock::time_point t5= std::chrono::high_resolution_clock::now();
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, DOF);
 
 	SEXP result = NILSXP;
 
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
-	
-	std::chrono::high_resolution_clock::time_point t6= std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration3 =t6-t5;
-	
-	std::cout<<"Time elapsed for converting things for C: "<<duration3.count()<<std::endl;	
 	
 
 	if(fPCAdata.getOrder() == 1 && ndim==2)
