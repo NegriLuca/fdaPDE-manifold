@@ -16,7 +16,7 @@
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
   
-//P                 R o v   aea
+//P                  R o v   aea
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 {

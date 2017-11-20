@@ -217,6 +217,13 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 	UInt s= fpcaData_.getNumberofObservations();
 	VectorXr zhat=FPCAinput.getObservationData();
 	Real norm_squared=(zhat-FPCAinput.getLoadings()).transpose()*(zhat-FPCAinput.getLoadings());
+	if(s-dof_[output_index]<0){
+		#ifdef R_VERSION_
+			Rprintf("WARNING: Some values of the trace of the matrix S('lambda') are inconstistent. This might be due to ill-conditioning of the linear system. Try increasing value of 'lambda'.Value of 'lambda' that produces an error is: %d \n", fpcaData_.getLambda()[output_index]);
+			#else
+			std::cout << "WARNING: Some values of the trace of the matrix S('lambda') are inconstistent. This might be due to ill-conditioning of the linear system. Try increasing value of 'lambda'.Value of 'lambda' that produces an error is:" << fpcaData_.getLambda()[output_index] <<"\n";
+			#endif
+			}
 	Real stderror=norm_squared/(s-dof_[output_index]);
 	GCV_[output_index]=(s/(s-dof_[output_index]))*stderror;
 	//GCV_[output_index]=norm_squared/(s-(1-1/s*dof_[output_index])*(1-1/s*dof_[output_index]));
