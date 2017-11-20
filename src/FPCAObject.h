@@ -10,7 +10,7 @@ class  FPCAObject{
 		
 		
 		//Loadings and scores estimation
-		MatrixXr datamatrix_;
+		//MatrixXr datamatrix_;
 		VectorXr scores_;
 		VectorXr loadings_;
 		//std::vector<VectorXr> scores_mat_;
@@ -23,11 +23,11 @@ class  FPCAObject{
 		
 		FPCAObject(){};
 				
-		explicit FPCAObject(const MatrixXr& datamatrix);
+		explicit FPCAObject(const MatrixXr& datamatrix_);
 		
-		void newDatamatrix(const VectorXr& scores,const VectorXr& loadings);
-		void setScores();
-		void setObservationData();
+		//void newDatamatrix(const VectorXr& scores,const VectorXr& loadings);
+		void setScores(const MatrixXr& datamatrix_);
+		void setObservationData(const MatrixXr& datamatrix_);
 		void setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& psi);
 		void setLoadings(UInt nnodes, const VectorXr& f_sol);
 		
@@ -44,7 +44,7 @@ class  FPCAObject{
 		//void printLoadingsMat(std::ostream & out) const;
 		//!A method for printing the ObservationData on a specified output
 		void printObservationData(std::ostream & out) const;
-		void printDatamatrix(std::ostream & out) const;
+		//void printDatamatrix(std::ostream & out) const;
 		
 			
 		//! A method returning a reference to the scores vector

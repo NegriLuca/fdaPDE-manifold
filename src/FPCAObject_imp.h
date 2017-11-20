@@ -1,24 +1,25 @@
 #ifndef __FPCAOBJECT_IMP_HPP__
 #define __FPCAOBJECT_IMP_HPP__
 
-FPCAObject::FPCAObject(const MatrixXr& datamatrix):datamatrix_(datamatrix)
+FPCAObject::FPCAObject(const MatrixXr& datamatrix_)
 {
 	//Initialize loadings vector
-	Eigen::JacobiSVD<MatrixXr> svd(datamatrix,Eigen::ComputeThinU|Eigen::ComputeThinV);
+	Eigen::JacobiSVD<MatrixXr> svd(datamatrix_,Eigen::ComputeThinU|Eigen::ComputeThinV);
 	loadings_=svd.matrixV().col(0);
 	scores_=svd.matrixU().col(0);
 }
 
+/*
 void FPCAObject::newDatamatrix(const VectorXr& scores,const VectorXr& loadings)
 {    	
-	/*std::cout<<"RIGHE DATA: "<<datamatrix_.rows()<<std::endl;
-	std::cout<<"COLONNE DATA: "<<datamatrix_.cols()<<std::endl;
+	//std::cout<<"RIGHE DATA: "<<datamatrix_.rows()<<std::endl;
+	//std::cout<<"COLONNE DATA: "<<datamatrix_.cols()<<std::endl;
 	
-	MatrixXr aa=loadings*scores.transpose();
+	//MatrixXr aa=loadings*scores.transpose();
 	
-	std::cout<<"RIGHE: "<<aa.rows()<<std::endl;
-	std::cout<<"COLONNE: "<<aa.cols()<<std::endl;
-	*/
+	//std::cout<<"RIGHE: "<<aa.rows()<<std::endl;
+	//std::cout<<"COLONNE: "<<aa.cols()<<std::endl;
+	
 	
 	datamatrix_=datamatrix_- scores*loadings.transpose();
 	
@@ -27,6 +28,7 @@ void FPCAObject::newDatamatrix(const VectorXr& scores,const VectorXr& loadings)
 	loadings_=svd.matrixV().col(0);
 	scores_=svd.matrixU().col(0);
 }
+*/
 
 
 void FPCAObject::printScores(std::ostream & out) const
@@ -59,6 +61,7 @@ void FPCAObject::printObservationData(std::ostream & out) const
 	out<<std::endl;
 }
 
+/*
 void FPCAObject::printDatamatrix(std::ostream & out) const
 {
 
@@ -71,15 +74,16 @@ void FPCAObject::printDatamatrix(std::ostream & out) const
 	}
 	out<<std::endl;
 }
+*/
 
 
-void FPCAObject::setScores()
+void FPCAObject::setScores(const MatrixXr& datamatrix_)
 {
 	scores_=datamatrix_*loadings_;
 	scores_=scores_/scores_.norm();
 }
 
-void FPCAObject::setObservationData()
+void FPCAObject::setObservationData(const MatrixXr& datamatrix_)
 {
 	ObservationData_=datamatrix_.transpose()*scores_;
 }

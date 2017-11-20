@@ -12,7 +12,7 @@
 
 //! A LinearSystem class: A class for the linear system construction and resolution.
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim, typename SparseSolver>
 class MixedFEFPCABase
 {
 protected:
@@ -31,8 +31,11 @@ protected:
 	VectorXr b_;			  //!A Eigen::VectorXr : Stores the system solution
 	std::vector<VectorXr> solution_;
 	std::vector<Real> dof_;
-
+	std::vector<Real> GCV_;
 	
+	
+	SparseSolver sparseSolver_;
+
 	std::vector<VectorXr> scores_mat_;
 	std::vector<VectorXr> loadings_mat_;
 	std::vector<Real> lambda_PC_;
@@ -47,6 +50,7 @@ protected:
 	void computeDegreesOfFreedom(UInt output_index);
 	void computeVarianceExplained();
 	void computeCumulativePercentageExplained();
+	void computeGCV(FPCAObject& FPCAinput,UInt output_index);
 	
 	template<typename P>
 	void solve(UInt output_index);
@@ -77,11 +81,11 @@ public:
 	inline std::vector<Real> const & getCumulativePercentage() const {return cumsum_percentage_;}
 };
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
-class MixedFEFPCA : public MixedFEFPCABase<InputHandler, Integrator, ORDER, mydim, ndim>
+template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
+class MixedFEFPCA : public MixedFEFPCABase<InputHandler, Integrator, ORDER, mydim, ndim,SparseSolver>
 {
 public:
-	MixedFEFPCA(const MeshHandler<ORDER, ndim, mydim>& mesh, const InputHandler& fpcaData):MixedFEFPCABase<InputHandler, Integrator, ORDER, mydim, ndim>(mesh, fpcaData){};
+	MixedFEFPCA(const MeshHandler<ORDER, ndim, mydim>& mesh, const InputHandler& fpcaData):MixedFEFPCABase<InputHandler, Integrator, ORDER, mydim, ndim,SparseSolver>(mesh, fpcaData){};
 
 	void apply()
 	{
