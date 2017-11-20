@@ -127,22 +127,10 @@ class SpConjGrad{
 	};
 };
 
-class BiCGSTABILUT{
-	public:
-	static void solve(SpMat const & A, VectorXr const & b, VectorXr &x )
-	{
-		Eigen::BiCGSTAB<SpMat,Eigen::IncompleteLUT<Real>> solver;
-		solver.compute(A);
-		if(solver.info()!=Eigen::Success){
-		//std::cerr<<"Decomposition failed!"<<std::endl;
-		}
-		x=solver.solve(b);
-		if(solver.info()!=Eigen::Success)
-		{
-		//std::cerr<<"solving failed!"<<std::endl;
-		}
-	};
-};
+//!  A Linear System BiConjugate Gradient stabilized sparse solver class
+/*!
+ * This class gives offers a standard interface to the BiConjugate Gradient stabilized resolutor for sparse matrices.
+*/
 
 class BiCGSTAB{
 	public:
@@ -160,5 +148,29 @@ class BiCGSTAB{
 		}
 	};
 };
+
+//!  A Linear System BiConjugate Gradient stabilized with Incomplete LUT preconditioner sparse solver class
+/*!
+ * This class gives offers a standard interface to the BiConjugate Gradient stabilized BiConjugate Gradient stabilized with Incomplete LUT preconditioner resolutor for sparse matrices.
+*/
+
+class BiCGSTABILUT{
+	public:
+	static void solve(SpMat const & A, VectorXr const & b, VectorXr &x )
+	{
+		Eigen::BiCGSTAB<SpMat,Eigen::IncompleteLUT<Real>> solver;
+		solver.compute(A);
+		if(solver.info()!=Eigen::Success){
+		//std::cerr<<"Decomposition failed!"<<std::endl;
+		}
+		x=solver.solve(b);
+		if(solver.info()!=Eigen::Success)
+		{
+		//std::cerr<<"solving failed!"<<std::endl;
+		}
+	};
+};
+
+
 
 #endif

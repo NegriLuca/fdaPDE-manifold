@@ -1,21 +1,50 @@
 #ifndef __FPCADATA_IMP_HPP__
 #define __FPCADATA_IMP_HPP__
 
-FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt order, std::vector<Real> lambda ,UInt nPC, bool DOF):InputData(locations, order, lambda,DOF),
+FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt order, std::vector<Real> lambda ,UInt nPC, bool DOF):locations_(locations), order_(order),lambda_(lambda),DOF_(DOF),
  datamatrix_(datamatrix), nPC_(nPC)
 {
 	if(locations.size()==0)
 	{
+		locations_by_nodes_= true;
 		for(int i = 0; i<datamatrix_.cols();++i) observations_indices_.push_back(i);
-	}
+	} else
+		locations_by_nodes_= false;
 }
 
 #ifdef R_VERSION_
-FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP DOF):InputData(Rlocations, Rorder, Rlambda, DOF)
+FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP DOF)
 {
 	setDatamatrix(Rdatamatrix);
+	setLocations(Rlocations);
+
+	order_ =  INTEGER(Rorder)[0];
+	DOF_ = INTEGER(DOF)[0];
+
+    	UInt length_lambda = Rf_length(Rlambda);
+    	for (UInt i = 0; i<length_lambda; ++i)  lambda_.push_back(REAL(Rlambda)[i]);
 
 	nPC_ = INTEGER(RnPC)[0];
+}
+
+void FPCAData::setLocations(SEXP Rlocations)
+{
+	n_ = INTEGER(Rf_getAttrib(Rlocations, R_DimSymbol))[0];
+	if(n_>0){
+		int ndim = INTEGER(Rf_getAttrib(Rlocations, R_DimSymbol))[1];
+
+	  if (ndim == 2){
+			for(auto i=0; i<n_; ++i)
+			{
+				locations_.emplace_back(REAL(Rlocations)[i+ n_*0],REAL(Rlocations)[i+ n_*1]);
+			}
+		}else{
+			for(auto i=0; i<n_; ++i)
+			{
+				locations_.emplace_back(REAL(Rlocations)[i+ n_*0],REAL(Rlocations)[i+ n_*1],REAL(Rlocations)[i+ n_*2]);
+			}
+		}
+	}
 }
 
 
@@ -34,9 +63,14 @@ void FPCAData::setDatamatrix(SEXP Rdatamatrix)
 		}
 	}
 
-	if(this->getLocations().size() == 0)
+	if(locations_.size() == 0)
 	{
+		locations_by_nodes_ = true;
 		for(auto i=0;i<p_;++i) observations_indices_.push_back(i);
+	}
+	else
+	{
+		locations_by_nodes_ = false;
 	}
 
 }
@@ -60,7 +94,17 @@ void FPCAData::printDatamatrix(std::ostream & out) const
 /*void newDatamatrix(const VectorXr& scores_,const VectorXr& loadings_)
 {    	datamatrix_=scores_*loadings_.transpose();
 }
-*/	
+*/
+void FPCAData::printLocations(std::ostream & out) const
+{
+
+	for(std::vector<Point>::size_type i=0;i<locations_.size(); i++)
+	{
+		locations_[i].print(out);
+		//std::cout<<std::endl;
+	}
+}
+
 
 
 #endif

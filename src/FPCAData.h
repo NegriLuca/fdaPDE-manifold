@@ -4,7 +4,6 @@
 #include "fdaPDE.h"
 #include "mesh_objects.h"
 #include "param_functors.h"
-#include "inputData.h"
 
 //!  An IO handler class for objects passed from R
 /*!
@@ -12,19 +11,32 @@
  * series of method for their access, so isolating the more the possible the specific
  * code for R/C++ data conversion.
 */
-class  FPCAData: public InputData{
+class  FPCAData{
 	private:
+	
+		std::vector<Point> locations_;
+
+		bool locations_by_nodes_;
+	
 		//Design matrix
 		MatrixXr datamatrix_;
 		std::vector<UInt> observations_indices_;
 		UInt n_;
 		UInt p_;
 		
+		//Other parameters
+		UInt order_;
+		std::vector<Real> lambda_;
+
+		//bool inputType;
+		bool DOF_;
+		
 		//Number of Principal Components
 		UInt nPC_;
 		
 		#ifdef R_VERSION_
 		void setDatamatrix(SEXP Rdatamatrix);
+		void setLocations(SEXP Rlocations);
 		#endif
 
 	public:
@@ -70,7 +82,13 @@ class  FPCAData: public InputData{
 
 
 		void printDatamatrix(std::ostream & out) const;
-		
+		void printLocations(std::ostream & out) const;
+
+		//! A method returning the locations of the observations
+		inline std::vector<Point> const & getLocations() const {return locations_;}
+		//! A method returning TRUE if the observations are located in the nodes of the mesh or FALSE otherwise
+		inline bool isLocationsByNodes() const {return locations_by_nodes_;}
+
 		//void newDatamatrix(const VectorXr& scores_,const VectorXr& loadings_);
 		
 		//! A method returning a reference to the observations vector
@@ -78,10 +96,19 @@ class  FPCAData: public InputData{
 		
 		//! A method returning the number of observations
 		inline UInt const getNumberofObservations() const {return datamatrix_.cols();}
+		//! A method returning the observations indices
 		inline std::vector<UInt> const & getObservationsIndices() const {return observations_indices_;}
 
 		//! A method returning the number of Principal Components to compute
 		inline UInt const getNPC() const {return nPC_;}
+		
+		//! A method returning a boolean value specifying if the Degrees of Freedom needs to be computed
+		inline bool computeDOF() const {return DOF_;}
+		//! A method returning the the penalization term
+		inline std::vector<Real> const & getLambda() const {return lambda_;}
+		//! A method returning the input order
+		inline UInt const getOrder() const {return order_;}
+		
 };
 
 #include "FPCAData_imp.h"

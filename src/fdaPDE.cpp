@@ -9,14 +9,14 @@
 #include "finite_element.h"
 #include "matrix_assembler.h"
 #include "FPCAData.h"
-#include "mixedFE.h"
 #include "FPCAObject.h"
-#include <chrono>
+#include "solverdefinitions.h"
+//#include <chrono>
 
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
-
-//P     Ro v   aea
+  
+//P                 R o v   aea
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 {
@@ -49,11 +49,11 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	return(result);
 }
 
-template<typename InputHandler, typename Integrator,UInt ORDER, UInt mydim, UInt ndim>
+template<typename InputHandler, typename Integrator,UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
 SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 {
 	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
-	MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim> fpca(mesh,fPCAData);
+	MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim, SparseSolver> fpca(mesh,fPCAData);
 
 	fpca.apply();
 
@@ -359,13 +359,13 @@ SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEX
 	
 
 	if(fPCAdata.getOrder() == 1 && ndim==2)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 2>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 2,Sparse_LU>(fPCAdata, Rmesh));
 	else if(fPCAdata.getOrder() == 2 && ndim==2)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 2>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 2,Sparse_LU>(fPCAdata, Rmesh));
 	else if(fPCAdata.getOrder() == 1 && ndim==3)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3,Sparse_LU>(fPCAdata, Rmesh));
 	else if(fPCAdata.getOrder() == 2 && ndim==3)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 3>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 3,Sparse_LU>(fPCAdata, Rmesh));
 	return(NILSXP);
 	
 	}
