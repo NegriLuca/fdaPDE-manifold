@@ -1,4 +1,4 @@
-CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, mydim, GCV,nPC)
+CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, mydim,nPC,validation, NFolds)
 { 
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
@@ -10,6 +10,9 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
   {
     locations<-matrix(nrow = 0, ncol = ndim)
   }
+  
+   if(is.null(validation))
+  	validation="NoValidation"
   
   ## Set propr type for correct C++ reading
   locations <- as.matrix(locations)
@@ -24,14 +27,15 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
   storage.mode(mydim)<- "integer"
   nPC<-as.integer(nPC)
   storage.mode(nPC)<-"integer"
-  
-  GCV = as.integer(GCV)
-  storage.mode(GCV)<-"integer"
+  validation<-as.character(validation)
+  storage.mode(validation)<-"character"
+  NFolds<-as.integer(NFolds)
+  storage.mode(NFolds)<-"integer"
   
   ## Call C++ function
   bigsol <- .Call("Smooth_FPCA", locations, datamatrix, FEMbasis$mesh, 
                   FEMbasis$order,mydim,ndim, 
-                  lambda,GCV,nPC,
+                  lambda,nPC,validation,NFolds,
                   package = "fdaPDE")
   
   ## Reset them correctly
@@ -43,7 +47,7 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
 
 
 
-CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim, mydim, GCV,nPC)
+CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim, mydim,nPC, validation, NFolds)
 {
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   # This is done in C++ now to optimize speed
@@ -52,6 +56,9 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   {
     locations<-matrix(nrow = 0, ncol = ndim)
   }
+  
+   if(is.null(validation))
+  	validation="NoValidation"
   
   ## Set propr type for correct C++ reading
   locations <- as.matrix(locations)
@@ -68,14 +75,15 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   storage.mode(mydim) <- "integer"
   nPC<-as.integer(nPC)
   storage.mode(nPC)<-"integer"
-
-  GCV = as.integer(GCV)
-  storage.mode(GCV)<-"integer"
+  validation<-as.character(validation)
+  storage.mode(validation)<-"character"
+  NFolds<-as.integer(NFolds)
+  storage.mode(NFolds)<-"integer"
   
   ## Call C++ function
   bigsol <- .Call("Smooth_FPCA", locations, datamatrix, mesh, 
                   mesh$order, mydim, ndim, lambda,
-                  GCV, nPC,
+                  nPC, validation, NFolds,
                   package = "fdaPDE")
 
   return(bigsol)

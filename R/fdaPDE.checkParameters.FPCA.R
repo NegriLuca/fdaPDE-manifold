@@ -1,4 +1,4 @@
-checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE)
+checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda,nPC, validation, NFolds)
 {
   #################### Parameter Check #########################
   if(!is.null(locations))
@@ -16,15 +16,17 @@ checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, l
     stop("'FEMbasis' is not class 'FEMbasis'")
   if (is.null(lambda)) 
     stop("lambda required;  is NULL.")
-
-  if (is.null(GCV)) 
-    stop("GCV required;  is NULL.")
-  if(!is.logical(GCV))
-    stop("'GCV' is not logical")
-
+  if(is.null(nPC))
+    stop("nPC required; is NULL.")
+  if(!is.null(validation)){
+    if(validation!="GCV" && validation!="KFold")
+   	stop("'validation' needs to be 'GCV' or 'KFold'")
+    if(validation=="KFold" && is.null(NFolds))
+   	stop("NFolds is required if 'validation' is 'KFold'")
+   }
 }
 
-checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, ndim, mydim)
+checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, ndim, mydim, validation, NFolds)
 {
   #################### Parameter Check #########################
   if(nrow(datamatrix) < 1)
@@ -50,5 +52,6 @@ checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasi
     stop("'lambda' must be a column vector")
   if(nrow(lambda) < 1)
     stop("'lambda' must contain at least one element")
-  
+  if(nrow(lambda)>1 && is.null(validation))
+    stop("If 'lambda' contains more than one element, 'validation' needs to be specified as 'GCV' or 'KFold'")
 }

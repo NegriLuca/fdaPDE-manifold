@@ -62,7 +62,7 @@
 
 #observation is a matrix with nrow=number of location points (or mesh nodes) and n cols=n of observations
 
-smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, nPC=1)
+smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1, validation=NULL,NFolds=5)
 {
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
@@ -76,21 +76,23 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = 
  
 ##################### Checking parameters, sizes and conversion ################################
 
-  checkSmoothingParametersFPCA(locations, datamatrix, FEMbasis, lambda,  GCV) 
+  checkSmoothingParametersFPCA(locations, datamatrix, FEMbasis, lambda,nPC, validation,NFolds) 
   ## Coverting to format for internal usage
   if(!is.null(locations))
     locations = as.matrix(locations)
   datamatrix = as.matrix(datamatrix)
   lambda = as.matrix(lambda)
   
-  checkSmoothingParametersSizeFPCA(locations, datamatrix, FEMbasis, lambda, GCV, ndim, mydim)
+  checkSmoothingParametersSizeFPCA(locations, datamatrix, FEMbasis, lambda, ndim, mydim, validation, NFolds)
+  
+  #stop("test end here")
 	  ################## End checking parameters, sizes and conversion #############################
 
   if(class(FEMbasis$mesh) == 'MESH2D'){	  
   	bigsol = NULL
 	print('C++ Code Execution')
 	bigsol = CPP_smooth.FEM.FPCA(locations, datamatrix, FEMbasis, lambda,
-	ndim, mydim, GCV,nPC)
+	ndim, mydim,nPC, validation, NFolds)
 	numnodes = nrow(FEMbasis$mesh$nodes)
 	  
   } else if(class(FEMbasis$mesh) == 'MESH.2.5D'){
@@ -98,7 +100,7 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, GCV = 
 	  bigsol = NULL  
 	  print('C++ Code Execution')
 	  bigsol = CPP_smooth.manifold.FEM.FPCA(locations, datamatrix, FEMbasis$mesh,
-	  lambda, ndim, mydim, GCV,nPC)
+	  lambda, ndim, mydim,nPC, validation, NFolds)
 	  numnodes = FEMbasis$mesh$nnodes
   }
   

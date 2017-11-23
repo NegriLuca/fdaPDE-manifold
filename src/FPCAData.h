@@ -31,8 +31,14 @@ class  FPCAData{
 		//bool inputType;
 		bool DOF_;
 		
+		//bool KF
+		bool KFold_;
+		
 		//Number of Principal Components
 		UInt nPC_;
+		
+		//Number of Folds for KFold
+		UInt nFolds_;
 		
 		#ifdef R_VERSION_
 		void setDatamatrix(SEXP Rdatamatrix);
@@ -73,12 +79,12 @@ class  FPCAData{
 
 		#ifdef R_VERSION_
 		explicit FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder,
-		SEXP Rlambda, SEXP RnPC, SEXP DOF);
+		SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds);
 		#endif
 
 				
 		explicit FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix,
-		UInt order, std::vector<Real> lambda, UInt nPC, bool DOF);
+		UInt order, std::vector<Real> lambda, UInt nPC, std::string validation, UInt nFolds);
 
 
 		void printDatamatrix(std::ostream & out) const;

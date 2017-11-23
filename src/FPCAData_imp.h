@@ -1,8 +1,8 @@
 #ifndef __FPCADATA_IMP_HPP__
 #define __FPCADATA_IMP_HPP__
 
-FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt order, std::vector<Real> lambda ,UInt nPC, bool DOF):locations_(locations), order_(order),lambda_(lambda),DOF_(DOF),
- datamatrix_(datamatrix), nPC_(nPC)
+FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt order, std::vector<Real> lambda ,UInt nPC, std::string validation, UInt nFolds):locations_(locations), order_(order),lambda_(lambda),
+ datamatrix_(datamatrix), nPC_(nPC),nFolds_(nFolds)
 {
 	if(locations.size()==0)
 	{
@@ -10,21 +10,41 @@ FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt ord
 		for(int i = 0; i<datamatrix_.cols();++i) observations_indices_.push_back(i);
 	} else
 		locations_by_nodes_= false;
+	if(validation=="GCV")
+		DOF_=TRUE;
+	else
+		DOF_=FALSE;
+	if(validation=="KFold")
+		KFold_=TRUE;
+	else
+		KFold_=FALSE;
 }
 
 #ifdef R_VERSION_
-FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP DOF)
+FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds)
 {
 	setDatamatrix(Rdatamatrix);
 	setLocations(Rlocations);
 
 	order_ =  INTEGER(Rorder)[0];
-	DOF_ = INTEGER(DOF)[0];
-
+	
+	std::string validation=CHAR(STRING_ELT(Rvalidation,0));
+	
+	if(validation=="GCV")
+		DOF_=TRUE;
+	else
+		DOF_=FALSE;
+	if(validation=="KFold")
+		KFold_=TRUE;
+	else
+		KFold_=FALSE;
+	
     	UInt length_lambda = Rf_length(Rlambda);
     	for (UInt i = 0; i<length_lambda; ++i)  lambda_.push_back(REAL(Rlambda)[i]);
 
 	nPC_ = INTEGER(RnPC)[0];
+	
+	nFolds_=INTEGER(RnFolds)[0];
 }
 
 void FPCAData::setLocations(SEXP Rlocations)

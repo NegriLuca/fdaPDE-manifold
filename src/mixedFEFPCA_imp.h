@@ -343,99 +343,12 @@ for(auto np=0;np<fpcaData_.getNPC();np++){
 			b_ = VectorXr::Zero(2*nnodes);
 			b_.topRows(nnodes)=rightHandData;
 			
-			/*if(j==0){
-			std::cout<<"Size: "<<std::endl;
-			std::cout<<rightHandData.size()<<std::endl;
-			std::cout<<"rightHandData: "<<std::endl;
-			std::cout<<rightHandData<<std::endl;
-			
-			std::cout<<"B: "<<std::endl;
-			std::cout<<this->b_<<std::endl;
-			}*/
-			/*if(j==0)
-			{std::string name3("RIGHTHANDDATA.csv");
-	
-			std::ofstream file3(name3.c_str());
-			file1<<this->b_.format(CSVFormat);
-			}*/
-/*			
-			std::chrono::high_resolution_clock::time_point t19= std::chrono::high_resolution_clock::now();
-			
-	this->solution_[i].resize(this->coeffmatrix_.rows());
-		this->solution_[i]=solver.solve(this->b_);
-		if(solver.info()!=Eigen::Success)
-		{
-		//std::cerr<<"solving failed!"<<std::endl;
-		}
-			
-			std::chrono::high_resolution_clock::time_point t20= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration10 =t20-t19;
-	
-	std::cout<<"Time elapsed for solving sistem BiCGSTAB ILUT: "<<duration10.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t31= std::chrono::high_resolution_clock::now();
-			
-	this->solution_[i].resize(this->coeffmatrix_.rows());
-		this->solution_[i]=solver2.solve(this->b_);
-		if(solver2.info()!=Eigen::Success)
-		{
-		//std::cerr<<"solving failed!"<<std::endl;
-		}
-			
-			std::chrono::high_resolution_clock::time_point t32= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration16 =t32-t31;
-	
-	std::cout<<"Time elapsed for solving sistem BiCGSTAB: "<<duration16.count()<<std::endl;
-	*/
-	/*std::chrono::high_resolution_clock::time_point t33= std::chrono::high_resolution_clock::now();*/
 			
 		solution_[i]=sparseSolver_.solve(b_);
 		if(sparseSolver_.info()!=Eigen::Success)
 		{
 		//std::cerr<<"solving failed!"<<std::endl;
 		}
-			
-		/*	std::chrono::high_resolution_clock::time_point t34= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration17 =t34-t33;
-	
-	std::cout<<"Time elapsed for solving sistem SpLU: "<<duration17.count()<<std::endl;*/
-	/*
-	std::chrono::high_resolution_clock::time_point t25= std::chrono::high_resolution_clock::now();
-	
-	
-			this-> template solve<BiCGSTAB>(i);
-			
-			std::chrono::high_resolution_clock::time_point t26= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration13 =t26-t25;
-	
-	std::cout<<"Time elapsed for solving sistem BiCGSTAB: "<<duration13.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t15= std::chrono::high_resolution_clock::now();
-	
-	
-			this-> template solve<SpLU>(i);
-			
-			std::chrono::high_resolution_clock::time_point t16= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration8 =t16-t15;
-	
-	std::cout<<"Time elapsed for solving sistem SpLU : "<<duration8.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t17= std::chrono::high_resolution_clock::now();
-	
-	
-			this-> template solve<SpConjGrad>(i);
-			
-			std::chrono::high_resolution_clock::time_point t18= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration9 =t18-t17;
-	
-	std::cout<<"Time elapsed for solving sistem ConjGrad: "<<duration9.count()<<std::endl;
-	*/
 			
 			if(fpcaData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, solution_[i]);
@@ -445,15 +358,6 @@ for(auto np=0;np<fpcaData_.getNPC();np++){
 			
 			FPCAinput.setScores(datamatrixResiduals_);
 
-			
-			/*if(j==0){
-			std::cout<<"Scores";
-			FPCAinput.printScores(std::cout);
-			std::cout<<"Loadings";
-			FPCAinput.printLoadings(std::cout);
-			std::cout<<"ObservationData";
-			FPCAinput.printObservationData(std::cout);
-			}*/
 		}
 		loadings_lambda_[i]=FPCAinput.getLoadings();
 		scores_lambda_[i]=FPCAinput.getScores();	
