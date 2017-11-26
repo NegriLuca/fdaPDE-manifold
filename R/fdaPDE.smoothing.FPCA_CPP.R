@@ -11,9 +11,10 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
     locations<-matrix(nrow = 0, ncol = ndim)
   }
   
-   if(is.null(validation))
+   if(is.null(validation)) 
+   {
   	validation="NoValidation"
-  
+   }
   ## Set propr type for correct C++ reading
   locations <- as.matrix(locations)
   storage.mode(locations) <- "double"
@@ -58,7 +59,9 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   }
   
    if(is.null(validation))
+   {
   	validation="NoValidation"
+   }
   
   ## Set propr type for correct C++ reading
   locations <- as.matrix(locations)

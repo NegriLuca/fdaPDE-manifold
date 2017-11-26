@@ -27,12 +27,6 @@ class  FPCAData{
 		//Other parameters
 		UInt order_;
 		std::vector<Real> lambda_;
-
-		//bool inputType;
-		bool DOF_;
-		
-		//bool KF
-		bool KFold_;
 		
 		//Number of Principal Components
 		UInt nPC_;
@@ -79,12 +73,12 @@ class  FPCAData{
 
 		#ifdef R_VERSION_
 		explicit FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder,
-		SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds);
+		SEXP Rlambda, SEXP RnPC, SEXP RnFolds);
 		#endif
 
 				
 		explicit FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix,
-		UInt order, std::vector<Real> lambda, UInt nPC, std::string validation, UInt nFolds);
+		UInt order, std::vector<Real> lambda, UInt nPC, UInt nFolds);
 
 
 		void printDatamatrix(std::ostream & out) const;
@@ -108,12 +102,13 @@ class  FPCAData{
 		//! A method returning the number of Principal Components to compute
 		inline UInt const getNPC() const {return nPC_;}
 		
-		//! A method returning a boolean value specifying if the Degrees of Freedom needs to be computed
-		inline bool computeDOF() const {return DOF_;}
 		//! A method returning the the penalization term
 		inline std::vector<Real> const & getLambda() const {return lambda_;}
 		//! A method returning the input order
 		inline UInt const getOrder() const {return order_;}
+		//! A method returning the input order
+		inline UInt const getNFolds() const {return nFolds_;}
+		
 		
 };
 

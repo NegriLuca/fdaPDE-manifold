@@ -85,7 +85,6 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
   
   checkSmoothingParametersSizeFPCA(locations, datamatrix, FEMbasis, lambda, ndim, mydim, validation, NFolds)
   
-  #stop("test end here")
 	  ################## End checking parameters, sizes and conversion #############################
 
   if(class(FEMbasis$mesh) == 'MESH2D'){	  
