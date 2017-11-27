@@ -50,24 +50,20 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	return(result);
 }
 
-/*template<typename InputHandler, typename Integrator,UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
+template<typename Integrator,UInt ORDER, UInt mydim, UInt ndim>
+SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh,std::string validation)
 {
 	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
-	MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim, SparseSolver> fpca(mesh,fPCAData);
+	std::unique_ptr<MixedFEFPCABase<Integrator, ORDER, mydim, ndim>> fpca = MixedFEFPCAfactory<Integrator, ORDER, mydim, ndim>::createFPCAsolver(validation, mesh,fPCAData);
+	
+	fpca->apply();
 
-	fpca.apply();
+	const std::vector<VectorXr>& loadings = fpca->getLoadingsMat();
+	const std::vector<VectorXr>& scores = fpca->getScoresMat();
+	const std::vector<Real>& lambdas = fpca->getLambdaPC();
+	const std::vector<Real>& variance_explained = fpca->getVarianceExplained();
+	const std::vector<Real>& cumsum_percentage = fpca->getCumulativePercentage();
 
-	const std::vector<VectorXr>& loadings = fpca.getLoadingsMat();
-	const std::vector<VectorXr>& scores = fpca.getScoresMat();
-	const std::vector<Real>& lambdas = fpca.getLambdaPC();
-	//const std::vector<Real>& dof = fpca.getDOF();
-	const std::vector<Real>& variance_explained = fpca.getVarianceExplained();
-	const std::vector<Real>& cumsum_percentage = fpca.getCumulativePercentage();
-	
-		
-	
-	
 	//Copy result in R memory
 	SEXP result = NILSXP;
 	result = PROTECT(Rf_allocVector(VECSXP, 5));
@@ -111,8 +107,6 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 
 	return(result);
 }
-
-*/
 
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
@@ -353,85 +347,22 @@ SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEX
 //Set data
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds);
 
-	SEXP result = NILSXP;
 //
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
 
 	std::string validation=CHAR(STRING_ELT(Rvalidation,0));
-	MeshHandler<1, 2, 3> mesh(Rmesh);
-	//MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim, SparseSolver> fpca(mesh,fPCAData);                 
 	
-	std::unique_ptr<MixedFEFPCABase<IntegratorTriangleP2, 1, 2, 3>> fpca = MixedFEFPCAfactory<IntegratorTriangleP2, 1, 2, 3>::createFPCAsolver(validation, mesh,fPCAdata);
-	
-	fpca->apply();
-
-	const std::vector<VectorXr>& loadings = fpca->getLoadingsMat();
-	const std::vector<VectorXr>& scores = fpca->getScoresMat();
-	const std::vector<Real>& lambdas = fpca->getLambdaPC();
-	//const std::vector<Real>& dof = fpca.getDOF();
-	const std::vector<Real>& variance_explained = fpca->getVarianceExplained();
-	const std::vector<Real>& cumsum_percentage = fpca->getCumulativePercentage();
-	
-		
-	
-	
-	//Copy result in R memory
-	//SEXP result = NILSXP;
-	result = PROTECT(Rf_allocVector(VECSXP, 5));
-	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, loadings[0].size(), loadings.size()));
-	SET_VECTOR_ELT(result, 1, Rf_allocMatrix(REALSXP, scores[0].size(), scores.size()));
-	SET_VECTOR_ELT(result, 2, Rf_allocVector(REALSXP, lambdas.size()));
-	SET_VECTOR_ELT(result, 3, Rf_allocVector(REALSXP, variance_explained.size()));
-	SET_VECTOR_ELT(result, 4, Rf_allocVector(REALSXP, cumsum_percentage.size()));
-	Real *rans = REAL(VECTOR_ELT(result, 0));
-	for(UInt j = 0; j < loadings.size(); j++)
-	{
-		for(UInt i = 0; i < loadings[0].size(); i++)
-			rans[i + loadings[0].size()*j] = loadings[j][i];
-	}
-	
-	Real *rans1 = REAL(VECTOR_ELT(result, 1));
-	for(UInt j = 0; j < scores.size(); j++)
-	{
-		for(UInt i = 0; i < scores[0].size(); i++)
-			rans1[i + scores[0].size()*j] = scores[j][i];
-	}
-	
-	Real *rans2 = REAL(VECTOR_ELT(result, 2));
-	for(UInt i = 0; i < lambdas.size(); i++)
-	{
-		rans2[i] = lambdas[i];
-	}
-
-	Real *rans3 = REAL(VECTOR_ELT(result, 3));
-	for(UInt i = 0; i < variance_explained.size(); i++)
-	{
-		rans3[i] = variance_explained[i];
-	}
-	
-	Real *rans4 = REAL(VECTOR_ELT(result, 4));
-	for(UInt i = 0; i < cumsum_percentage.size(); i++)
-	{
-		rans4[i] = cumsum_percentage[i];
-	}
-	UNPROTECT(1);
-
-	return(result);
-}
-	
-	
-/*
 	if(fPCAdata.getOrder() == 1 && ndim==2)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 2,Sparse_LU>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<IntegratorTriangleP2, 1, 2, 2>(fPCAdata, Rmesh, validation));
 	else if(fPCAdata.getOrder() == 2 && ndim==2)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 2,Sparse_LU>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 2>(fPCAdata, Rmesh,validation));
 	else if(fPCAdata.getOrder() == 1 && ndim==3)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3,Sparse_LU>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<IntegratorTriangleP2, 1, 2, 3>(fPCAdata, Rmesh,validation));
 	else if(fPCAdata.getOrder() == 2 && ndim==3)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 3,Sparse_LU>(fPCAdata, Rmesh));
+		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 3>(fPCAdata, Rmesh,validation));
+			
 	return(NILSXP);
-	
-	}
-*/
+	 }      
+
 }
