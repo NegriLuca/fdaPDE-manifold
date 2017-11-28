@@ -15,8 +15,9 @@
 
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
+#include "mixedFEFPCAfactory.h"
   
-//P                 R o v   aea
+//P                  R o v   aea
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 {
@@ -49,24 +50,20 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	return(result);
 }
 
-template<typename InputHandler, typename Integrator,UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
+template<typename Integrator,UInt ORDER, UInt mydim, UInt ndim>
+SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh,std::string validation)
 {
 	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
-	MixedFEFPCA<InputHandler,Integrator,ORDER, mydim, ndim, SparseSolver> fpca(mesh,fPCAData);
+	std::unique_ptr<MixedFEFPCABase<Integrator, ORDER, mydim, ndim>> fpca = MixedFEFPCAfactory<Integrator, ORDER, mydim, ndim>::createFPCAsolver(validation, mesh,fPCAData);
+	
+	fpca->apply();
 
-	fpca.apply();
+	const std::vector<VectorXr>& loadings = fpca->getLoadingsMat();
+	const std::vector<VectorXr>& scores = fpca->getScoresMat();
+	const std::vector<Real>& lambdas = fpca->getLambdaPC();
+	const std::vector<Real>& variance_explained = fpca->getVarianceExplained();
+	const std::vector<Real>& cumsum_percentage = fpca->getCumulativePercentage();
 
-	const std::vector<VectorXr>& loadings = fpca.getLoadingsMat();
-	const std::vector<VectorXr>& scores = fpca.getScoresMat();
-	const std::vector<Real>& lambdas = fpca.getLambdaPC();
-	//const std::vector<Real>& dof = fpca.getDOF();
-	const std::vector<Real>& variance_explained = fpca.getVarianceExplained();
-	const std::vector<Real>& cumsum_percentage = fpca.getCumulativePercentage();
-	
-		
-	
-	
 	//Copy result in R memory
 	SEXP result = NILSXP;
 	result = PROTECT(Rf_allocVector(VECSXP, 5));
@@ -110,8 +107,6 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh)
 
 	return(result);
 }
-
-
 
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
@@ -348,26 +343,26 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 	return(NILSXP);
 }
 
-SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP DOF, SEXP RnPC){
+SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds){
 //Set data
-	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, DOF);
+	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds);
 
-	SEXP result = NILSXP;
-
+//
 	UInt mydim=INTEGER(Rmydim)[0];
 	UInt ndim=INTEGER(Rndim)[0];
-	
 
-	if(fPCAdata.getOrder() == 1 && ndim==2)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 2,Sparse_LU>(fPCAdata, Rmesh));
-	else if(fPCAdata.getOrder() == 2 && ndim==2)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 2,Sparse_LU>(fPCAdata, Rmesh));
-	else if(fPCAdata.getOrder() == 1 && ndim==3)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP2, 1, 2, 3,Sparse_LU>(fPCAdata, Rmesh));
-	else if(fPCAdata.getOrder() == 2 && ndim==3)
-		return(FPCA_skeleton<FPCAData,IntegratorTriangleP4, 2, 2, 3,Sparse_LU>(fPCAdata, Rmesh));
-	return(NILSXP);
+	std::string validation=CHAR(STRING_ELT(Rvalidation,0));
 	
-	}
+	if(fPCAdata.getOrder() == 1 && ndim==2)
+		return(FPCA_skeleton<IntegratorTriangleP2, 1, 2, 2>(fPCAdata, Rmesh, validation));
+	else if(fPCAdata.getOrder() == 2 && ndim==2)
+		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 2>(fPCAdata, Rmesh,validation));
+	else if(fPCAdata.getOrder() == 1 && ndim==3)
+		return(FPCA_skeleton<IntegratorTriangleP2, 1, 2, 3>(fPCAdata, Rmesh,validation));
+	else if(fPCAdata.getOrder() == 2 && ndim==3)
+		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 3>(fPCAdata, Rmesh,validation));
+			
+	return(NILSXP);
+	 }      
 
 }

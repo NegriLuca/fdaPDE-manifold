@@ -6,9 +6,10 @@
 #include <numeric>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeBasisEvaluations(){
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 
 	//std::cout<<"Data Matrix Computation by Basis Evaluation.."<<std::endl;
 	UInt nnodes = mesh_.num_nodes();
@@ -50,8 +51,8 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 }
 
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::buildCoeffMatrix(const SpMat& DMat,  const SpMat& AMat,  const SpMat& MMat)
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::buildCoeffMatrix(const SpMat& DMat,  const SpMat& AMat,  const SpMat& MMat)
 {
 	UInt nnodes = mesh_.num_nodes();
 
@@ -87,8 +88,8 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::b
 
 //construct NW block of the system matrix when basis evaluation is necessary
 //!! Depends on computeBasisEvaluations
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeDataMatrix(SpMat& DMat)
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeDataMatrix(SpMat& DMat)
 {
 		UInt nnodes = mesh_.num_nodes();
 		DMat.resize(nnodes,nnodes);
@@ -98,8 +99,8 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 //construct NW block of the system matrix in Ramsay when locations of observations are
 //a subset of the meshe's nodes
 //!! Depends on computeBasisEvaluations
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeDataMatrixByIndices(SpMat& DMat)
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeDataMatrixByIndices(SpMat& DMat)
 {
 		UInt nnodes = mesh_.num_nodes();
 		UInt nlocations = fpcaData_.getNumberofObservations();
@@ -115,8 +116,8 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 }
 
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeRightHandData(VectorXr& rightHandData,FPCAObject& FPCAinput)
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeRightHandData(VectorXr& rightHandData,FPCAObject& FPCAinput)
 {
 	UInt nnodes = mesh_.num_nodes();
 	UInt nlocations = fpcaData_.getNumberofObservations();
@@ -138,47 +139,11 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 }
 
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeDegreesOfFreedom(UInt output_index)
-{
-	UInt nnodes = mesh_.num_nodes();
-	UInt nlocations = fpcaData_.getNumberofObservations();
-
-	SpMat I(coeffmatrix_.rows(),coeffmatrix_.cols());
-	I.setIdentity();
-	SpMat coeff_inv = sparseSolver_.solve(I);
 
 
-	Real degrees=0;
 
-		if(fpcaData_.isLocationsByNodes())
-		{
-			VectorXr d = coeff_inv.diagonal();
-
-			for (auto i=0; i<nlocations;++i)
-			{
-				auto index_i = fpcaData_.getObservationsIndices()[i];
-				degrees+=d(index_i);
-			}
-		}
-		else
-		{
-			MatrixXr An(coeff_inv.topLeftCorner(nnodes, nnodes));
-			MatrixXr S = Psi_*An*Psi_.transpose();
-			for (auto i=0; i<nlocations;++i)
-			{
-				degrees+=S(i,i);
-			}
-		}
-
-	//std::cout<<"TRACE "<<degrees<<std::endl;
-
-	dof_[output_index] = degrees;
-}
-
-
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeVarianceExplained()
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained()
 {	
 
 	MatrixXr U_not_normalized(scores_mat_[0].size(),scores_mat_.size());
@@ -191,19 +156,14 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 	variance_explained_[i]=(R.diagonal()*R.diagonal().transpose()).diagonal()[i]/scores_mat_[0].size();
 	}
 	
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeCumulativePercentageExplained()
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained()
 {	
 	Eigen::JacobiSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
 	MatrixXr U_ALL(fpcaData_.getDatamatrix().rows(),fpcaData_.getDatamatrix().rows());
 	for(UInt i=0;i<svd.singularValues().rows();i++)
 		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt(svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i));
 	Real TotVar=(U_ALL.transpose()*U_ALL).trace()/fpcaData_.getDatamatrix().rows();
-	/*std::cout<<(U_ALL.transpose()*U_ALL)<<std::endl;
-	std::cout<<(U_ALL.transpose()*U_ALL).trace()<<std::endl;
-	std::cout<<this->inputData_.getDatamatrix().rows()<<std::endl;
-	std::cout<<TotVar<<std::endl;
-	*/
 	
 	cumsum_percentage_.resize(fpcaData_.getNPC());
 	
@@ -211,24 +171,55 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::c
 	std::for_each(cumsum_percentage_.begin(), cumsum_percentage_.end(), [&TotVar](Real& i){i=i/TotVar;});
 	}
 	
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::computeGCV(FPCAObject& FPCAinput,UInt output_index)
+
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr & datamatrixResiduals_,FPCAObject & FPCAinput, UInt lambda_index, UInt nnodes)
 {
-	UInt s= fpcaData_.getNumberofObservations();
-	VectorXr zhat=FPCAinput.getObservationData();
-	Real norm_squared=(zhat-FPCAinput.getLoadings()).transpose()*(zhat-FPCAinput.getLoadings());
-	Real stderror=norm_squared/(s-dof_[output_index]);
-	GCV_[output_index]=(s/(s-dof_[output_index]))*stderror;
-	//GCV_[output_index]=norm_squared/(s-(1-1/s*dof_[output_index])*(1-1/s*dof_[output_index]));
+		Real lambda = fpcaData_.getLambda()[lambda_index];
+		SpMat AMat_lambda = (-lambda)*AMat_;
+		SpMat MMat_lambda = (-lambda)*MMat_;
+		buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda);
+
+		sparseSolver_.analyzePattern(coeffmatrix_);
+		sparseSolver_.factorize(coeffmatrix_);
+		solution_[lambda_index].resize(coeffmatrix_.rows());
+		
+		UInt niter=20;
+
+		for(auto j=0;j<niter;j++)
+		{	
+			FPCAinput.setObservationData(datamatrixResiduals_);
+
+			VectorXr rightHandData;
+			computeRightHandData(rightHandData,FPCAinput);
+			b_ = VectorXr::Zero(2*nnodes);
+			b_.topRows(nnodes)=rightHandData;
+			
+			
+			solution_[lambda_index]=sparseSolver_.solve(b_);
+			if(sparseSolver_.info()!=Eigen::Success)
+			{
+			//std::cerr<<"solving failed!"<<std::endl;
+			}
+			
+			if(fpcaData_.isLocationsByNodes())
+				FPCAinput.setLoadings(nnodes, solution_[lambda_index]);
+			else
+				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
+	
+			
+			FPCAinput.setScores(datamatrixResiduals_);
+
+		}
+
 }
 
 
 
-template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-template<typename A>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::apply(EOExpr<A> oper)
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 {	
-	UInt nnodes=mesh_.num_nodes();
 	FiniteElement<Integrator, ORDER, mydim, ndim> fe;
 
 	if(!fpcaData_.isLocationsByNodes())
@@ -239,292 +230,280 @@ void MixedFEFPCABase<InputHandler,Integrator,ORDER, mydim, ndim,SparseSolver>::a
 		computeDataMatrixByIndices(DMat_);
 
 	typedef EOExpr<Mass> ETMass; Mass EMass; ETMass mass(EMass);
-	Assembler::operKernel(oper, mesh_, fe, AMat_);
+	typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
+	Assembler::operKernel(stiff, mesh_, fe, AMat_);
 	Assembler::operKernel(mass, mesh_, fe, MMat_);
-	
-	///Fino a qui devo farlo una volta sola
-	UInt niter=20;
 	
 	scores_mat_.resize(fpcaData_.getNPC());
 	loadings_mat_.resize(fpcaData_.getNPC());
 	lambda_PC_.resize(fpcaData_.getNPC());
 	
 	
-	MatrixXr datamatrixResiduals_ = fpcaData_.getDatamatrix();
-	//FPCAObject FPCAinput(fpcaData_.getDatamatrix());
-	
-	/*
-	const static Eigen::IOFormat CSVFormat(Eigen::StreamPrecision,Eigen::DontAlignCols,",","\n");
-	
-	std::string name1("MASSFPCA.csv");
-	std::string name2("STIFFFPCA.csv");
-	
-	std::ofstream file1(name1.c_str());
-	file1<<MatrixXr(this->MMat_).format(CSVFormat);
-	
-	std::ofstream file2(name2.c_str());
-	file2<<MatrixXr(this->AMat_).format(CSVFormat);
-	*/
-	
-	//std::chrono::high_resolution_clock::time_point t11= std::chrono::high_resolution_clock::now();
-	
+	datamatrixResiduals_ = fpcaData_.getDatamatrix();
 	solution_.resize(fpcaData_.getLambda().size());
-	dof_.resize(fpcaData_.getLambda().size());
-	GCV_.resize(fpcaData_.getLambda().size());
-	
-	std::vector<VectorXr> loadings_lambda_;
-	std::vector<VectorXr> scores_lambda_;
-	
-	loadings_lambda_.resize(fpcaData_.getLambda().size());
-	scores_lambda_.resize(fpcaData_.getLambda().size());
-	
-for(auto np=0;np<fpcaData_.getNPC();np++){
-	//std::cout<<"Datamatrix"<<std::endl;
-	
-	//FPCAinput.printDatamatrix(std::cout);
-	/*std::cout<<"Scores";
-	FPCAinput.printScores(std::cout);
-	std::cout<<"Loadings";
-	FPCAinput.printLoadings(std::cout);
-	std::cout<<"ObservationData";
-	FPCAinput.printObservationData(std::cout);
-	*/
-	
-	//std::chrono::high_resolution_clock::time_point t9= std::chrono::high_resolution_clock::now();
-	
+}	
 
-	for(auto i = 0; i<fpcaData_.getLambda().size(); ++i)
-	{
-		FPCAObject FPCAinput(datamatrixResiduals_);
-		Real lambda = fpcaData_.getLambda()[i];
-		//std::cout<<"Lambda: "<<lambda<<std::endl;
-		SpMat AMat_lambda = (-lambda)*AMat_;
-		SpMat MMat_lambda = (-lambda)*MMat_;
-		buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda);
-		
-		/*Eigen::BiCGSTAB<SpMat,Eigen::IncompleteLUT<Real>> solver;
-		Eigen::BiCGSTAB<SpMat> solver2;
-		solver.analyzePattern(this->coeffmatrix_);
-		solver.factorize(this->coeffmatrix_);
-		solver2.analyzePattern(this->coeffmatrix_);
-		solver2.factorize(this->coeffmatrix_);
-		*/
-		sparseSolver_.analyzePattern(coeffmatrix_);
-		sparseSolver_.factorize(coeffmatrix_);
-		solution_[i].resize(coeffmatrix_.rows());
-		
-		
-		//////////////////////////////////////////////////
-		//Eigen::SparseLU<SpMat> solver;
-		//solver.analyzePattern(coeffmatrix_);
-		//solver.factorize(coeffmatrix_);
-		//////////////////////////////////////////////////
-		
-		
-		
-		/*
-		std::string name("Coefmatrix.csv");
-		std::ofstream file(name.c_str());
-		file<<MatrixXr(this->coeffmatrix_).format(CSVFormat);
-		*/
-		for(auto j=0;j<niter;j++)
-		{	
-			FPCAinput.setObservationData(datamatrixResiduals_);
 
-			VectorXr rightHandData;
-			computeRightHandData(rightHandData,FPCAinput);
-			b_ = VectorXr::Zero(2*nnodes);
-			b_.topRows(nnodes)=rightHandData;
-			
-			/*if(j==0){
-			std::cout<<"Size: "<<std::endl;
-			std::cout<<rightHandData.size()<<std::endl;
-			std::cout<<"rightHandData: "<<std::endl;
-			std::cout<<rightHandData<<std::endl;
-			
-			std::cout<<"B: "<<std::endl;
-			std::cout<<this->b_<<std::endl;
-			}*/
-			/*if(j==0)
-			{std::string name3("RIGHTHANDDATA.csv");
-	
-			std::ofstream file3(name3.c_str());
-			file1<<this->b_.format(CSVFormat);
-			}*/
-/*			
-			std::chrono::high_resolution_clock::time_point t19= std::chrono::high_resolution_clock::now();
-			
-	this->solution_[i].resize(this->coeffmatrix_.rows());
-		this->solution_[i]=solver.solve(this->b_);
-		if(solver.info()!=Eigen::Success)
-		{
-		//std::cerr<<"solving failed!"<<std::endl;
-		}
-			
-			std::chrono::high_resolution_clock::time_point t20= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration10 =t20-t19;
-	
-	std::cout<<"Time elapsed for solving sistem BiCGSTAB ILUT: "<<duration10.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t31= std::chrono::high_resolution_clock::now();
-			
-	this->solution_[i].resize(this->coeffmatrix_.rows());
-		this->solution_[i]=solver2.solve(this->b_);
-		if(solver2.info()!=Eigen::Success)
-		{
-		//std::cerr<<"solving failed!"<<std::endl;
-		}
-			
-			std::chrono::high_resolution_clock::time_point t32= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration16 =t32-t31;
-	
-	std::cout<<"Time elapsed for solving sistem BiCGSTAB: "<<duration16.count()<<std::endl;
-	*/
-	/*std::chrono::high_resolution_clock::time_point t33= std::chrono::high_resolution_clock::now();*/
-			
-		solution_[i]=sparseSolver_.solve(b_);
-		if(sparseSolver_.info()!=Eigen::Success)
-		{
-		//std::cerr<<"solving failed!"<<std::endl;
-		}
-			
-		/*	std::chrono::high_resolution_clock::time_point t34= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration17 =t34-t33;
-	
-	std::cout<<"Time elapsed for solving sistem SpLU: "<<duration17.count()<<std::endl;*/
-	/*
-	std::chrono::high_resolution_clock::time_point t25= std::chrono::high_resolution_clock::now();
-	
-	
-			this-> template solve<BiCGSTAB>(i);
-			
-			std::chrono::high_resolution_clock::time_point t26= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration13 =t26-t25;
-	
-	std::cout<<"Time elapsed for solving sistem BiCGSTAB: "<<duration13.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t15= std::chrono::high_resolution_clock::now();
-	
-	
-			this-> template solve<SpLU>(i);
-			
-			std::chrono::high_resolution_clock::time_point t16= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration8 =t16-t15;
-	
-	std::cout<<"Time elapsed for solving sistem SpLU : "<<duration8.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t17= std::chrono::high_resolution_clock::now();
-	
-	
-			this-> template solve<SpConjGrad>(i);
-			
-			std::chrono::high_resolution_clock::time_point t18= std::chrono::high_resolution_clock::now();
-			
-			std::chrono::duration<double> duration9 =t18-t17;
-	
-	std::cout<<"Time elapsed for solving sistem ConjGrad: "<<duration9.count()<<std::endl;
-	*/
-			
-			if(fpcaData_.isLocationsByNodes())
-				FPCAinput.setLoadings(nnodes, solution_[i]);
-			else
-				FPCAinput.setLoadingsPsi(nnodes, solution_[i],Psi_);
-	
-			
-			FPCAinput.setScores(datamatrixResiduals_);
+///CLASS MIXEDFEFPCA
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
+{
+   MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
 
-			
-			/*if(j==0){
-			std::cout<<"Scores";
-			FPCAinput.printScores(std::cout);
-			std::cout<<"Loadings";
-			FPCAinput.printLoadings(std::cout);
-			std::cout<<"ObservationData";
-			FPCAinput.printObservationData(std::cout);
-			}*/
-		}
-		loadings_lambda_[i]=FPCAinput.getLoadings();
-		scores_lambda_[i]=FPCAinput.getScores();	
-			
-		if(fpcaData_.computeDOF()){
-			if(np==0) computeDegreesOfFreedom(i);
-			computeGCV(FPCAinput,i);}
+   for(auto np=0;np<this->fpcaData_.getNPC();np++){
 
-			
+		UInt i=0;
+		FPCAObject FPCAinput(this->datamatrixResiduals_);
+		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
+
+	this->scores_mat_[np]=FPCAinput.getScores();
+	this->loadings_mat_[np]=FPCAinput.getLoadings();
+	this->lambda_PC_[np]=this->fpcaData_.getLambda()[i];
+	
+	//Devo settare la datamatrix togliendo i risultati ottenuti
+	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Normalize the loadings and unnormalize the scores
+	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
+	
+	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
+	
+	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
+	
 	}
-	
-/*	std::chrono::high_resolution_clock::time_point t10= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration5 =t10-t9;
-	
-	std::cout<<"Time elapsed for computing a single NPC: "<<duration5.count()<<std::endl;*/
+	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
+	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
+}
+
+///CLASS MIXEDFEFPCAGCV
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt output_index)
+{
+	UInt nnodes = this->mesh_.num_nodes();
+	UInt nlocations = this->fpcaData_.getNumberofObservations();
+
+	SpMat I(this->coeffmatrix_.rows(),this->coeffmatrix_.cols());
+	I.setIdentity();
+	SpMat coeff_inv = this->sparseSolver_.solve(I);
+
+
+	Real degrees=0;
+
+		if(this->fpcaData_.isLocationsByNodes())
+		{
+			VectorXr d = coeff_inv.diagonal();
+
+			for (auto i=0; i<nlocations;++i)
+			{
+				auto index_i = this->fpcaData_.getObservationsIndices()[i];
+				degrees+=d(index_i);
+			}
+		}
+		else
+		{
+			MatrixXr An(coeff_inv.topLeftCorner(nnodes, nnodes));
+			MatrixXr S = this->Psi_*An*this->Psi_.transpose();
+			for (auto i=0; i<nlocations;++i)
+			{
+				degrees+=S(i,i);
+			}
+		}
+
+	//std::cout<<"TRACE "<<degrees<<std::endl;
+
+	dof_[output_index] = degrees;
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeGCV(FPCAObject& FPCAinput,UInt output_index)
+{
+	UInt s= this->fpcaData_.getNumberofObservations();
+	VectorXr zhat=FPCAinput.getObservationData();
+	Real norm_squared=(zhat-FPCAinput.getLoadings()).transpose()*(zhat-FPCAinput.getLoadings());
+	if(s-dof_[output_index]<0){
+		#ifdef R_VERSION_
+			Rprintf("WARNING: Some values of the trace of the matrix S('lambda') are inconstistent. This might be due to ill-conditioning of the linear system. Try increasing value of 'lambda'.Value of 'lambda' that produces an error is: %d \n", this->fpcaData_.getLambda()[output_index]);
+			#else
+			std::cout << "WARNING: Some values of the trace of the matrix S('lambda') are inconstistent. This might be due to ill-conditioning of the linear system. Try increasing value of 'lambda'.Value of 'lambda' that produces an error is:" << this->fpcaData_.getLambda()[output_index] <<"\n";
+			#endif
+			}
+	Real stderror=norm_squared/(s-dof_[output_index]);
+	GCV_[output_index]=(s/(s-dof_[output_index]))*stderror;
+	//GCV_[output_index]=norm_squared/(s-(1-1/s*dof_[output_index])*(1-1/s*dof_[output_index]));
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
+{
+   MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
+   dof_.resize(this->fpcaData_.getLambda().size());
+   GCV_.resize(this->fpcaData_.getLambda().size());
+   loadings_lambda_.resize(this->fpcaData_.getLambda().size());
+   scores_lambda_.resize(this->fpcaData_.getLambda().size());
+   for(auto np=0;np<this->fpcaData_.getNPC();np++){
+
+	for(auto i = 0; i<this->fpcaData_.getLambda().size(); ++i)
+	{	
+		FPCAObject FPCAinput(this->datamatrixResiduals_);
+		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
+		loadings_lambda_[i]=FPCAinput.getLoadings();
+		scores_lambda_[i]=FPCAinput.getScores();
+		
+			if(np==0) computeDegreesOfFreedom(i);
+			computeGCV(FPCAinput,i);	
+	}
 	
 	UInt index_best_GCV=std::distance(GCV_.begin(),std::min_element(GCV_.begin(),GCV_.end()));
 	
-	//scores_mat_[np]=FPCAinput.getScores();
-	//loadings_mat_[np]=FPCAinput.getLoadings();
-	//lambda_PC_[np]=fpcaData_.getLambda()[0];
-	scores_mat_[np]=scores_lambda_[index_best_GCV];
-	loadings_mat_[np]=loadings_lambda_[index_best_GCV];
-	lambda_PC_[np]=fpcaData_.getLambda()[index_best_GCV];
+	this->scores_mat_[np]=this->scores_lambda_[index_best_GCV];
+	this->loadings_mat_[np]=this->loadings_lambda_[index_best_GCV];
+	this->lambda_PC_[np]=this->fpcaData_.getLambda()[index_best_GCV];
 	
 	//Devo settare la datamatrix togliendo i risultati ottenuti
-	//FPCAinput.newDatamatrix(scores_mat_[np],loadings_mat_[np]);
-	datamatrixResiduals_=datamatrixResiduals_-scores_mat_[np]*loadings_mat_[np].transpose();
+	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
 	
 	//Normalize the loadings and unnormalize the scores
-	Real load_norm=std::sqrt(loadings_mat_[np].transpose()*MMat_*loadings_mat_[np]);
+	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
 	
-	loadings_mat_[np]=loadings_mat_[np]/load_norm;
+	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
 	
-	scores_mat_[np]=scores_mat_[np]*load_norm;
+	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
 	
-	//std::cout<<"Scores*load transp"<<std::endl;
-	//std::cout<<scores_mat_[np]*loadings_mat_[np].transpose()<<std::endl;
-	//std::cout<<"NewDataMAT"<<std::endl;
-	//std::cout<<this->inputData_.getDatamatrix()-scores_mat_[np]*loadings_mat_[np].transpose()<<std::endl;
 	}
-	
-	/*std::chrono::high_resolution_clock::time_point t12= std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration6 =t12-t11;
-	
-	std::cout<<"Time elapsed for computing all NPC: "<<duration6.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t13= std::chrono::high_resolution_clock::now();*/
-	computeVarianceExplained();
-	computeCumulativePercentageExplained();
-/*	std::chrono::high_resolution_clock::time_point t14= std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration7 =t14-t13;
-	
-	std::cout<<"Time elapsed for computing variances: "<<duration7.count()<<std::endl;
-*/
+	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
+	MixedFEFPCABase<Integrator,ORDER, mydim,ndim>::computeCumulativePercentageExplained();
 }
 
-template<typename InputHandler, typename Integrator, UInt ORDER,UInt mydim, UInt ndim, typename SparseSolver>
-template <typename P>
-void MixedFEFPCABase<InputHandler,Integrator,ORDER,mydim,ndim,SparseSolver>::solve(UInt output_index)
+
+///CLASS MIXEDFEFPCAKFOLD
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & datamatrixResiduals_, UInt lambda_index, UInt nnodes, UInt nFolds)
 {
-	//std::cout<<this->coeffmatrix_;
-	this->solution_[output_index].resize(this->coeffmatrix_.rows());
-	P::solve(this->coeffmatrix_,this->b_,this->solution_[output_index]);
+		Real lambda = this->fpcaData_.getLambda()[lambda_index];
+		SpMat AMat_lambda = (-lambda)*this->AMat_;
+		SpMat MMat_lambda = (-lambda)*this->MMat_;
+		this->buildCoeffMatrix(this->DMat_, AMat_lambda, MMat_lambda);
+
+		this->sparseSolver_.analyzePattern(this->coeffmatrix_);
+		this->sparseSolver_.factorize(this->coeffmatrix_);
+		this->solution_[lambda_index].resize(this->coeffmatrix_.rows());
+		
+		UInt niter=20;
+		std::vector<UInt> indices_valid;
+		for(auto k=0;k<nFolds;k++)
+		{
+			UInt length_chunk=floor(datamatrixResiduals_.rows()/nFolds);
+			indices_valid.resize(datamatrixResiduals_.rows());
+			std::iota(indices_valid.begin(),indices_valid.begin()+length_chunk,k*length_chunk);
+			if(k==0) std::iota(indices_valid.begin()+length_chunk,indices_valid.end(),(k+1)*length_chunk);
+			else {
+				std::iota(indices_valid.begin()+length_chunk,indices_valid.begin()+(k+1)*length_chunk,0);
+				std::iota(indices_valid.begin()+(k+1)*length_chunk,indices_valid.end(),(k+1)*length_chunk);
+			}
+		
+			VectorXi indices_v=Eigen::Map<VectorXi,Eigen::Unaligned> (indices_valid.data(),indices_valid.size());
+			Eigen::PermutationMatrix<Eigen::Dynamic,Eigen::Dynamic> perm(indices_v);
+		
+			MatrixXr X_train=(perm*datamatrixResiduals_).bottomRows(datamatrixResiduals_.rows()-length_chunk);
+			MatrixXr X_clean_train=(perm*datamatrixResiduals_).bottomRows(datamatrixResiduals_.rows()-length_chunk);
+			MatrixXr X_valid=(perm*datamatrixResiduals_).topRows(length_chunk);
+		
+			VectorXr X_train_mean=X_train.colwise().mean();
+			VectorXr X_clean_train_mean=X_clean_train.colwise().mean();
+			VectorXr X_valid_mean=X_valid.colwise().mean();
+		
+			VectorXr ones=VectorXr::Constant(X_train.rows(),1,1);
+			X_train=X_train-ones*X_train_mean.transpose();
+			X_clean_train=X_clean_train-ones*X_clean_train_mean.transpose();
+			X_valid=X_valid-ones*X_valid_mean.transpose();
+		
+		
+			FPCAObject FPCAinputKF(X_clean_train);
+			for(auto j=0;j<niter;j++)
+			{	
+				FPCAinputKF.setObservationData(X_train);
+
+				VectorXr rightHandData;
+				this->computeRightHandData(rightHandData,FPCAinputKF);
+				this->b_ = VectorXr::Zero(2*nnodes);
+				this->b_.topRows(nnodes)=rightHandData;
+			
+			
+				this->solution_[lambda_index]=this->sparseSolver_.solve(this->b_);
+				if(this->sparseSolver_.info()!=Eigen::Success)
+				{
+				//std::cerr<<"solving failed!"<<std::endl;
+				}
+			
+				if(this->fpcaData_.isLocationsByNodes())
+					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index]);
+				else
+					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_);
+	
+			
+				FPCAinputKF.setScores(X_clean_train);
+
+			}
+			
+			Real U_hat_const=FPCAinputKF.getLoadings().squaredNorm() + lambda* (this->solution_[lambda_index].bottomRows(nnodes)).transpose()*this->MMat_*this->solution_[lambda_index].bottomRows(nnodes);
+			VectorXr U_hat_valid=(X_valid*FPCAinputKF.getLoadings())/U_hat_const;
+		Real diffCV=(X_valid-U_hat_valid*FPCAinputKF.getLoadings().transpose()).squaredNorm()/(X_valid.rows()*X_valid.cols());
+		Real sumCV=(X_valid+U_hat_valid*FPCAinputKF.getLoadings().transpose()).squaredNorm()/(X_valid.rows()*X_valid.cols());
+		KFold_[lambda_index]+=std::min(diffCV,sumCV);
+		}
+
 }
 
-template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim,typename SparseSolver>
-class MixedFEFPCA<FPCAData, Integrator, ORDER, mydim, ndim,SparseSolver> : public MixedFEFPCABase<FPCAData, Integrator, ORDER, mydim, ndim,SparseSolver>
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::apply()
 {
-public:
-	MixedFEFPCA(const MeshHandler<ORDER, mydim, ndim>& mesh, const FPCAData& regressionData):MixedFEFPCABase<FPCAData, Integrator, ORDER, mydim, ndim,SparseSolver>(mesh, regressionData){};
-
-	void apply()
-	{
-		typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
-	    MixedFEFPCABase<FPCAData, Integrator, ORDER, mydim, ndim,SparseSolver>::apply(stiff);
+   MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
+   nFolds=this->fpcaData_.getNFolds();
+   KFold_.resize(this->fpcaData_.getLambda().size());
+   for(auto np=0;np<this->fpcaData_.getNPC();np++){
+	std::fill(KFold_.begin(),KFold_.end(),0);
+	for(auto i = 0; i<this->fpcaData_.getLambda().size(); ++i)
+	{	
+		FPCAObject FPCAinput(this->datamatrixResiduals_);
+		computeKFolds(this->datamatrixResiduals_, i, this->mesh_.num_nodes(), nFolds);	
 	}
-};
+	UInt index_best_KF=std::distance(KFold_.begin(),std::min_element(KFold_.begin(),KFold_.end()));
+	FPCAObject FPCAinput(this->datamatrixResiduals_);
+	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,index_best_KF,this->mesh_.num_nodes());
+	
+	this->scores_mat_[np]=FPCAinput.getScores();
+	this->loadings_mat_[np]=FPCAinput.getLoadings();
+	this->lambda_PC_[np]=this->fpcaData_.getLambda()[index_best_KF];
+	
+	//Devo settare la datamatrix togliendo i risultati ottenuti
+	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Normalize the loadings and unnormalize the scores
+	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
+	
+	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
+	
+	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
+	}
+	
+	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
+	MixedFEFPCABase<Integrator,ORDER, mydim,ndim>::computeCumulativePercentageExplained();
+}
 
-#endif
+
+
+#endif/*std::cout<<"X_TRAIN_MEAN: "<<std::endl;
+		std::cout<<X_train_mean<<std::endl;
+		
+		std::cout<<"X_CLEAN_TRAIN_MEAN: "<<std::endl;
+		std::cout<<X_clean_train_mean<<std::endl;
+		
+		std::cout<<"X_VALID_MEAN: "<<std::endl;
+		std::cout<<X_valid_mean<<std::endl;
+		*/
+		//std::cout<<"SONO QUIIIIII"<<std::endl;
+		
+		//std::cout<<"PErmutation"<<perm<<std::endl;
+		//perm.setIdentity();
+		//std::cout<<"Matrice"<<this->fPCAdata.getDatamatrix().topLeftCorner(3,4)<<std::endl;
+		//std::cout<<"Matrice permutata"<<fPCAdata.getDatamatrix().topLeftCorner(3,4)*perm<<std::endl;

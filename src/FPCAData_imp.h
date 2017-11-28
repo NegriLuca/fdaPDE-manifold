@@ -1,8 +1,8 @@
 #ifndef __FPCADATA_IMP_HPP__
 #define __FPCADATA_IMP_HPP__
 
-FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt order, std::vector<Real> lambda ,UInt nPC, bool DOF):locations_(locations), order_(order),lambda_(lambda),DOF_(DOF),
- datamatrix_(datamatrix), nPC_(nPC)
+FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt order, std::vector<Real> lambda ,UInt nPC, UInt nFolds):locations_(locations), order_(order),lambda_(lambda),
+ datamatrix_(datamatrix), nPC_(nPC),nFolds_(nFolds)
 {
 	if(locations.size()==0)
 	{
@@ -13,18 +13,19 @@ FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt ord
 }
 
 #ifdef R_VERSION_
-FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP DOF)
+FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP RnFolds)
 {
 	setDatamatrix(Rdatamatrix);
 	setLocations(Rlocations);
 
 	order_ =  INTEGER(Rorder)[0];
-	DOF_ = INTEGER(DOF)[0];
-
+	
     	UInt length_lambda = Rf_length(Rlambda);
     	for (UInt i = 0; i<length_lambda; ++i)  lambda_.push_back(REAL(Rlambda)[i]);
 
 	nPC_ = INTEGER(RnPC)[0];
+	
+	nFolds_=INTEGER(RnFolds)[0];
 }
 
 void FPCAData::setLocations(SEXP Rlocations)
