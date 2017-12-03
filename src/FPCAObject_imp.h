@@ -6,7 +6,14 @@
 FPCAObject::FPCAObject(const MatrixXr& datamatrix_)
 {
 	//Initialize loadings vector
+	std::chrono::high_resolution_clock::time_point t13= std::chrono::high_resolution_clock::now();
+
 	Eigen::BDCSVD<MatrixXr> svd(datamatrix_,Eigen::ComputeThinU|Eigen::ComputeThinV);
+	std::chrono::high_resolution_clock::time_point t14= std::chrono::high_resolution_clock::now();
+	
+	std::chrono::duration<double> duration7 =t14-t13;
+	
+	std::cout<<"Time elapsed for computing svd : "<<duration7.count()<<std::endl;	
 	loadings_=svd.matrixV().col(0);
 	scores_=svd.matrixU().col(0);
 }
