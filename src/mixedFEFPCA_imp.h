@@ -159,7 +159,7 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained()
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained()
 {	
-	Eigen::JacobiSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
+	Eigen::BDCSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
 	MatrixXr U_ALL(fpcaData_.getDatamatrix().rows(),fpcaData_.getDatamatrix().rows());
 	for(UInt i=0;i<svd.singularValues().rows();i++)
 		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt(svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i));
@@ -247,13 +247,15 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 ///CLASS MIXEDFEFPCA
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
-{
+{  
+
    MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
 
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
-
+   
 		UInt i=0;
 		FPCAObject FPCAinput(this->datamatrixResiduals_);
+
 		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
 
 	this->scores_mat_[np]=FPCAinput.getScores();
@@ -268,9 +270,10 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	
 	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
 	
-	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
+	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;	
 	
 	}
+	
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
 }
@@ -491,19 +494,4 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::apply()
 }
 
 
-
-#endif/*std::cout<<"X_TRAIN_MEAN: "<<std::endl;
-		std::cout<<X_train_mean<<std::endl;
-		
-		std::cout<<"X_CLEAN_TRAIN_MEAN: "<<std::endl;
-		std::cout<<X_clean_train_mean<<std::endl;
-		
-		std::cout<<"X_VALID_MEAN: "<<std::endl;
-		std::cout<<X_valid_mean<<std::endl;
-		*/
-		//std::cout<<"SONO QUIIIIII"<<std::endl;
-		
-		//std::cout<<"PErmutation"<<perm<<std::endl;
-		//perm.setIdentity();
-		//std::cout<<"Matrice"<<this->fPCAdata.getDatamatrix().topLeftCorner(3,4)<<std::endl;
-		//std::cout<<"Matrice permutata"<<fPCAdata.getDatamatrix().topLeftCorner(3,4)*perm<<std::endl;
+#endif

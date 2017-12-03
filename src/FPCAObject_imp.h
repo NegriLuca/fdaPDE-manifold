@@ -1,10 +1,12 @@
 #ifndef __FPCAOBJECT_IMP_HPP__
 #define __FPCAOBJECT_IMP_HPP__
 
+#include<chrono>
+
 FPCAObject::FPCAObject(const MatrixXr& datamatrix_)
 {
 	//Initialize loadings vector
-	Eigen::JacobiSVD<MatrixXr> svd(datamatrix_,Eigen::ComputeThinU|Eigen::ComputeThinV);
+	Eigen::BDCSVD<MatrixXr> svd(datamatrix_,Eigen::ComputeThinU|Eigen::ComputeThinV);
 	loadings_=svd.matrixV().col(0);
 	scores_=svd.matrixU().col(0);
 }
