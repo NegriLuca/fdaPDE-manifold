@@ -34,10 +34,10 @@ checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasi
   if(is.null(locations))
   {
     if(class(FEMbasis$mesh) == "MESH2D"){
-    	if(ncol(datamatrix) > nrow(FEMbasis$mesh$nodes))
+    	if(nrow(datamatrix) > nrow(FEMbasis$mesh$nodes))
      	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
     }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
-    	if(ncol(datamatrix) > FEMbasis$mesh$nnodes)
+    	if(nrow(datamatrix) > FEMbasis$mesh$nnodes)
      	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
     }
   }
@@ -45,7 +45,7 @@ checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasi
   {
     if(ncol(locations) != ndim)
       stop("'locations' and the mesh points have incompatible size;")
-    if(nrow(locations) != ncol(datamatrix))
+    if(nrow(locations) != nrow(datamatrix))
       stop("'locations' and 'observations' have incompatible size;")
   }
   if(ncol(lambda) != 1)
