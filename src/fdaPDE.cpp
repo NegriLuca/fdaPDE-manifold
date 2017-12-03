@@ -12,6 +12,7 @@
 #include "FPCAObject.h"
 #include "solverdefinitions.h"
 #include <omp.h>
+// [[Rcpp::plugins(openmp)]]]
 //#include <chrono>  
 
 #include "mixedFEFPCA.h"
