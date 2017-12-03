@@ -28,10 +28,10 @@ protected:
 	SpMat Psi_;
 
 	SpMat coeffmatrix_;       //!A Eigen::VectorXr: Stores the system right hand side.
-	VectorXr b_;			  //!A Eigen::VectorXr : Stores the system solution
+	//VectorXr b_;			  //!A Eigen::VectorXr : Stores the system solution
 	std::vector<VectorXr> solution_;
 	
-	Sparse_LU sparseSolver_;
+	//Sparse_LU sparseSolver_;
 
 	std::vector<VectorXr> scores_mat_;
 	std::vector<VectorXr> loadings_mat_;
@@ -49,7 +49,7 @@ protected:
 	void computeRightHandData(VectorXr& rightHandData,FPCAObject& FPCAinput);
 	void computeVarianceExplained();
 	void computeCumulativePercentageExplained();
-	void computeIterations(MatrixXr & datamatrixResiduals_,FPCAObject & FPCAinput, UInt lambda_index, UInt nnodes);
+	void computeIterations(MatrixXr & datamatrixResiduals_,FPCAObject & FPCAinput, UInt lambda_index, UInt nnodes,Sparse_LU & sparseSolver_);
 	void SetAndFixParameters();
 	
 
@@ -98,7 +98,7 @@ protected:
 	std::vector<Real> GCV_;
 	
 	void computeGCV(FPCAObject& FPCAinput,UInt output_index);
-	void computeDegreesOfFreedom(UInt output_index);
+	void computeDegreesOfFreedom(UInt output_index,Sparse_LU & sparseSolver_);
 public:
 	MixedFEFPCAGCV(const MeshHandler<ORDER, mydim, ndim>& mesh, const FPCAData& fpcaData):MixedFEFPCABase<Integrator, ORDER, mydim, ndim>(mesh, fpcaData){};
 	
@@ -117,7 +117,7 @@ protected:
 	
 	UInt nFolds;
 	
-	void computeKFolds(MatrixXr & datamatrixResiduals_, UInt lambda_index, UInt nnodes,UInt nFolds);
+	void computeKFolds(MatrixXr & datamatrixResiduals_, UInt lambda_index, UInt nnodes,UInt nFolds,Sparse_LU & sparseSolver_);
 public:
 	MixedFEFPCAKFold(const MeshHandler<ORDER, mydim, ndim>& mesh, const FPCAData& fpcaData):MixedFEFPCABase<Integrator, ORDER, mydim, ndim>(mesh, fpcaData){};
 	
