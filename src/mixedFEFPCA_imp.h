@@ -159,7 +159,7 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained()
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained()
 {	
-	Eigen::JacobiSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
+	Eigen::BDCSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
 	MatrixXr U_ALL(fpcaData_.getDatamatrix().rows(),fpcaData_.getDatamatrix().rows());
 	for(UInt i=0;i<svd.singularValues().rows();i++)
 		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt(svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i));
@@ -174,7 +174,7 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentage
 
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
-void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr & datamatrixResiduals_,FPCAObject & FPCAinput, UInt lambda_index, UInt nnodes,Sparse_LU & sparseSolver_)
+void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr & datamatrixResiduals_,FPCAObject & FPCAinput, UInt lambda_index, UInt nnodes)
 {
 		Real lambda = fpcaData_.getLambda()[lambda_index];
 		SpMat AMat_lambda = (-lambda)*AMat_;
@@ -192,7 +192,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 			FPCAinput.setObservationData(datamatrixResiduals_);
 
 			VectorXr rightHandData;
-			VectorXr b_;
 			computeRightHandData(rightHandData,FPCAinput);
 			b_ = VectorXr::Zero(2*nnodes);
 			b_.topRows(nnodes)=rightHandData;
@@ -248,15 +247,16 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 ///CLASS MIXEDFEFPCA
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
-{
+{  
+
    MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
 
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
-
+   
 		UInt i=0;
 		FPCAObject FPCAinput(this->datamatrixResiduals_);
-		Sparse_LU sparseSolver_;
-		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes(),sparseSolver_);
+
+		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
 
 	this->scores_mat_[np]=FPCAinput.getScores();
 	this->loadings_mat_[np]=FPCAinput.getLoadings();
@@ -270,23 +270,24 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	
 	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
 	
-	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
+	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;	
 	
 	}
+	
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
 }
 
 ///CLASS MIXEDFEFPCAGCV
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
-void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt output_index,Sparse_LU & sparseSolver_)
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt output_index)
 {
 	UInt nnodes = this->mesh_.num_nodes();
 	UInt nlocations = this->fpcaData_.getNumberofObservations();
 
 	SpMat I(this->coeffmatrix_.rows(),this->coeffmatrix_.cols());
 	I.setIdentity();
-	SpMat coeff_inv = sparseSolver_.solve(I);
+	SpMat coeff_inv = this->sparseSolver_.solve(I);
 
 
 	Real degrees=0;
@@ -344,16 +345,14 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
    scores_lambda_.resize(this->fpcaData_.getLambda().size());
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
 
-#pragma omp parallel for
 	for(auto i = 0; i<this->fpcaData_.getLambda().size(); ++i)
 	{	
 		FPCAObject FPCAinput(this->datamatrixResiduals_);
-		Sparse_LU sparseSolver_;
-		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes(),sparseSolver_);
+		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
 		loadings_lambda_[i]=FPCAinput.getLoadings();
 		scores_lambda_[i]=FPCAinput.getScores();
 		
-			if(np==0) computeDegreesOfFreedom(i,sparseSolver_);
+			if(np==0) computeDegreesOfFreedom(i);
 			computeGCV(FPCAinput,i);	
 	}
 	
@@ -381,15 +380,15 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 
 ///CLASS MIXEDFEFPCAKFOLD
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
-void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & datamatrixResiduals_, UInt lambda_index, UInt nnodes, UInt nFolds,Sparse_LU & sparseSolver_)
+void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & datamatrixResiduals_, UInt lambda_index, UInt nnodes, UInt nFolds)
 {
 		Real lambda = this->fpcaData_.getLambda()[lambda_index];
 		SpMat AMat_lambda = (-lambda)*this->AMat_;
 		SpMat MMat_lambda = (-lambda)*this->MMat_;
 		this->buildCoeffMatrix(this->DMat_, AMat_lambda, MMat_lambda);
 
-		sparseSolver_.analyzePattern(this->coeffmatrix_);
-		sparseSolver_.factorize(this->coeffmatrix_);
+		this->sparseSolver_.analyzePattern(this->coeffmatrix_);
+		this->sparseSolver_.factorize(this->coeffmatrix_);
 		this->solution_[lambda_index].resize(this->coeffmatrix_.rows());
 		
 		UInt niter=20;
@@ -429,13 +428,12 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 
 				VectorXr rightHandData;
 				this->computeRightHandData(rightHandData,FPCAinputKF);
-				VectorXr b_;
-				b_ = VectorXr::Zero(2*nnodes);
-				b_.topRows(nnodes)=rightHandData;
+				this->b_ = VectorXr::Zero(2*nnodes);
+				this->b_.topRows(nnodes)=rightHandData;
 			
 			
-				this->solution_[lambda_index]=sparseSolver_.solve(b_);
-				if(sparseSolver_.info()!=Eigen::Success)
+				this->solution_[lambda_index]=this->sparseSolver_.solve(this->b_);
+				if(this->sparseSolver_.info()!=Eigen::Success)
 				{
 				//std::cerr<<"solving failed!"<<std::endl;
 				}
@@ -467,17 +465,14 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::apply()
    KFold_.resize(this->fpcaData_.getLambda().size());
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
 	std::fill(KFold_.begin(),KFold_.end(),0);
-#pragma omp parallel for
 	for(auto i = 0; i<this->fpcaData_.getLambda().size(); ++i)
 	{	
 		FPCAObject FPCAinput(this->datamatrixResiduals_);
-		Sparse_LU sparseSolver_;
-		computeKFolds(this->datamatrixResiduals_, i, this->mesh_.num_nodes(), nFolds, sparseSolver_);	
+		computeKFolds(this->datamatrixResiduals_, i, this->mesh_.num_nodes(), nFolds);	
 	}
 	UInt index_best_KF=std::distance(KFold_.begin(),std::min_element(KFold_.begin(),KFold_.end()));
 	FPCAObject FPCAinput(this->datamatrixResiduals_);
-	Sparse_LU sparseSolver_;
-	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,index_best_KF,this->mesh_.num_nodes(), sparseSolver_);
+	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,index_best_KF,this->mesh_.num_nodes());
 	
 	this->scores_mat_[np]=FPCAinput.getScores();
 	this->loadings_mat_[np]=FPCAinput.getLoadings();
@@ -497,7 +492,6 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::apply()
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim,ndim>::computeCumulativePercentageExplained();
 }
-
 
 
 #endif

@@ -2,7 +2,7 @@
 #define R_VERSION_
 
 #include "fdaPDE.h"
-//#include "IO_handler.hpp" 
+//#include "IO_handler.hpp"
 #include "regressionData.h"
 #include "mesh_objects.h"
 #include "mesh.h"
@@ -11,13 +11,11 @@
 #include "FPCAData.h"
 #include "FPCAObject.h"
 #include "solverdefinitions.h"
-#include <omp.h>
-// [[Rcpp::plugins(openmp)]]]
-//#include <chrono>  
+//#include <chrono>    
 
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
-#include "mixedFEFPCAfactory.h"
+#include "mixedFEFPCAfactory.h" 
   
 template<typename InputHandler, typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
