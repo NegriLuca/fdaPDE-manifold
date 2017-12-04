@@ -1,2 +1,4 @@
-PKG_CPPFLAGS = -lstdc++ -I../inst/include -fopenmp
+PKG_CPPFLAGS = -lstdc++ -I../inst/include $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
 CXX_STD = CXX11
+PKG_CXXFLAGS = -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-comment -Wno-deprecated-declarations -Wno-unused-but-set-variable -Wno-maybe-uninitialized

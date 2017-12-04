@@ -11,7 +11,8 @@
 #include "FPCAData.h"
 #include "FPCAObject.h"
 #include "solverdefinitions.h"
-//#include <chrono> 
+#include <omp.h>
+//#include <chrono>  
 
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
