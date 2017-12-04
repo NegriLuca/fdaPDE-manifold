@@ -8,7 +8,7 @@ FPCAObject::FPCAObject(const MatrixXr& datamatrix_)
 	//Initialize loadings vector
 	std::chrono::high_resolution_clock::time_point t13= std::chrono::high_resolution_clock::now();
 
-	Eigen::BDCSVD<MatrixXr> svd(datamatrix_,Eigen::ComputeThinU|Eigen::ComputeThinV);
+	RedSVD::RedSVD<MatrixXr> svd(datamatrix_,1); 
 	std::chrono::high_resolution_clock::time_point t14= std::chrono::high_resolution_clock::now();
 	
 	std::chrono::duration<double> duration7 =t14-t13;
