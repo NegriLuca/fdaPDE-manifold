@@ -23,7 +23,7 @@ class  FPCAObject{
 		
 		FPCAObject(){};
 				
-		explicit FPCAObject(const MatrixXr& datamatrix_);
+		explicit FPCAObject(MatrixXr& datamatrix_);
 		
 		//void newDatamatrix(const VectorXr& scores,const VectorXr& loadings);
 		void setScores(const MatrixXr& datamatrix_);
