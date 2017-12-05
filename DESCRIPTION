@@ -18,9 +18,9 @@ Maintainer: Eardi Lila <el425@cam.ac.uk>
 Depends: 
     R (>= 3.0.0),
     stats, grDevices, graphics,
-    rgl, Matrix
+    rgl, Matrix, Rcpp, RcppArmadillo
 LinkingTo: 
-	RcppEigen
+	Rcpp, RcppEigen, RcppArmadillo
 Suggests: 
     MASS,
     testthat

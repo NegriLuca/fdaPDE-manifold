@@ -7,6 +7,10 @@
 #include <R.h>
 #include <Rdefines.h>
 #include <Rinternals.h> 
+#include <RcppArmadillo.h>
+
+
+
 #endif
 
 #include <stdint.h>
@@ -22,7 +26,7 @@
 //#include "Eigen/Eigen/Sparse"
 //#include "Eigen/Eigen/Dense"
 //#define  EIGEN_MPL2_ONLY
-
+//#define EIGEN_USE_LAPACK
 //Take the code from the linked RcppEigen
 #include <Eigen/StdVector>
 #include <Eigen/Sparse>
