@@ -2,7 +2,6 @@
 #define R_VERSION_
 
 #include "fdaPDE.h"
-#include "RedSVD-h" 
 //#include "IO_handler.hpp"
 #include "regressionData.h"
 #include "mesh_objects.h"
