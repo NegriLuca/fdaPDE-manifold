@@ -1,0 +1,47 @@
+#!/bin/bash
+
+## SCELTA DELLA SHELL E DELLA CODA, NON MODIFICARE
+#PBS -S /bin/bash
+#PBS -q gigat
+
+## TEMPO PREVISTO, ALLO SCADERE DEL TEMPO INDICATO
+## IL PROCESSO VIENE UCCISO IN AUTOMATICO.
+#PBS -l walltime=3:00:00
+
+## NUMERO DI NODI E PROCESSI, PER SIMULAZIONE SERIALE
+##  nodes=1:ppn=1
+#PBS -l nodes=2:ppn=32
+
+## NOME DA DARE AL JOB
+#PBS -N test3
+
+## NOTIFICHE EMAIL, AL MOMENTO NON FUNZIONA
+#PBS -m abe
+#PBS -M indirizzo@email.com
+
+## STREAM DA SALVARE (STDOUT E/O STDERR) 
+#PBS -j oe
+
+cd ${PBS_O_WORKDIR}
+
+for i in `seq 1 6`; do let "nproc = 2**$i"\
+
+echo -e "script host: ${PBS_O_HOST} \n" > test3$nproc.log 2>&1 \
+echo -e "allocated nodes: $(cat ${PBS_NODEFILE} -)\n" >> test3$nproc.log 2>&1 \
+echo -e "working directory: ${PBS_O_WORKDIR} \n" >> test3$nproc.log 2>&1 \
+echo -e "start date: $(date) \n" >> test3$nproc.log 2>&1 \
+
+
+#Remove first line from the hostfile because
+# that is where the root process is running
+sed 1d  ${PBS_NODEFILE} > ${PBS_O_WORKDIR}/hosts \
+
+#Run the executable
+#make distclean all >> test3$nproc.log 2>&1
+#echo "${PBS_O_WORKDIR}/child" >> test3$nproc.log 2>&1
+
+mpiexec -np 1 --hostfile ${PBS_NODEFILE} \
+R CMD BATCH --no-save --no-restore "--args $nproc" Test_final3.R test3$nproc.log #2>&1 \
+
+echo `date` >> test3$nproc.log 2>&1; \
+done

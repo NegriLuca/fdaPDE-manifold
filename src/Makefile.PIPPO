@@ -1,0 +1,28 @@
+include Makefile.inc
+
+CC=mpicc
+CXX=mpic++
+FLAGS.MPI=-I../libseq
+FLAGS.MUMPS=-Dmetis -Dpord -Dscotch -I../include
+FLAGS.PORD=-I../PORD/include
+FLAGS.SCOTCH=-I../../$(DSCOTCH)/include
+
+SRCS_BASIS=${wildcard *.cpp *.c}
+SRCS_SHLIB=${SRCS_BASIS}
+
+.PHONY: all mumps scotch
+
+all: scotch mumps library 
+
+#scotch:
+#$(MAKE) -C ../MUMPS_4.10.0_scotch/scotch_5.1.12_esmumps/src CC="$(CC)" PKG_CFLAGS="$(CFLAGS) $(PKG_CFLAGS)" scotch
+
+mumps: #scotch
+	$(MAKE) -C ../MUMPS_4.10.0_scotch CC="$(CC)" FC="$(FC)" PKG_CFLAGS="$(PKG_CFLAGS) $(FLAGS.MUMPS) $(FLAGS.MPI) $(FLAGS.PORD) $(FLAGS.SCOTCH)" PKG_FCFLAGS="$(PKG_FCFLAGS) $(FLAGS.MUMPS) $(FLAGS.MPI)" AR="$(AR) cvr " RANLIB="$(RANLIB)"
+
+library: scotch mumps
+	MAKEFLAGS="CC=${CC} CXX=${CXX}" &&\
+	R CMD SHLIB ${SRCS_SHLIB} -o fdaPDE.so
+
+clean:
+	rm -f *.o
