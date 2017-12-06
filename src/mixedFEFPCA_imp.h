@@ -7,6 +7,19 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <random>
+#include "timing.h"
+#include <fstream>
+
+#include "R_ext/Print.h"
+
+//#include <libseq/mpi.h>
+#include "../inst/include/dmumps_c.h"
+#define JOB_INIT -1
+#define JOB_END -2
+#define USE_COMM_WORLD -987654
+
+
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
@@ -18,8 +31,19 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 		 tolerance = 100 * eps;
 
 	Psi_.resize(nlocations, nnodes);
-	//Psi_.reserve(Eigen::VectorXi::Constant(nlocations,ORDER*3));
+	if (fpcaData_.isLocationsByNodes()){
 
+		std::vector<coeff> tripletAll;
+		auto k = fpcaData_.getObservationsIndices();
+		
+		tripletAll.reserve(k.size());
+		for (int i = 0; i< k.size(); ++i){
+			tripletAll.push_back(coeff(i,k[i],1.0));
+		}
+		Psi_.setFromTriplets(tripletAll.begin(),tripletAll.end());
+		Psi_.makeCompressed();
+	}
+	else{
 	Triangle<ORDER*3, mydim, ndim> tri_activated;
 	Eigen::Matrix<Real,ORDER * 3,1> coefficients;
 
@@ -48,6 +72,7 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 
 	Psi_.prune(tolerance);
 	Psi_.makeCompressed();
+	}
 }
 
 
@@ -279,6 +304,221 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 }
 
 ///CLASS MIXEDFEFPCAGCV
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt output_index, Real lambda)
+{
+	int GCVmethod = this->fpcaData_.getGCVmethod();
+	switch (GCVmethod) {
+		case 1:
+			computeDegreesOfFreedomExact(output_index, lambda);
+			break;
+		case 2:
+			computeDegreesOfFreedomStochastic(output_index, lambda);
+			break;
+	}
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomExact(UInt output_index, Real lambda)
+{
+	timer clock;
+	clock.start();
+
+	UInt nnodes = this->mesh_.num_nodes();
+	UInt nlocations = this->fpcaData_.getNumberofObservations();
+	Real degrees=0;
+
+	// Case 1: MUMPS
+	if (this->fpcaData_.isLocationsByNodes())
+	{
+		auto k = this->fpcaData_.getObservationsIndices();
+		DMUMPS_STRUC_C id;
+		int myid, ierr;
+        int argc=0;
+        char ** argv= NULL;
+        //MPI_Init(&argc,&argv);
+		//ierr = MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+		id.sym=0;
+		id.par=1;
+		id.job=JOB_INIT;
+		id.comm_fortran=USE_COMM_WORLD;
+		dmumps_c(&id);
+
+		std::vector<int> irn;
+		std::vector<int> jcn;
+		std::vector<double> a;
+		std::vector<int> irhs_ptr;
+		std::vector<int> irhs_sparse;
+		double* rhs_sparse= (double*)malloc(nlocations*sizeof(double));
+		
+		//if( myid==0){
+			id.n=2*nnodes;
+			for (int j=0; j<this->coeffmatrix_.outerSize(); ++j){
+				for (SpMat::InnerIterator it(this->coeffmatrix_,j); it; ++it){
+					irn.push_back(it.row()+1);
+					jcn.push_back(it.col()+1);
+					a.push_back(it.value());
+				}
+			}
+		//}
+		id.nz=irn.size();
+		id.irn=irn.data();
+		id.jcn=jcn.data();
+		id.a=a.data();
+		id.nz_rhs=nlocations;
+		id.nrhs=2*nnodes;
+		int j = 1;
+		irhs_ptr.push_back(j);
+		for (int l=0; l<k[0]-1; ++l) {
+			irhs_ptr.push_back(j);
+		}
+		for (int i=0; i<k.size()-1; ++i) {
+			++j;
+			for (int l=0; l<k[i+1]-k[i]; ++l) {
+				irhs_ptr.push_back(j);
+			}
+			
+		}
+		++j;
+		for (int i=k[k.size()-1]; i < id.nrhs; ++i) {
+			irhs_ptr.push_back(j);
+		}
+		for (int i=0; i<nlocations; ++i){
+			irhs_sparse.push_back(k[i]+1);
+		}
+		id.irhs_sparse=irhs_sparse.data();
+		id.irhs_ptr=irhs_ptr.data();
+		id.rhs_sparse=rhs_sparse;
+
+		#define ICNTL(I) icntl[(I)-1]
+		//Output messages suppressed
+		id.ICNTL(1)=-1;
+		id.ICNTL(2)=-1;
+		id.ICNTL(3)=-1;
+		id.ICNTL(4)=0;
+		id.ICNTL(20)=1;
+		id.ICNTL(30)=1;
+		id.ICNTL(14)=200;
+
+		id.job=6;
+		dmumps_c(&id);
+		id.job=JOB_END;
+		dmumps_c(&id);
+
+		//if (myid==0){
+			for (int i=0; i< nlocations; ++i){
+				//std::cout << "rhs_sparse" << rhs_sparse[i] << std::endl;
+				degrees+=rhs_sparse[i];
+			}
+		//}
+		free(rhs_sparse);
+
+		//MPI_Finalize();
+	}
+	// Case 2: Eigen
+	else{
+		MatrixXr X1 = this->psi_.transpose() * this->psi_;
+
+		if (this->isRcomputed_ == false ){
+			this->isRcomputed_ = true;
+			Sparse_LU solver;
+			solver.compute(this->R0_);
+			auto X2 = solver.solve(this->R1_);
+			this->R_ = this->R1_.transpose() * X2;
+		}
+
+		MatrixXr X3 = X1 + lambda * this->R_;
+		Eigen::LDLT<MatrixXr> Dsolver(X3);
+
+		auto k = this->fpcaData_.getObservationsIndices();
+		
+		if (!this->fpcaData_.isLocationsByNodes()){
+			MatrixXr X;
+			X = Dsolver.solve(MatrixXr(X1));
+			for (int i = 0; i<nnodes; ++i) {
+				degrees += X(i,i);
+			}
+		}
+	}
+	dof_[output_index] = degrees;
+	this->var_[output_index] = 0;
+	
+	std::cout << "Time required for GCV computation" << std::endl;
+	timespec time;
+	time = clock.stop();
+	this->time_[output_index]= (long long)time.tv_sec + (double)time.tv_nsec/1000000000;
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStochastic(UInt output_index, Real lambda)
+{	
+	std::cout << " GCV computation " << std::endl;
+	timer clock1;
+	clock1.start();
+	UInt nnodes = this->mesh_.num_nodes();
+	UInt nlocations = this->fpcaData_.getNumberofObservations();
+	
+	std::default_random_engine generator;
+	// Set the initial state of the random number generator
+	if (this->fpcaData_.getRNGstate() != "") {
+	  //std::cout << "SETTING RNG STATE: " << std::endl;
+		std::stringstream initialRNGstate;
+		initialRNGstate << this->fpcaData_.getRNGstate();
+		initialRNGstate >> generator;
+	}
+	// Creation of the random matrix
+	std::bernoulli_distribution distribution(0.5);
+	UInt nrealizations = this->fpcaData_.getNrealizations();
+	MatrixXr u(nlocations, nrealizations);
+	for (int j=0; j<nrealizations; ++j) {
+		for (int i=0; i<nlocations; ++i) {
+			if (distribution(generator)) {
+				u(i,j) = 1.0;
+			}
+			else {
+				u(i,j) = -1.0;
+			}
+		}
+	}
+	// Save state of random number generator
+	std::stringstream finalRNGstate;
+	finalRNGstate << generator;
+	finalRNGstate >> this->_finalRNGstate;
+	// Define the first right hand side : | I  0 |^T * psi^T * Q * u
+	MatrixXr b = MatrixXr::Zero(2*nnodes,u.cols());
+	b.topRows(nnodes) = this->Psi_.transpose()* u;
+	// Resolution of the system
+	//MatrixXr x = system_solve(b);
+	Sparse_LU solver;
+	solver.compute(this->coeffmatrix_);
+	auto x = solver.solve(b);
+	MatrixXr uTpsi = u.transpose()*this->Psi_;
+	VectorXr edf_vect(nrealizations);
+	Real q = 0;
+	Real var = 0;
+	// For any realization we calculate the degrees of freedom
+	for (int i=0; i<nrealizations; ++i) {
+		edf_vect(i) = uTpsi.row(i).dot(x.col(i).head(nnodes)) + q;
+		var += edf_vect(i)*edf_vect(i);
+	}
+	// Estimates: sample mean, sample variance
+	Real mean = edf_vect.sum()/nrealizations;
+	dof_[output_index] = mean;
+	var /= nrealizations;
+	var -= mean*mean;
+	this->var_[output_index]=var;
+
+
+	std::cout << "Time required to calculate the GCV" << std::endl;
+	//clock1.stop();
+	timespec time;
+	time = clock1.stop();
+	this->time_[output_index]= (long long)time.tv_sec + (double)time.tv_nsec/1000000000;
+}
+
+
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt output_index)
 {
@@ -339,8 +579,11 @@ template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 {
    MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
+   this->computeBasisEvaluations();
    dof_.resize(this->fpcaData_.getLambda().size());
    GCV_.resize(this->fpcaData_.getLambda().size());
+   this->var_.resize(this->fpcaData_.getLambda().size());
+   this->time_.resize(this->fpcaData_.getLambda().size());
    loadings_lambda_.resize(this->fpcaData_.getLambda().size());
    scores_lambda_.resize(this->fpcaData_.getLambda().size());
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
@@ -352,7 +595,7 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 		loadings_lambda_[i]=FPCAinput.getLoadings();
 		scores_lambda_[i]=FPCAinput.getScores();
 		
-			if(np==0) computeDegreesOfFreedom(i);
+			if(np==0) computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
 			computeGCV(FPCAinput,i);	
 	}
 	

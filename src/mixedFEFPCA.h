@@ -9,6 +9,7 @@
 #include "solver.h"
 #include "FPCAData.h"
 #include "FPCAObject.h"
+#include <memory>
 
 //! A LinearSystem class: A class for the linear system construction and resolution.
 
@@ -19,6 +20,13 @@ protected:
 	const MeshHandler<ORDER, mydim, ndim> &mesh_;
 	const FPCAData& fpcaData_;
 	std::vector<coeff> tripletsData_;
+	
+	SpMat R1_;	// North-east block of system matrix A_
+	SpMat R0_;	// South-east block of system matrix A_
+	SpMat psi_;
+
+	bool isRcomputed_;
+	MatrixXr R_; //R1 ^T * R0^-1 * R1
 
 	//SpMat NWblock_;
 	SpMat DMat_;
@@ -32,7 +40,10 @@ protected:
 	std::vector<VectorXr> solution_;
 	
 	Sparse_LU sparseSolver_;
-
+	std::string _finalRNGstate;
+	std::vector<Real> var_;
+	std::vector<Real> time_;
+	
 	std::vector<VectorXr> scores_mat_;
 	std::vector<VectorXr> loadings_mat_;
 	std::vector<Real> lambda_PC_;
@@ -52,10 +63,12 @@ protected:
 	void computeIterations(MatrixXr & datamatrixResiduals_,FPCAObject & FPCAinput, UInt lambda_index, UInt nnodes);
 	void SetAndFixParameters();
 	
+	
+	
 
 public:
 	//!A Constructor.
-	MixedFEFPCABase(const MeshHandler<ORDER,mydim,ndim>& mesh, const FPCAData& fpcaData):mesh_(mesh), fpcaData_(fpcaData){};
+	MixedFEFPCABase(const MeshHandler<ORDER,mydim,ndim>& mesh, const FPCAData& fpcaData): mesh_(mesh),fpcaData_(fpcaData),isRcomputed_(false) {};
 
 	
 	virtual ~MixedFEFPCABase(){};	
@@ -74,6 +87,9 @@ public:
 	inline std::vector<Real> const & getVarianceExplained() const {return variance_explained_;}
 	//! A method returning a reference to the vector of the percentage explained cumulatively by the first N PC
 	inline std::vector<Real> const & getCumulativePercentage() const {return cumsum_percentage_;}
+	inline std::string const & getFinalRNGstate() const{return _finalRNGstate;}
+	inline std::vector<Real> const & getVar() const{return var_;};
+	inline std::vector<Real> const & getTime() const{return time_;};
 };
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
@@ -97,6 +113,10 @@ protected:
 	std::vector<Real> dof_;
 	std::vector<Real> GCV_;
 	
+	void computeDegreesOfFreedom(UInt output_index, Real lambda);
+	void computeDegreesOfFreedomExact(UInt output_index, Real lambda);
+	void computeDegreesOfFreedomStochastic(UInt output_index, Real lambda);
+	
 	void computeGCV(FPCAObject& FPCAinput,UInt output_index);
 	void computeDegreesOfFreedom(UInt output_index);
 public:
@@ -107,6 +127,7 @@ public:
 	void apply();
 	
 	inline std::vector<Real> const & getDOF() const{return dof_;};
+
 };
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>

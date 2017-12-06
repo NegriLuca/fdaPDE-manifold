@@ -1,2 +1,19 @@
-PKG_CPPFLAGS = -lstdc++ -I../inst/include
-CXX_STD = CXX11
+#include Makefile.inc
+
+#PKG_CPPFLAGS = $(MUMPS_I)
+#PKG_CXXFLAGS = 
+#PKG_CFLAGS = -std=c99
+
+DMUMPS=lib/MUMPS_5.1.1
+RANLIB?=ranlib
+
+INC_OS := $(shell "$(R_HOME)/bin/Rscript" -e "cat(switch(Sys.info()[['sysname']], Windows='.win', Linux='', Darwin='.macos'))")
+
+PKG_CXXFLAGS=-I$(DMUMPS)/include -std=c++11
+PKG_LIBS= -L./lib -ldmumps -lmumps_common -lmpiseq -lpord -lmetis -lesmumps -lscotch -lscotcherr -pthread $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+$(SHLIB): lib/libdmumps.a
+
+lib/libdmumps.a:
+	$(MAKE) -C lib \
+	  CC="$(CC)" FC="$(FC)" PKG_CFLAGS="$(CFLAGS) $(CPICFLAGS)"  PKG_FCFLAGS="$(FCFLAGS) $(FCPICFLAGS)" AR="$(AR)" RANLIB="$(RANLIB)" INC_OS="$(INC_OS)"

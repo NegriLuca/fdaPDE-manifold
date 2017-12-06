@@ -34,9 +34,22 @@ class  FPCAData{
 		//Number of Folds for KFold
 		UInt nFolds_;
 		
+		//Parameters for better GCV timings
+		UInt GCVmethod_;
+		UInt nrealizations_;      // Number of relizations for the stochastic estimation of GCV
+		std::string RNGstate_;    // State at which the random number generator should be set
+		std::string solver_;
+		UInt nprocessors_;
+		std::string hosts_;
+		
 		#ifdef R_VERSION_
 		void setDatamatrix(SEXP Rdatamatrix);
 		void setLocations(SEXP Rlocations);
+		void setNrealizations(SEXP Rnrealizations);
+		void setRNGstate(SEXP RRNGstate);
+		void setnprocessors(SEXP Rnprocessors);
+		void setSolver(SEXP Rsolver);
+		void setHosts(SEXP Rhosts);
 		#endif
 
 	public:
@@ -73,7 +86,7 @@ class  FPCAData{
 
 		#ifdef R_VERSION_
 		explicit FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder,
-		SEXP Rlambda, SEXP RnPC, SEXP RnFolds);
+		SEXP Rlambda, SEXP RnPC, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations, SEXP RRNGstate, SEXP Rsolver, SEXP Rnprocessors, SEXP Rhosts);
 		#endif
 
 				
@@ -108,6 +121,20 @@ class  FPCAData{
 		inline UInt const getOrder() const {return order_;}
 		//! A method returning the input order
 		inline UInt const getNFolds() const {return nFolds_;}
+		//! A method returning the method that should be used to compute the GCV:
+		//! 1: exact calculation
+		//! 2: stochastic estimation
+		inline UInt const & getGCVmethod() const {return GCVmethod_;}
+		//! A method returning the number of vectors to use to stochastically estimate the edf
+		inline UInt const & getNrealizations() const {return nrealizations_;}
+		//! A method returning the state of the random number generator
+		inline std::string const & getRNGstate() const {return RNGstate_;}
+		//! A method returning the name of the linear solver
+		inline std::string const & getSolver() const {return solver_;}
+		//! A method returning the number of processors used by MUMPS
+		inline UInt const & getnprocessors() const {return nprocessors_;}
+		//! A method returning the hostfile name where processes should be spawned
+		inline std::string const & getHosts() const {return hosts_;}
 		
 		
 };
