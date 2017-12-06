@@ -397,7 +397,6 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 		{
 			UInt length_chunk=floor(datamatrixResiduals_.rows()/nFolds);
 			indices_valid.resize(datamatrixResiduals_.rows());
-			std::chrono::high_resolution_clock::time_point t15= std::chrono::high_resolution_clock::now();
 			std::iota(indices_valid.begin(),indices_valid.begin()+length_chunk,k*length_chunk);
 			if(k==0) std::iota(indices_valid.begin()+length_chunk,indices_valid.end(),(k+1)*length_chunk);
 			else {
@@ -405,14 +404,6 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 				std::iota(indices_valid.begin()+(k+1)*length_chunk,indices_valid.end(),(k+1)*length_chunk);
 			}
 			
-			std::chrono::high_resolution_clock::time_point t16= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration8 =t16-t15;
-	
-	std::cout<<"Time elapsed for computing iota : "<<duration8.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t17= std::chrono::high_resolution_clock::now();
-		
 			VectorXi indices_v=Eigen::Map<VectorXi,Eigen::Unaligned> (indices_valid.data(),indices_valid.size());
 			Eigen::PermutationMatrix<Eigen::Dynamic,Eigen::Dynamic> perm(indices_v);
 		
@@ -420,13 +411,6 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 			MatrixXr X_clean_train=(perm*datamatrixResiduals_).bottomRows(datamatrixResiduals_.rows()-length_chunk);
 			MatrixXr X_valid=(perm*datamatrixResiduals_).topRows(length_chunk);
 		
-			std::chrono::high_resolution_clock::time_point t18= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration9 =t18-t17;
-	
-	std::cout<<"Time elapsed for computing permutation : "<<duration9.count()<<std::endl;
-	
-	std::chrono::high_resolution_clock::time_point t21= std::chrono::high_resolution_clock::now();
 		
 			VectorXr X_train_mean=X_train.colwise().mean();
 			VectorXr X_clean_train_mean=X_clean_train.colwise().mean();
@@ -436,13 +420,7 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 			X_train=X_train-ones*X_train_mean.transpose();
 			X_clean_train=X_clean_train-ones*X_clean_train_mean.transpose();
 			X_valid=X_valid-ones*X_valid_mean.transpose();
-			
-			std::chrono::high_resolution_clock::time_point t22= std::chrono::high_resolution_clock::now();
 	
-	std::chrono::duration<double> duration11 =t22-t21;
-	
-	std::cout<<"Time elapsed for computing permutation : "<<duration11.count()<<std::endl;
-		
 		
 			FPCAObject FPCAinputKF(X_clean_train);
 			for(auto j=0;j<niter;j++)
@@ -471,18 +449,11 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 
 			}
 			
-			std::chrono::high_resolution_clock::time_point t19= std::chrono::high_resolution_clock::now();
 			Real U_hat_const=FPCAinputKF.getLoadings().squaredNorm() + lambda* (this->solution_[lambda_index].bottomRows(nnodes)).transpose()*this->MMat_*this->solution_[lambda_index].bottomRows(nnodes);
 			VectorXr U_hat_valid=(X_valid*FPCAinputKF.getLoadings())/U_hat_const;
 		Real diffCV=(X_valid-U_hat_valid*FPCAinputKF.getLoadings().transpose()).squaredNorm()/(X_valid.rows()*X_valid.cols());
 		Real sumCV=(X_valid+U_hat_valid*FPCAinputKF.getLoadings().transpose()).squaredNorm()/(X_valid.rows()*X_valid.cols());
 		KFold_[lambda_index]+=std::min(diffCV,sumCV);
-		
-		std::chrono::high_resolution_clock::time_point t20= std::chrono::high_resolution_clock::now();
-	
-	std::chrono::duration<double> duration10 =t20-t19;
-	
-	std::cout<<"Time elapsed for computing CV for fold K : "<<duration10.count()<<std::endl;
 		}
 
 }
