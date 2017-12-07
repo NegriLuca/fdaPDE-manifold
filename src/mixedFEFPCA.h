@@ -42,7 +42,6 @@ protected:
 	Sparse_LU sparseSolver_;
 	std::string _finalRNGstate;
 	std::vector<Real> var_;
-	std::vector<Real> time_;
 	
 	std::vector<VectorXr> scores_mat_;
 	std::vector<VectorXr> loadings_mat_;
@@ -89,7 +88,6 @@ public:
 	inline std::vector<Real> const & getCumulativePercentage() const {return cumsum_percentage_;}
 	inline std::string const & getFinalRNGstate() const{return _finalRNGstate;}
 	inline std::vector<Real> const & getVar() const{return var_;};
-	inline std::vector<Real> const & getTime() const{return time_;};
 };
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
