@@ -64,23 +64,35 @@ void FPCAData::setDatamatrix(SEXP Rdatamatrix)
 	p_ = INTEGER(Rf_getAttrib(Rdatamatrix, R_DimSymbol))[1];
 	datamatrix_.resize(n_,p_);
 	observations_indices_.reserve(p_);
-	
-	for(auto i=0; i<n_; ++i)
-	{
-		for(auto j=0; j<p_ ; ++j)
-		{
-			datamatrix_(i,j)=REAL(Rdatamatrix)[i+ n_*j];
-		}
-	}
-
+	VectorXr auxiliary_row_;
+	auxiliary_row_.resize(p_);
 	if(locations_.size() == 0)
 	{
 		locations_by_nodes_ = true;
-		for(auto i=0;i<p_;++i) observations_indices_.push_back(i);
-	}
-	else
-	{
+		for(auto i=0; i<n_; ++i)
+		{	
+			UInt count=0;
+			for(auto j=0; j<p_ ; ++j)
+			{
+				if(!ISNA(REAL(Rdatamatrix)[i+n_*j]))
+				{
+					auxiliary_row_[count]=REAL(Rdatamatrix)[i+n_*j];
+					count++;
+					if(i==0) observations_indices_.push_back(j);
+				}
+			}
+			datamatrix_.row(i)=auxiliary_row_;
+		}
+		datamatrix_.conservativeResize(Eigen::NoChange,observations_indices_.size());
+	} else {
 		locations_by_nodes_ = false;
+		for(auto i=0; i<n_; ++i)
+		{
+			for(auto j=0; j<p_ ; ++j)
+			{
+				datamatrix_(i,j)=REAL(Rdatamatrix)[i+n_*j];
+			}
+		}
 	}
 
 }

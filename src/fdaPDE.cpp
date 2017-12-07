@@ -359,8 +359,8 @@ SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEX
 //Set data 
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds,RGCVmethod, Rnrealizations, RRNGstate, Rsolver, Rnprocessors, Rhosts);
 
-//
-	UInt mydim=INTEGER(Rmydim)[0];
+//    
+	UInt mydim=INTEGER(Rmydim)[0]; 
 	UInt ndim=INTEGER(Rndim)[0]; 
 
 	std::string validation=CHAR(STRING_ELT(Rvalidation,0));

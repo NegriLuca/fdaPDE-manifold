@@ -32,7 +32,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 
 	Psi_.resize(nlocations, nnodes);
 	if (fpcaData_.isLocationsByNodes()){
-
 		std::vector<coeff> tripletAll;
 		auto k = fpcaData_.getObservationsIndices();
 		
@@ -132,7 +131,7 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeDataMatrixByIndices(
 
 		DMat.resize(nnodes,nnodes);
 
-		DMat.reserve(1);
+		DMat.reserve(nlocations);
 		for (auto i = 0; i<nlocations; ++i)
 		{
 			auto index = fpcaData_.getObservationsIndices()[i];
@@ -229,14 +228,18 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 			}
 			
 			if(fpcaData_.isLocationsByNodes())
-				FPCAinput.setLoadings(nnodes, solution_[lambda_index]);
+				FPCAinput.setLoadings(nnodes, solution_[lambda_index],fpcaData_.getObservationsIndices());
 			else
-				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
+				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_,fpcaData_.getObservationsIndices());
 	
 			
 			FPCAinput.setScores(datamatrixResiduals_);
-
 		}
+		UInt nlocations;
+		if(fpcaData_.isLocationsByNodes()) nlocations=nnodes;
+		else nlocations=fpcaData_.getNumberofObservations();
+		FPCAinput.finalizeLoadings(fpcaData_.getObservationsIndices(),nlocations);
+		
 
 }
 
@@ -322,9 +325,6 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomExact(UInt output_index, Real lambda)
 {
-	timer clock;
-	clock.start();
-
 	UInt nnodes = this->mesh_.num_nodes();
 	UInt nlocations = this->fpcaData_.getNumberofObservations();
 	Real degrees=0;
@@ -419,7 +419,7 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomExact
 	}
 	// Case 2: Eigen
 	else{
-		MatrixXr X1 = this->psi_.transpose() * this->psi_;
+		MatrixXr X1 = this->Psi_.transpose() * this->Psi_;
 
 		if (this->isRcomputed_ == false ){
 			this->isRcomputed_ = true;
@@ -444,19 +444,11 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomExact
 	}
 	dof_[output_index] = degrees;
 	this->var_[output_index] = 0;
-	
-	std::cout << "Time required for GCV computation" << std::endl;
-	timespec time;
-	time = clock.stop();
-	this->time_[output_index]= (long long)time.tv_sec + (double)time.tv_nsec/1000000000;
 }
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStochastic(UInt output_index, Real lambda)
 {	
-	std::cout << " GCV computation " << std::endl;
-	timer clock1;
-	clock1.start();
 	UInt nnodes = this->mesh_.num_nodes();
 	UInt nlocations = this->fpcaData_.getNumberofObservations();
 	
@@ -509,13 +501,6 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStoch
 	var /= nrealizations;
 	var -= mean*mean;
 	this->var_[output_index]=var;
-
-
-	std::cout << "Time required to calculate the GCV" << std::endl;
-	//clock1.stop();
-	timespec time;
-	time = clock1.stop();
-	this->time_[output_index]= (long long)time.tv_sec + (double)time.tv_nsec/1000000000;
 }
 
 
@@ -559,9 +544,19 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedom(UInt
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeGCV(FPCAObject& FPCAinput,UInt output_index)
-{
-	UInt s= this->fpcaData_.getNumberofObservations();
-	VectorXr zhat=FPCAinput.getObservationData();
+{	
+	UInt s;
+	VectorXr zhat;
+	if(this->fpcaData_.isLocationsByNodes())
+	{
+		s= this->mesh_.num_nodes();
+		zhat=VectorXr::Zero(s);
+		for(auto i=0;i<this->fpcaData_.getObservationsIndices().size();i++)
+			zhat(this->fpcaData_.getObservationsIndices()[i])=FPCAinput.getObservationData()[i];
+	} else {
+		s= this->fpcaData_.getNumberofObservations();
+		zhat=FPCAinput.getObservationData();
+	}
 	Real norm_squared=(zhat-FPCAinput.getLoadings()).transpose()*(zhat-FPCAinput.getLoadings());
 	if(s-dof_[output_index]<0){
 		#ifdef R_VERSION_
@@ -583,7 +578,6 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
    dof_.resize(this->fpcaData_.getLambda().size());
    GCV_.resize(this->fpcaData_.getLambda().size());
    this->var_.resize(this->fpcaData_.getLambda().size());
-   this->time_.resize(this->fpcaData_.getLambda().size());
    loadings_lambda_.resize(this->fpcaData_.getLambda().size());
    scores_lambda_.resize(this->fpcaData_.getLambda().size());
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
@@ -650,17 +644,14 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 			VectorXi indices_v=Eigen::Map<VectorXi,Eigen::Unaligned> (indices_valid.data(),indices_valid.size());
 			Eigen::PermutationMatrix<Eigen::Dynamic,Eigen::Dynamic> perm(indices_v);
 		
-			MatrixXr X_train=(perm*datamatrixResiduals_).bottomRows(datamatrixResiduals_.rows()-length_chunk);
 			MatrixXr X_clean_train=(perm*datamatrixResiduals_).bottomRows(datamatrixResiduals_.rows()-length_chunk);
 			MatrixXr X_valid=(perm*datamatrixResiduals_).topRows(length_chunk);
 		
 		
-			VectorXr X_train_mean=X_train.colwise().mean();
 			VectorXr X_clean_train_mean=X_clean_train.colwise().mean();
 			VectorXr X_valid_mean=X_valid.colwise().mean();
 		
-			VectorXr ones=VectorXr::Constant(X_train.rows(),1,1);
-			X_train=X_train-ones*X_train_mean.transpose();
+			VectorXr ones=VectorXr::Constant(X_clean_train.rows(),1,1);
 			X_clean_train=X_clean_train-ones*X_clean_train_mean.transpose();
 			X_valid=X_valid-ones*X_valid_mean.transpose();
 	
@@ -668,7 +659,7 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 			FPCAObject FPCAinputKF(X_clean_train);
 			for(auto j=0;j<niter;j++)
 			{	
-				FPCAinputKF.setObservationData(X_train);
+				FPCAinputKF.setObservationData(X_clean_train);
 
 				VectorXr rightHandData;
 				this->computeRightHandData(rightHandData,FPCAinputKF);
@@ -683,14 +674,18 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 				}
 			
 				if(this->fpcaData_.isLocationsByNodes())
-					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index]);
+					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index],this->fpcaData_.getObservationsIndices());
 				else
-					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_);
+					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_,this->fpcaData_.getObservationsIndices());
 	
 			
 				FPCAinputKF.setScores(X_clean_train);
 
 			}
+			UInt nlocations;
+			if(this->fpcaData_.isLocationsByNodes()) nlocations=nnodes;
+			else nlocations=this->fpcaData_.getNumberofObservations();
+			FPCAinputKF.finalizeLoadings(this->fpcaData_.getObservationsIndices(),nlocations);
 			
 			Real U_hat_const=FPCAinputKF.getLoadings().squaredNorm() + lambda* (this->solution_[lambda_index].bottomRows(nnodes)).transpose()*this->MMat_*this->solution_[lambda_index].bottomRows(nnodes);
 			VectorXr U_hat_valid=(X_valid*FPCAinputKF.getLoadings())/U_hat_const;
