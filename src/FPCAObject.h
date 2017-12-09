@@ -24,7 +24,8 @@ class  FPCAObject{
 		
 		void setScores(const MatrixXr& datamatrix_);
 		void setObservationData(const MatrixXr& datamatrix_);
-		void setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& psi,const std::vector<UInt>& obs_indices);
+		//void setObservationData(const MatrixXr& datamatrix_, const SpMat& psi_);
+		void setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& psi);
 		void setLoadings(UInt nnodes, const VectorXr& f_sol, const std::vector<UInt>& obs_indices);
 		void finalizeLoadings(const std::vector<UInt>& obs_indices, UInt nlocations);
 		

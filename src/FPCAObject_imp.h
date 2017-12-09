@@ -49,16 +49,19 @@ void FPCAObject::setScores(const MatrixXr& datamatrix_)
 	scores_=scores_/scores_.norm();
 }
 
+/*void FPCAObject::setObservationData(const MatrixXr& datamatrix_, const SpMat& psi_)
+{
+	ObservationData_=psi_.transpose()*datamatrix_.transpose()*scores_;
+}*/
+
 void FPCAObject::setObservationData(const MatrixXr& datamatrix_)
 {
 	ObservationData_=datamatrix_.transpose()*scores_;
 }
 
-void FPCAObject::setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& psi_,const std::vector<UInt>& obs_indices)
+void FPCAObject::setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& psi_)
 {
-	VectorXr loadings_full_=psi_.transpose()*f_sol.topRows(nnodes);
-	for(auto i=0;i<obs_indices.size();i++)  loadings_(i)=loadings_full_(obs_indices[i]);
-	
+	loadings_=psi_.transpose()*f_sol.topRows(nnodes);	
 }
 
 void FPCAObject::setLoadings(UInt nnodes, const VectorXr& f_sol,const std::vector<UInt>& obs_indices)
@@ -74,8 +77,6 @@ void FPCAObject::finalizeLoadings(const std::vector<UInt>& obs_indices,UInt nloc
 		finalize_(obs_indices[i])=loadings_(i);
 	loadings_=finalize_;
 }
-
-
 
 #endif
 

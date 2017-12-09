@@ -15,8 +15,9 @@ FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt ord
 #ifdef R_VERSION_
 FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations, SEXP RRNGstate, SEXP Rsolver, SEXP Rnprocessors, SEXP Rhosts)
 {
-	setDatamatrix(Rdatamatrix);
+	
 	setLocations(Rlocations);
+	setDatamatrix(Rdatamatrix);
 
 	setNrealizations(Rnrealizations);
 	

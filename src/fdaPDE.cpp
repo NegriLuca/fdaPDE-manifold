@@ -29,7 +29,7 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	const std::vector<VectorXr>& solution = regression.getSolution();
 	const std::vector<Real>& dof = regression.getDOF();
 
-	//Copy result in R memory
+	//Copy result in R memory   
 	SEXP result = NILSXP;
 	result = PROTECT(Rf_allocVector(VECSXP, 2));
 	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
@@ -65,7 +65,7 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh,std::string validation)
 	const std::vector<Real>& cumsum_percentage = fpca->getCumulativePercentage();
 	const std::vector<Real>& var=fpca->getVar();
 
-	//Copy result in R memory
+	//Copy result in R memory  
 	SEXP result = NILSXP;
 	result = PROTECT(Rf_allocVector(VECSXP, 7));
 	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, loadings[0].size(), loadings.size()));
@@ -169,7 +169,7 @@ SEXP get_FEM_Matrix_skeleton(SEXP Rmesh, EOExpr<A> oper)
 		{
 			for (SpMat::InnerIterator it(AMat,k); it; ++it)
 			{
-				//std::cout << "(" << it.row() <<","<< it.col() <<","<< it.value() <<")\n";
+				//std::cout << "(" << it.row() <<","<< it.col() <<","<< it.value() <<")\n"; 
 				rans[i] = 1+it.row();
 				rans[i + AMat.nonZeros()] = 1+it.col();
 				rans2[i] = it.value();
@@ -356,7 +356,7 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 }
 
 SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations, SEXP RRNGstate, SEXP Rsolver, SEXP Rnprocessors, SEXP Rhosts){
-//Set data 
+//Set data  
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds,RGCVmethod, Rnrealizations, RRNGstate, Rsolver, Rnprocessors, Rhosts);
 
 //    

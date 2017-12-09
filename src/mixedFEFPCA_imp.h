@@ -213,13 +213,12 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 
 		for(auto j=0;j<niter;j++)
 		{	
-			FPCAinput.setObservationData(datamatrixResiduals_);
 
+			FPCAinput.setObservationData(datamatrixResiduals_);
 			VectorXr rightHandData;
 			computeRightHandData(rightHandData,FPCAinput);
 			b_ = VectorXr::Zero(2*nnodes);
 			b_.topRows(nnodes)=rightHandData;
-			
 			
 			solution_[lambda_index]=sparseSolver_.solve(b_);
 			if(sparseSolver_.info()!=Eigen::Success)
@@ -230,16 +229,16 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 			if(fpcaData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, solution_[lambda_index],fpcaData_.getObservationsIndices());
 			else
-				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_,fpcaData_.getObservationsIndices());
-	
+				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
 			
 			FPCAinput.setScores(datamatrixResiduals_);
 		}
-		UInt nlocations;
-		if(fpcaData_.isLocationsByNodes()) nlocations=nnodes;
-		else nlocations=fpcaData_.getNumberofObservations();
-		FPCAinput.finalizeLoadings(fpcaData_.getObservationsIndices(),nlocations);
 		
+		if(fpcaData_.isLocationsByNodes())
+		{
+			UInt nlocations=nnodes;
+			FPCAinput.finalizeLoadings(fpcaData_.getObservationsIndices(),nlocations);
+		}
 
 }
 
@@ -249,13 +248,9 @@ template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 {	
 	FiniteElement<Integrator, ORDER, mydim, ndim> fe;
-
-	if(!fpcaData_.isLocationsByNodes())
-	{
-		computeBasisEvaluations();
-		computeDataMatrix(DMat_);
-	}else	
-		computeDataMatrixByIndices(DMat_);
+	
+	computeBasisEvaluations();
+	computeDataMatrix(DMat_);
 
 	typedef EOExpr<Mass> ETMass; Mass EMass; ETMass mass(EMass);
 	typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
@@ -276,7 +271,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 {  
-
    MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
 
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
@@ -294,14 +288,18 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
 	
 	//Normalize the loadings and unnormalize the scores
+	//Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->Psi_*this->MMat_*this->Psi_.transpose()*this->loadings_mat_[np]);
+	
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
 	
-	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
+	this->loadings_mat_[np]=this->loadings_mat_[np].transpose()/load_norm;
+	
+	//this->loadings_mat_[np]=this->loadings_mat_[np].transpose()*this->Psi_/load_norm;
+	std::cout<<"loadings dim: "<<this->loadings_mat_[np].size()<<std::endl;
 	
 	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;	
 	
 	}
-	
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
 }
@@ -676,16 +674,16 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 				if(this->fpcaData_.isLocationsByNodes())
 					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index],this->fpcaData_.getObservationsIndices());
 				else
-					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_,this->fpcaData_.getObservationsIndices());
+					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_);
 	
 			
 				FPCAinputKF.setScores(X_clean_train);
 
 			}
-			UInt nlocations;
-			if(this->fpcaData_.isLocationsByNodes()) nlocations=nnodes;
-			else nlocations=this->fpcaData_.getNumberofObservations();
+			if(this->fpcaData_.isLocationsByNodes()){
+			UInt nlocations=nnodes;
 			FPCAinputKF.finalizeLoadings(this->fpcaData_.getObservationsIndices(),nlocations);
+			}
 			
 			Real U_hat_const=FPCAinputKF.getLoadings().squaredNorm() + lambda* (this->solution_[lambda_index].bottomRows(nnodes)).transpose()*this->MMat_*this->solution_[lambda_index].bottomRows(nnodes);
 			VectorXr U_hat_valid=(X_valid*FPCAinputKF.getLoadings())/U_hat_const;
