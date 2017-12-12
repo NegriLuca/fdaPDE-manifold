@@ -288,14 +288,9 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
 	
 	//Normalize the loadings and unnormalize the scores
-	//Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->Psi_*this->MMat_*this->Psi_.transpose()*this->loadings_mat_[np]);
-	
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
 	
 	this->loadings_mat_[np]=this->loadings_mat_[np].transpose()/load_norm;
-	
-	//this->loadings_mat_[np]=this->loadings_mat_[np].transpose()*this->Psi_/load_norm;
-	std::cout<<"loadings dim: "<<this->loadings_mat_[np].size()<<std::endl;
 	
 	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;	
 	
@@ -422,9 +417,9 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomExact
 		if (this->isRcomputed_ == false ){
 			this->isRcomputed_ = true;
 			Sparse_LU solver;
-			solver.compute(this->R0_);
-			auto X2 = solver.solve(this->R1_);
-			this->R_ = this->R1_.transpose() * X2;
+			solver.compute(this->MMat_);
+			auto X2 = solver.solve(this->AMat_);
+			this->R_ = this->AMat_.transpose() * X2;
 		}
 
 		MatrixXr X3 = X1 + lambda * this->R_;

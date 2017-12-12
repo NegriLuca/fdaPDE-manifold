@@ -21,8 +21,6 @@ protected:
 	const FPCAData& fpcaData_;
 	std::vector<coeff> tripletsData_;
 	
-	SpMat R1_;	// North-east block of system matrix A_
-	SpMat R0_;	// South-east block of system matrix A_
 	SpMat psi_;
 
 	bool isRcomputed_;

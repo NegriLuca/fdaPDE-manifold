@@ -199,7 +199,7 @@ extern "C" {
 SEXP regression_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder,SEXP Rmydim, SEXP Rndim, SEXP Rlambda,
 				   SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF)
 {
-    //Set input data
+    //Set input data    
 	RegressionData regressionData(Rlocations, Robservations, Rorder, Rlambda, Rcovariates, RBCIndices, RBCValues, DOF);
 	
 	UInt mydim=INTEGER(Rmydim)[0];
