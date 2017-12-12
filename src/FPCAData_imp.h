@@ -13,18 +13,13 @@ FPCAData::FPCAData(std::vector<Point>& locations, MatrixXr& datamatrix, UInt ord
 }
 
 #ifdef R_VERSION_
-FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations, SEXP RRNGstate, SEXP Rsolver, SEXP Rnprocessors, SEXP Rhosts)
+FPCAData::FPCAData(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rorder, SEXP Rlambda, SEXP RnPC, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations)
 {
 	
 	setLocations(Rlocations);
 	setDatamatrix(Rdatamatrix);
 
 	setNrealizations(Rnrealizations);
-	
-	setSolver(Rsolver);
-	setnprocessors(Rnprocessors);
-	setRNGstate(RRNGstate);
-	setHosts(Rhosts);
 	
 	GCVmethod_ = INTEGER(RGCVmethod)[0];
 
@@ -99,26 +94,9 @@ void FPCAData::setDatamatrix(SEXP Rdatamatrix)
 }
 
 
-
-void FPCAData::setRNGstate(SEXP RRNGstate) {
-	RNGstate_.assign(CHAR(STRING_ELT(RRNGstate, 0)));
-}
-
 void FPCAData::setNrealizations(SEXP Rnrealizations) {
 	nrealizations_ = INTEGER(Rnrealizations)[0];
 }
-
-void FPCAData::setnprocessors(SEXP Rnprocessors) {
-	nprocessors_ = INTEGER(Rnprocessors)[0];
-}
-void FPCAData::setSolver(SEXP Rsolver) {
-	solver_.assign(CHAR(STRING_ELT(Rsolver, 0)));
-}
-
-void FPCAData::setHosts(SEXP Rhosts) {
-	hosts_.assign(CHAR(STRING_ELT(Rhosts, 0)));
-}
-
 #endif
 
 

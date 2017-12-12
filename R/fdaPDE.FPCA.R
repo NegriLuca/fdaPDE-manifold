@@ -62,7 +62,7 @@
 
 #observation is a matrix with nrow=number of location points (or mesh nodes) and n cols=n of observations
 
-smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1, validation=NULL,NFolds=5,GCVmethod = 2, nrealizations = 100, RNGstate = "", solver = "EigenSparseLU", nprocessors = 1, hosts = "")
+smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1, validation=NULL,NFolds=5,GCVmethod = 2, nrealizations = 100)
 {
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
@@ -76,7 +76,7 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
  
 ##################### Checking parameters, sizes and conversion ################################
 
-  checkSmoothingParametersFPCA(locations, datamatrix, FEMbasis, lambda,nPC, validation,NFolds,GCVmethod , nrealizations, RNGstate, solver, nprocessors) 
+  checkSmoothingParametersFPCA(locations, datamatrix, FEMbasis, lambda,nPC, validation,NFolds,GCVmethod , nrealizations) 
   ## Coverting to format for internal usage
   if(!is.null(locations))
     locations = as.matrix(locations)
@@ -91,7 +91,7 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
   	bigsol = NULL
 	print('C++ Code Execution')
 	bigsol = CPP_smooth.FEM.FPCA(locations, datamatrix, FEMbasis, lambda,
-	ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations, RNGstate, solver, nprocessors)
+	ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations)
 	numnodes = nrow(FEMbasis$mesh$nodes)
 	  
   } else if(class(FEMbasis$mesh) == 'MESH.2.5D'){
@@ -99,7 +99,7 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
 	  bigsol = NULL  
 	  print('C++ Code Execution')
 	  bigsol = CPP_smooth.manifold.FEM.FPCA(locations, datamatrix, FEMbasis$mesh,
-	  lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations, RNGstate, solver, nprocessors)
+	  lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations)
 	  numnodes = FEMbasis$mesh$nnodes
   }
   
@@ -116,8 +116,6 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
   
   var=bigsol[[6]]
   
-  RNGstate=bigsol[[7]]
-  
-  reslist=list(loadings.FEM=loadings.FEM, scores=scores, lambda=lambda, variance_explained=variance_explained, cumsum_percentage=cumsum_percentage, var=var, RNGstate=RNGstate)
+  reslist=list(loadings.FEM=loadings.FEM, scores=scores, lambda=lambda, variance_explained=variance_explained, cumsum_percentage=cumsum_percentage, var=var)
   return(reslist)
   }

@@ -74,7 +74,6 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh,std::string validation)
 	SET_VECTOR_ELT(result, 3, Rf_allocVector(REALSXP, variance_explained.size()));
 	SET_VECTOR_ELT(result, 4, Rf_allocVector(REALSXP, cumsum_percentage.size()));
 	SET_VECTOR_ELT(result, 5, Rf_allocVector(REALSXP, var.size()));
-	SET_VECTOR_ELT(result, 6, Rf_allocVector(STRSXP, 1));
 	Real *rans = REAL(VECTOR_ELT(result, 0));
 	for(UInt j = 0; j < loadings.size(); j++)
 	{
@@ -111,9 +110,6 @@ SEXP FPCA_skeleton(FPCAData &fPCAData, SEXP Rmesh,std::string validation)
 	{
 		rans5[i] = var[i];
 	}
-
-	std::string RNGstate = fpca->getFinalRNGstate();
-	SET_STRING_ELT(VECTOR_ELT(result, 6), 0, Rf_mkChar(RNGstate.c_str()));
 
 	UNPROTECT(1);
 
@@ -355,9 +351,9 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 	return(NILSXP);
 }
 
-SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations, SEXP RRNGstate, SEXP Rsolver, SEXP Rnprocessors, SEXP Rhosts){
+SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations){
 //Set data  
-	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds,RGCVmethod, Rnrealizations, RRNGstate, Rsolver, Rnprocessors, Rhosts);
+	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds,RGCVmethod, Rnrealizations);
 
 //    
 	UInt mydim=INTEGER(Rmydim)[0]; 

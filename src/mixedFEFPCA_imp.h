@@ -446,13 +446,7 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStoch
 	UInt nlocations = this->fpcaData_.getNumberofObservations();
 	
 	std::default_random_engine generator;
-	// Set the initial state of the random number generator
-	if (this->fpcaData_.getRNGstate() != "") {
-	  //std::cout << "SETTING RNG STATE: " << std::endl;
-		std::stringstream initialRNGstate;
-		initialRNGstate << this->fpcaData_.getRNGstate();
-		initialRNGstate >> generator;
-	}
+
 	// Creation of the random matrix
 	std::bernoulli_distribution distribution(0.5);
 	UInt nrealizations = this->fpcaData_.getNrealizations();
@@ -467,10 +461,7 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStoch
 			}
 		}
 	}
-	// Save state of random number generator
-	std::stringstream finalRNGstate;
-	finalRNGstate << generator;
-	finalRNGstate >> this->_finalRNGstate;
+
 	// Define the first right hand side : | I  0 |^T * psi^T * Q * u
 	MatrixXr b = MatrixXr::Zero(2*nnodes,u.cols());
 	b.topRows(nnodes) = this->Psi_.transpose()* u;

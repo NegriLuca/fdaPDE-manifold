@@ -63,7 +63,7 @@ void FPCAObject::setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& 
 {
 	VectorXr load_=psi_.transpose()*f_sol.topRows(nnodes);
 	loadings_=load_;
-	std::cout<<"Load dim:"<<loadings_.size()<<std::endl;
+	//std::cout<<"Load dim:"<<loadings_.size()<<std::endl;
 }
 
 void FPCAObject::setLoadings(UInt nnodes, const VectorXr& f_sol,const std::vector<UInt>& obs_indices)

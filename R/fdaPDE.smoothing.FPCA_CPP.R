@@ -1,4 +1,4 @@
-CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, mydim,nPC,validation, NFolds,GCVmethod = 2, nrealizations = 100, RNGstate = "", solver = "EigenLU", nprocessors = 1, hosts = "")
+CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, mydim,nPC,validation, NFolds,GCVmethod = 2, nrealizations = 100)
 { 
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
@@ -35,15 +35,12 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
   
   
   storage.mode(nrealizations) = "integer"
-  storage.mode(RNGstate) = "character"
   storage.mode(GCVmethod) = "integer"
-  storage.mode(solver) = "character"
-  storage.mode(nprocessors) = "integer"
-  storage.mode(hosts) = "character"
+  
   ## Call C++ function
   bigsol <- .Call("Smooth_FPCA", locations, datamatrix, FEMbasis$mesh, 
                   FEMbasis$order,mydim,ndim, 
-                  lambda,nPC,validation,NFolds,GCVmethod, nrealizations, RNGstate, solver, nprocessors, hosts,
+                  lambda,nPC,validation,NFolds,GCVmethod, nrealizations,
                   package = "fdaPDE")
   
   ## Reset them correctly
@@ -55,7 +52,7 @@ CPP_smooth.FEM.FPCA<-function(locations, datamatrix, FEMbasis, lambda, ndim, myd
 
 
 
-CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod = 2, nrealizations = 100, RNGstate = "", solver = "EigenLU", nprocessors = 1, hosts = "")
+CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod = 2, nrealizations = 100)
 {
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   # This is done in C++ now to optimize speed
@@ -91,16 +88,12 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   storage.mode(NFolds)<-"integer"
   
   storage.mode(nrealizations) = "integer"
-  storage.mode(RNGstate) = "character"
   storage.mode(GCVmethod) = "integer"
-  storage.mode(solver) = "character"
-  storage.mode(nprocessors) = "integer"
-  storage.mode(hosts) = "character"
   
   ## Call C++ function
   bigsol <- .Call("Smooth_FPCA", locations, datamatrix, mesh, 
                   mesh$order, mydim, ndim, lambda,
-                  nPC, validation, NFolds,GCVmethod, nrealizations, RNGstate, solver, nprocessors, hosts ,
+                  nPC, validation, NFolds,GCVmethod, nrealizations,
                   package = "fdaPDE")
 
   return(bigsol)
