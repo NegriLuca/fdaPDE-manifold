@@ -110,13 +110,13 @@ class Triangle : public Identifier {
  *  The first three nodes represent the vertices, the others the internal nodes,
  *  following this enumeration: !IMPORTANT! different from Sangalli code!
  *
- * 		        3
- * 			*
- * 		     /	   \
- * 		  5 *	     * 4
- * 		  /	       \
+ * 		        	3
+ * 			       *
+ * 		     /	     \
+ * 		  5 *	        * 4
+ * 		  /	           \
  * 		 *______*______ *
- * 		1	6	 2
+ * 		1	      6	      2
 */
 template <UInt NNODES>
 class Triangle<NNODES,2,2> : public Identifier {
@@ -339,8 +339,7 @@ inline Real evaluate_point<2,2,2>(const Triangle<6,2,2>& t, const Point& point, 
 // then the solution u(p)=u(p0)+alpa*(u(p1)-u(p0)+beta*(u(p2)-u(p0))
 template <>
 inline Real evaluate_point<1,2,3>(const Triangle<3,2,3>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
-{	
-	std::cout<<"Sono qui2"<<std::endl;
+{
 	Eigen::Matrix<Real,3,1> bary_coeff=t.getBaryCoordinates(point);
 	return(coefficients.dot(bary_coeff));
 

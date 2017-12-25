@@ -27,7 +27,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 	//std::cout<<"Data Matrix Computation by Basis Evaluation.."<<std::endl;
 	UInt nnodes = mesh_.num_nodes();
 	UInt nlocations = fpcaData_.getNumberofObservations();
-	std::cout<<nlocations<<std::endl;
 	Real eps = 2.2204e-016,
 		 tolerance = 100 * eps;
 
@@ -48,7 +47,7 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 	Eigen::Matrix<Real,ORDER * 3,1> coefficients;
 
 	Real evaluator;
-	for(auto i=0; i<nlocations;i++)
+	for(UInt i=0; i<nlocations;i++)
 	{
 		tri_activated = mesh_.findLocationNaive(fpcaData_.getLocations()[i]);
 		if(tri_activated.getId() == Identifier::NVAL)
@@ -65,24 +64,14 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 				coefficients = Eigen::Matrix<Real,ORDER * 3,1>::Zero();
 				coefficients(node) = 1; //Activates only current base
 				evaluator = evaluate_point<ORDER, mydim, ndim>(tri_activated, fpcaData_.getLocations()[i], coefficients);
-				//std::cout<<"Evaluator : "<< i;
-				//std::cout<<"Node :"<< node<<std::endl;
-				//std::cout<<"Evaluate_point"<<evaluator<<std::endl;
 				Psi_.insert(i, tri_activated[node].getId()) = evaluator;
 			}
 		}
 	}
-	//std::cout<<"Psi"<<std::endl;
-	//std::cout<<Psi_<<std::endl;
-	
-	//std::cout<<"Psi transp"<<std::endl;
-	//std::cout<<Psi_.transpose()<<std::endl;
-	
-	
+
 	Psi_.prune(tolerance);
 	Psi_.makeCompressed();
 	}
-	std::cout<<"Psi fatta"<<std::endl;
 }
 
 
@@ -215,7 +204,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 		SpMat AMat_lambda = (-lambda)*AMat_;
 		SpMat MMat_lambda = (-lambda)*MMat_;
 		buildCoeffMatrix(DMat_, AMat_lambda, MMat_lambda);
-		std::cout<<"Coeffmatrix fatta"<<std::endl;
 
 		sparseSolver_.analyzePattern(coeffmatrix_);
 		sparseSolver_.factorize(coeffmatrix_);
@@ -225,43 +213,26 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 
 		for(auto j=0;j<niter;j++)
 		{	
-			std::cout<<"Inizia il giro "<<j<<std::endl;
+
 			FPCAinput.setObservationData(datamatrixResiduals_);
-			if(j==0)
-				FPCAinput.printObservationData(std::cout);
 			VectorXr rightHandData;
 			computeRightHandData(rightHandData,FPCAinput);
-			if(j==0)
-				std::cout<<rightHandData<<std::endl;
-			std::cout<<"RightHandData fatto"<<std::endl;
 			b_ = VectorXr::Zero(2*nnodes);
 			b_.topRows(nnodes)=rightHandData;
 			
 			solution_[lambda_index]=sparseSolver_.solve(b_);
-			std::cout<<"sistema risolto fatta"<<std::endl;
-			if(j==0)
-				std::cout<<solution_[lambda_index].topRows(nnodes)<<std::endl;
 			if(sparseSolver_.info()!=Eigen::Success)
 			{
 			//std::cerr<<"solving failed!"<<std::endl;
 			}
+			
 			if(fpcaData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, solution_[lambda_index],fpcaData_.getObservationsIndices());
-			else	{
+			else
 				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
-				std::cout<<"sono qui "<<j<<std::endl;
-				}
-			std::cout<<"Loadings fatti"<<std::endl;
-			if(j==0)
-				FPCAinput.printLoadings(std::cout);
+			
 			FPCAinput.setScores(datamatrixResiduals_);
-			std::cout<<"Scores fatti"<<std::endl;
-			if(j==0)
-				FPCAinput.printScores(std::cout);
 		}
-		
-		std::cout<<"Final Loadings"<<std::endl;
-		FPCAinput.printLoadings(std::cout);
 		
 		if(fpcaData_.isLocationsByNodes())
 		{
@@ -280,7 +251,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 	
 	computeBasisEvaluations();
 	computeDataMatrix(DMat_);
-	std::cout<<"DMat fatta"<<std::endl;
 
 	typedef EOExpr<Mass> ETMass; Mass EMass; ETMass mass(EMass);
 	typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
