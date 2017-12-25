@@ -152,10 +152,21 @@ void Triangle<NNODES,2,3>::computeProperties()
 
 template <UInt NNODES>
 Eigen::Matrix<Real,3,1> Triangle<NNODES,2,3>::getBaryCoordinates(const Point& point) const{
-
-
+	std::cout<<"Sono qui3"<<std::endl;
 	Triangle<NNODES,2,3> t=*this;
 	Eigen::Matrix<Real,3,1> lambda;
+	
+	Real den=1/((t[1][1]-t[2][1])*(t[0][0]-t[2][0])+(t[2][0]-t[1][0])*(t[0][1]-t[2][1]));
+	
+	lambda[0]=((t[1][1]-t[2][1])*(point[0]-t[2][0])+(t[2][0]-t[1][0])*(point[1]-t[2][1]))*den;
+	
+	lambda[1]=((t[2][1]-t[0][1])*(point[0]-t[2][0])+(t[0][0]-t[2][0])*(point[1]-t[2][1]))*den;
+	
+	lambda[2]=1-lambda[0]-lambda[1];
+
+	
+	//Triangle<NNODES,2,3> t=*this;
+	/*Eigen::Matrix<Real,3,1> lambda1;
 	Real detJ_point;
 	Eigen::Matrix<Real,3,2> M_J_point;
 	Eigen::Matrix<Real,2,2> G_J_point;
@@ -176,10 +187,15 @@ Eigen::Matrix<Real,3,1> Triangle<NNODES,2,3>::getBaryCoordinates(const Point& po
 		G_J_point=M_J_point.transpose()*M_J_point;
 
 		detJ_point = G_J_point(0,0) * G_J_point(1,1) - G_J_point(1,0) * G_J_point(0,1);
-		lambda[k]=std::sqrt(detJ_point)/t.getArea();
+		lambda1[k]=std::sqrt(detJ_point)/t.getArea();
 
 	}
-	lambda[2]=1-lambda[0]-lambda[1];
+	lambda1[2]=1-lambda1[0]-lambda1[1];
+	
+	std::cout<<"Lambda 0: "<<lambda1[0]-lambda[0]<<std::endl;
+	std::cout<<"Lambda 1: "<<lambda1[1]-lambda[1]<<std::endl;
+	std::cout<<"Lambda 2: "<<lambda1[2]-lambda[2]<<std::endl;
+	*/
 
 	return lambda;
 
@@ -188,13 +204,48 @@ Eigen::Matrix<Real,3,1> Triangle<NNODES,2,3>::getBaryCoordinates(const Point& po
 
 // We solve 3 scalar equation in 2 unknowns(u,v)
 // u*(P1-P0)+v*(P2-P0)=P-P0
-// if the system ins solveable, P is in the plane (P1,P2,P0), if in addition
+// if the system is solveable, P is in the plane (P1,P2,P0), if in addition
 // u,v>=0 and u+v<=1 then P is inside the triangle
 
 template <UInt NNODES>
 bool Triangle<NNODES,2,3>::isPointInside(const Point& point) const
-{
-	//Real eps = 2.2204e-016;
+{	
+	std::cout<<"Sono qui 4"<<std::endl;
+	Real eps = 2.2204e-016;
+	Real tolerance = 100 * eps;
+	Triangle<NNODES,2,3> t=*this;
+	Eigen::Matrix<Real,3,1> normal;
+	Eigen::Matrix<Real,3,1> AB;
+	Eigen::Matrix<Real,3,1> AC;
+	Eigen::Matrix<Real,3,1> BPoint;
+	
+	AB(0)=t[1][0]-t[0][0];
+	AB(1)=t[1][1]-t[0][1];
+	AB(2)=t[1][2]-t[0][2];
+	
+	AC(0)=t[2][0]-t[0][0];
+	AC(1)=t[2][1]-t[0][1];
+	AC(2)=t[2][2]-t[0][2];
+	
+	BPoint(0)=t[1][0]-point[0];
+	BPoint(1)=t[1][1]-point[1];
+	BPoint(2)=t[1][2]-point[2];
+	
+	
+	
+	normal=AB.cross(AC);
+	
+	Real lengthSq=normal.norm();
+	Real d=normal.dot(BPoint);
+	
+	if(d*d>tolerance*lengthSq)
+		return false;
+	Eigen::Matrix<Real,3,1> bary;
+	bary=t.getBaryCoordinates(point);
+	return bary(0)>=-tolerance && bary(1)>=-tolerance && bary(2)>=-tolerance;
+		
+	
+	/*//Real eps = 2.2204e-016;
 		 //tolerance = 10 * eps;
 // First: check consistency trough Rouchè-Capelli theorem
 
@@ -225,6 +276,7 @@ bool Triangle<NNODES,2,3>::isPointInside(const Point& point) const
 		return((sol(0)+sol(1)<=1) && (sol(0)>=0) && (sol(1)>=0));
 	}else{
 		return 0;}
+		*/
 }
 
 
