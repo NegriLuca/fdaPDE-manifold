@@ -186,7 +186,8 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentage
 	Eigen::BDCSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
 	MatrixXr U_ALL(fpcaData_.getDatamatrix().rows(),fpcaData_.getDatamatrix().rows());
 	for(UInt i=0;i<svd.singularValues().rows();i++)
-		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt(svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i));
+		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt((svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i)>0.0)?svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i):2.2204e-016*100);
+		
 	Real TotVar=(U_ALL.transpose()*U_ALL).trace()/fpcaData_.getDatamatrix().rows();
 	
 	cumsum_percentage_.resize(fpcaData_.getNPC());
@@ -228,9 +229,9 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 			
 			if(fpcaData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, solution_[lambda_index],fpcaData_.getObservationsIndices());
-			else
-				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
-			
+			else 
+			FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
+				
 			FPCAinput.setScores(datamatrixResiduals_);
 		}
 		
@@ -279,13 +280,18 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 		FPCAObject FPCAinput(this->datamatrixResiduals_);
 
 		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
-
+		
+	
 	this->scores_mat_[np]=FPCAinput.getScores();
 	this->loadings_mat_[np]=FPCAinput.getLoadings();
 	this->lambda_PC_[np]=this->fpcaData_.getLambda()[i];
 	
 	//Devo settare la datamatrix togliendo i risultati ottenuti
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[i].topRows(this->mesh_.num_nodes());
 	
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
@@ -298,6 +304,7 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
 }
+	
 
 ///CLASS MIXEDFEFPCAGCV
 
@@ -573,11 +580,14 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 		loadings_lambda_[i]=FPCAinput.getLoadings();
 		scores_lambda_[i]=FPCAinput.getScores();
 		
-			if(np==0) computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
-			computeGCV(FPCAinput,i);	
+		if(np==0) computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
+		
+		computeGCV(FPCAinput,i);			
 	}
 	
 	UInt index_best_GCV=std::distance(GCV_.begin(),std::min_element(GCV_.begin(),GCV_.end()));
+	
+	
 	
 	this->scores_mat_[np]=this->scores_lambda_[index_best_GCV];
 	this->loadings_mat_[np]=this->loadings_lambda_[index_best_GCV];
@@ -586,6 +596,10 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 	//Devo settare la datamatrix togliendo i risultati ottenuti
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
 	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[index_best_GCV].topRows(this->mesh_.num_nodes());
+
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
 	
@@ -661,8 +675,8 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index],this->fpcaData_.getObservationsIndices());
 				else
 					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_);
-	
-			
+
+				
 				FPCAinputKF.setScores(X_clean_train);
 
 			}
@@ -703,6 +717,10 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::apply()
 	
 	//Devo settare la datamatrix togliendo i risultati ottenuti
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[index_best_KF].topRows(this->mesh_.num_nodes());
 	
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);

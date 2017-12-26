@@ -12,7 +12,7 @@
 #include "FPCAData.h"
 #include "FPCAObject.h"
 #include "solverdefinitions.h"
-//#include <chrono>    
+//#include <chrono>     
 
 #include "mixedFEFPCA.h"
 #include "mixedFERegression.h"
@@ -24,12 +24,12 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	MeshHandler<ORDER, mydim, ndim> mesh(Rmesh);
 	MixedFERegression<InputHandler, Integrator,ORDER, mydim, ndim> regression(mesh,regressionData);
 
-	regression.apply();
+	regression.apply(); 
 
 	const std::vector<VectorXr>& solution = regression.getSolution();
 	const std::vector<Real>& dof = regression.getDOF();
 
-	//Copy result in R memory   
+	//Copy result in R memory             
 	SEXP result = NILSXP;
 	result = PROTECT(Rf_allocVector(VECSXP, 2));
 	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));

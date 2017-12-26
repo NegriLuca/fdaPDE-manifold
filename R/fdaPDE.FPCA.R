@@ -70,6 +70,9 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
  }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
  	ndim = 3
  	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.3D"){
+ 	ndim = 3
+ 	mydim = 3
  }else{
  	stop('Unknown mesh class')
  }
@@ -99,6 +102,13 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
 	  bigsol = NULL  
 	  print('C++ Code Execution')
 	  bigsol = CPP_smooth.manifold.FEM.FPCA(locations, datamatrix, FEMbasis$mesh,
+	  lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations)
+	  numnodes = FEMbasis$mesh$nnodes
+  } else if(class(FEMbasis$mesh) == 'MESH.2.5D'){
+
+	  bigsol = NULL  
+	  print('C++ Code Execution')
+	  bigsol = CPP_smooth.volume.FEM.FPCA(locations, datamatrix, FEMbasis$mesh,
 	  lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations)
 	  numnodes = FEMbasis$mesh$nnodes
   }

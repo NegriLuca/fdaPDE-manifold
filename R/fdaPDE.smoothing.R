@@ -68,6 +68,9 @@ smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, cov
  }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
  	ndim = 3
  	mydim = 2
+ }else if(class(FEMbasis$mesh) == "MESH.3D"){
+ 	ndim = 3
+ 	mydim = 3
  }else{
  	stop('Unknown mesh class')
  }
@@ -114,6 +117,13 @@ if(class(FEMbasis$mesh) == 'MESH2D'){
 	  bigsol = NULL  
 	  print('C++ Code Execution')
 	  bigsol = CPP_smooth.manifold.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV)
+	  
+	  numnodes = FEMbasis$mesh$nnodes
+  }else if(class(FEMbasis$mesh) == 'MESH.3D'){
+
+	  bigsol = NULL  
+	  print('C++ Code Execution')
+	  bigsol = CPP_smooth.volume.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV)
 	  
 	  numnodes = FEMbasis$mesh$nnodes
   }
@@ -203,7 +213,7 @@ smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda,
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
  	mydim = 2
- }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D" || class(FEMbasis$mesh) == "MESH.3D"){
  	stop('Function not yet implemented for this mesh class')
  }else{
  	stop('Unknown mesh class')
@@ -360,7 +370,7 @@ smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lamb
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
  	mydim = 2
- }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+ }else if(class(FEMbasis$mesh) == "MESH.2.5D" || class(FEMbasis$mesh) == "MESH.3D"){
  	stop('Function not yet implemented for this mesh class')
  }else{
  	stop('Unknown mesh class')

@@ -337,4 +337,86 @@ void MeshHandler<ORDER,2,3>::printTriangles(std::ostream & out)
 }
 
 
+
+//////////////////////////////////////////////////////////
+// Implementation of class MeshHandler for volume mesh //
+//////////////////////////////////////////////////////////
+
+
+#ifdef R_VERSION_
+template <UInt ORDER>
+MeshHandler<ORDER,3,3>::MeshHandler(SEXP mesh)
+{
+	mesh_ = mesh;
+	num_nodes_ = INTEGER(VECTOR_ELT(mesh_,0))[0];
+	num_triangles_ = INTEGER(VECTOR_ELT(mesh_,1))[0];
+	points_.assign(REAL(VECTOR_ELT(mesh_, 2)) , REAL(VECTOR_ELT(mesh_, 2)) + 3*num_nodes_);
+	triangles_.assign(INTEGER(VECTOR_ELT(mesh_, 3)), INTEGER(VECTOR_ELT(mesh_, 3))+ 4*ORDER*num_triangles_);
+	std::for_each(triangles_.begin(), triangles_.end(), [](int& i){i-=1;});
+}
+#endif
+
+
+template <UInt ORDER>
+Point MeshHandler<ORDER,3,3>::getPoint(Id id)
+{
+	Point point(id, Identifier::NVAL, points_[id], points_[id+1],points_[id+2],points_[id+3]);
+	return point;
+}
+
+template <UInt ORDER>
+Triangle<ORDER * 4,3,3> MeshHandler<ORDER,3,3>::getTriangle(Id id) const
+{
+	std::vector<Point> triangle_points;
+	triangle_points.resize(ORDER * 4);
+	Id id_current_point;
+	for (int i=0; i<ORDER * 4; ++i)
+	{
+		id_current_point = triangles_[4*ORDER * id + i];
+		triangle_points[i]= Point(id_current_point, Identifier::NVAL, points_[4*id_current_point],points_[4*id_current_point+1],points_[4*id_current_point+2],points_[4*id_current_point+3]);
+	}
+	return Triangle<ORDER * 4,3,3>(id, triangle_points);
+}
+
+template <UInt ORDER>
+Triangle<ORDER * 4,3,3> MeshHandler<ORDER,3,3>::findLocationNaive(Point point) const
+{
+	Triangle<ORDER * 4,3,3> current_triangle;
+	//std::cout<<"Start searching point naively \n";
+	for(Id id=0; id < num_triangles_; ++id)
+	{
+		current_triangle = getTriangle(id);
+		if(current_triangle.isPointInside(point))
+			return current_triangle;
+	}
+	//std::cout<<"Point not found \n";
+	return Triangle<ORDER * 4,3,3>(); //default triangle with NVAL ID
+}
+
+template <UInt ORDER>
+void MeshHandler<ORDER,3,3>::printPoints(std::ostream & out)
+{
+std::cout<<"printing points"<<"\n";
+	for(UInt i = 0; i < num_nodes_; ++i)
+	{
+		out<<"-"<< i <<"-"<<"("<<points_[3*i]<<","<<points_[3*i+1]<<","<<points_[3*i+2]<<")"<<std::endl<<"------"<<std::endl;
+	}
+}
+
+template <UInt ORDER>
+void MeshHandler<ORDER,3,3>::printTriangles(std::ostream & out)
+{
+
+	out << "# Triangles: "<< num_triangles_ <<std::endl;
+	for (UInt i = 0; i < num_triangles_; ++i )
+	{
+		out<<"-"<< i <<"- ";
+		for( UInt k = 0; k < ORDER * 4; ++k)
+			out<<triangles_[i*4*ORDER + k]<<"   ";
+		out<<std::endl;
+	}
+
+}
+
+
 #endif

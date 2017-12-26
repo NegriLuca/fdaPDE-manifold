@@ -42,7 +42,7 @@ checkSmoothingParametersSizeFPCA<-function(locations = NULL, datamatrix, FEMbasi
     if(class(FEMbasis$mesh) == "MESH2D"){
     	if(ncol(datamatrix) > nrow(FEMbasis$mesh$nodes))
      	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
-    }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+    }else if(class(FEMbasis$mesh) == "MESH.2.5D" || class(FEMbasis$mesh) == "MESH.3D"){
     	if(ncol(datamatrix) > FEMbasis$mesh$nnodes)
      	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
     }

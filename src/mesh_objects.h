@@ -266,14 +266,6 @@ public:
     */
 	bool isPointInside(const Point& point) const;
 
-	//! A memeber that verifies which edge separates the Triangle from a Point.
-    /*!
-      \param point a Point object.
-      \return The number of the Edge that separates the point
-      from the triangle and -1 if the point is inside the triangle.
-    */
-	int getPointDirection(const Point& point) const;
-
 	//! A member that prints the main properties of the triangle
     /*!
       \param out a std::outstream.
@@ -294,6 +286,70 @@ private:
 //fine implementazione triangolo 3d
 
 
+//Implementation of a tetrahedron. We call it a "Triangle" with 4 vertices, mydim=3 and ndim=3
+
+template <UInt NNODES>
+class Triangle<NNODES,3,3> : public Identifier {
+public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    static const UInt numVertices=4;
+    static const UInt numSides=3;
+    static const UInt myDim=3;
+
+    //! This constructor creates an "empty" Tetrahedron, with an Id Not Valid
+	Triangle():Identifier(NVAL){points_.resize(NNODES);}
+
+	//! This constructor creates a Tetrahedron, given its Id and an std array with the three object Point the will define the Tetrahedron
+    Triangle(Id id, const std::vector<Point> points) : Identifier(id),points_(points)
+	{ this->computeProperties(); }
+
+	//! Overloading of the operator [],  taking the Node number and returning a node as Point object.
+    /*!
+     * For node numbering convention see:
+      \param i an integer argument.
+      \return the Point object
+    */
+	Point operator[](UInt i) const {return points_[i];}
+
+	//! A member that computes the barycentric coordinates.
+    /*!
+      \param point a Point object
+      \return The three baricentric coordinates of the point
+    */
+
+	Real getDetJ() const {return detJ_;}
+	const Eigen::Matrix<Real,3,3>& getM_J() const {return M_J_;}
+	const Eigen::Matrix<Real,3,3>& getMetric() const {return metric_;} //inv(MJ^t*MJ)
+	//Real getArea() const {return (std::sqrt(detJ_)); //sqrt(det(MJ^t*MJ))
+				//};
+
+	Eigen::Matrix<Real,4,1> getBaryCoordinates(const Point& point) const; //! DA VEDERE
+
+	//! A member that tests if a Point is located inside a Triangle.
+    /*!
+      \param point a Point object.
+      \return True if the point is inside the triangle
+    */
+	bool isPointInside(const Point& point) const;
+
+	//! A member that prints the main properties of the triangle
+    /*!
+      \param out a std::outstream.
+    */
+	void print(std::ostream & out) const;
+
+private:
+
+	std::vector<Point> points_;
+	Eigen::Matrix<Real,3,3> M_J_;
+	Eigen::Matrix<Real,3,3> G_J_; //M_J^t*M_J
+	Eigen::Matrix<Real,3,3> metric_; //inv(GJ)
+	Real detJ_;
+	void computeProperties();
+};
+
+
+//fine implementazione tetraedro 3d 
 
 
 
@@ -301,8 +357,8 @@ private:
 
 
 
-template <UInt ORDER,UInt mydim, UInt ndim>
-inline Real evaluate_point(const Triangle<3*ORDER,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER,1>& coefficients)
+template <UInt ORDER, UInt mydim, UInt ndim>
+inline Real evaluate_point(const Triangle<3*ORDER+mydim%2,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER+mydim%2,1>& coefficients)
 {
 	//std::cerr<< "TRYING TO EVALUATE ORDER NOT IMPLEMENTED" << std::endl;
 	return 0;
@@ -356,6 +412,16 @@ inline Real evaluate_point<2,2,3>(const Triangle<6,2,3>& t, const Point& point, 
             coefficients[4]*(4*bary_coeff[2]* bary_coeff[0])    +
             coefficients[5]*(4*bary_coeff[0]* bary_coeff[1]) );
 }
+
+//! implementation for tetrahedra
+template <>
+inline Real evaluate_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,4,1>& coefficients)
+{
+	Eigen::Matrix<Real,4,1> bary_coeff=t.getBaryCoordinates(point);
+	return(coefficients.dot(bary_coeff));
+}
+
+
 
 template <UInt ORDER,UInt mydim, UInt ndim>
 inline Eigen::Matrix<Real,ndim,1> evaluate_der_point(const Triangle<3*ORDER,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER,1>& coefficients)

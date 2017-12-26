@@ -41,7 +41,12 @@ eval.FEM <- function(FEM, locations, CPP_CODE = TRUE)
       ndim = 3
       mydim = 2
   	    res = CPP_eval.manifold.FEM(FEM, locations, TRUE, ndim, mydim)
+  }else if(class(FEM$FEMbasis$mesh)=='MESH.3D'){
+      ndim = 3
+      mydim = 3
+  	    res = CPP_eval.volume.FEM(FEM, locations, TRUE, ndim, mydim)
   	  }
+  	  
   
   return(as.matrix(res))
 }
