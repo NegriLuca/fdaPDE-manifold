@@ -21,8 +21,6 @@ protected:
 	const FPCAData& fpcaData_;
 	std::vector<coeff> tripletsData_;
 	
-	SpMat R1_;	// North-east block of system matrix A_
-	SpMat R0_;	// South-east block of system matrix A_
 	SpMat psi_;
 
 	bool isRcomputed_;
@@ -40,7 +38,6 @@ protected:
 	std::vector<VectorXr> solution_;
 	
 	Sparse_LU sparseSolver_;
-	std::string _finalRNGstate;
 	std::vector<Real> var_;
 	
 	std::vector<VectorXr> scores_mat_;
@@ -86,7 +83,6 @@ public:
 	inline std::vector<Real> const & getVarianceExplained() const {return variance_explained_;}
 	//! A method returning a reference to the vector of the percentage explained cumulatively by the first N PC
 	inline std::vector<Real> const & getCumulativePercentage() const {return cumsum_percentage_;}
-	inline std::string const & getFinalRNGstate() const{return _finalRNGstate;}
 	inline std::vector<Real> const & getVar() const{return var_;};
 };
 

@@ -1,4 +1,4 @@
-checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda,nPC, validation, NFolds,GCVmethod = 2,nrealizations = 100,RNGstate = "",solver = "EigenLU",nprocessors = 1)
+checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda,nPC, validation, NFolds,GCVmethod = 2,nrealizations = 100)
 {
   #################### Parameter Check #########################
   if(!is.null(locations))
@@ -29,15 +29,6 @@ checkSmoothingParametersFPCA<-function(locations = NULL, datamatrix, FEMbasis, l
 
   if( !is.numeric(nrealizations) || nrealizations < 1)
     stop("nrealizations must be a positive integer")
-
-  if ( !is.character(RNGstate))
-    stop("Invalid RNGstate: it needs to be a character previously returned by a smoothing function")
-  
-  if (solver != "MumpsSparse" && solver != "EigenSparseLU")
-    stop("Solver must be either \"MumpsSparse\" or \"EigenSparseLU\"")
-
-  if (!is.numeric(nprocessors) || nprocessors < 1)
-    stop("nprocessors must be a positive integer")
 
 }
 

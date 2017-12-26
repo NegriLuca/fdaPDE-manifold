@@ -213,13 +213,12 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 
 		for(auto j=0;j<niter;j++)
 		{	
-			FPCAinput.setObservationData(datamatrixResiduals_);
 
+			FPCAinput.setObservationData(datamatrixResiduals_);
 			VectorXr rightHandData;
 			computeRightHandData(rightHandData,FPCAinput);
 			b_ = VectorXr::Zero(2*nnodes);
 			b_.topRows(nnodes)=rightHandData;
-			
 			
 			solution_[lambda_index]=sparseSolver_.solve(b_);
 			if(sparseSolver_.info()!=Eigen::Success)
@@ -230,16 +229,16 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 			if(fpcaData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, solution_[lambda_index],fpcaData_.getObservationsIndices());
 			else
-				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_,fpcaData_.getObservationsIndices());
-	
+				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
 			
 			FPCAinput.setScores(datamatrixResiduals_);
 		}
-		UInt nlocations;
-		if(fpcaData_.isLocationsByNodes()) nlocations=nnodes;
-		else nlocations=fpcaData_.getNumberofObservations();
-		FPCAinput.finalizeLoadings(fpcaData_.getObservationsIndices(),nlocations);
 		
+		if(fpcaData_.isLocationsByNodes())
+		{
+			UInt nlocations=nnodes;
+			FPCAinput.finalizeLoadings(fpcaData_.getObservationsIndices(),nlocations);
+		}
 
 }
 
@@ -249,13 +248,9 @@ template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 {	
 	FiniteElement<Integrator, ORDER, mydim, ndim> fe;
-
-	if(!fpcaData_.isLocationsByNodes())
-	{
-		computeBasisEvaluations();
-		computeDataMatrix(DMat_);
-	}else	
-		computeDataMatrixByIndices(DMat_);
+	
+	computeBasisEvaluations();
+	computeDataMatrix(DMat_);
 
 	typedef EOExpr<Mass> ETMass; Mass EMass; ETMass mass(EMass);
 	typedef EOExpr<Stiff> ETStiff; Stiff EStiff; ETStiff stiff(EStiff);
@@ -276,7 +271,6 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 {  
-
    MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
 
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
@@ -296,12 +290,11 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
 	
-	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
+	this->loadings_mat_[np]=this->loadings_mat_[np].transpose()/load_norm;
 	
 	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;	
 	
 	}
-	
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
 }
@@ -424,9 +417,9 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomExact
 		if (this->isRcomputed_ == false ){
 			this->isRcomputed_ = true;
 			Sparse_LU solver;
-			solver.compute(this->R0_);
-			auto X2 = solver.solve(this->R1_);
-			this->R_ = this->R1_.transpose() * X2;
+			solver.compute(this->MMat_);
+			auto X2 = solver.solve(this->AMat_);
+			this->R_ = this->AMat_.transpose() * X2;
 		}
 
 		MatrixXr X3 = X1 + lambda * this->R_;
@@ -453,13 +446,7 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStoch
 	UInt nlocations = this->fpcaData_.getNumberofObservations();
 	
 	std::default_random_engine generator;
-	// Set the initial state of the random number generator
-	if (this->fpcaData_.getRNGstate() != "") {
-	  //std::cout << "SETTING RNG STATE: " << std::endl;
-		std::stringstream initialRNGstate;
-		initialRNGstate << this->fpcaData_.getRNGstate();
-		initialRNGstate >> generator;
-	}
+
 	// Creation of the random matrix
 	std::bernoulli_distribution distribution(0.5);
 	UInt nrealizations = this->fpcaData_.getNrealizations();
@@ -474,10 +461,7 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeDegreesOfFreedomStoch
 			}
 		}
 	}
-	// Save state of random number generator
-	std::stringstream finalRNGstate;
-	finalRNGstate << generator;
-	finalRNGstate >> this->_finalRNGstate;
+
 	// Define the first right hand side : | I  0 |^T * psi^T * Q * u
 	MatrixXr b = MatrixXr::Zero(2*nnodes,u.cols());
 	b.topRows(nnodes) = this->Psi_.transpose()* u;
@@ -676,16 +660,16 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 				if(this->fpcaData_.isLocationsByNodes())
 					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index],this->fpcaData_.getObservationsIndices());
 				else
-					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_,this->fpcaData_.getObservationsIndices());
+					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_);
 	
 			
 				FPCAinputKF.setScores(X_clean_train);
 
 			}
-			UInt nlocations;
-			if(this->fpcaData_.isLocationsByNodes()) nlocations=nnodes;
-			else nlocations=this->fpcaData_.getNumberofObservations();
+			if(this->fpcaData_.isLocationsByNodes()){
+			UInt nlocations=nnodes;
 			FPCAinputKF.finalizeLoadings(this->fpcaData_.getObservationsIndices(),nlocations);
+			}
 			
 			Real U_hat_const=FPCAinputKF.getLoadings().squaredNorm() + lambda* (this->solution_[lambda_index].bottomRows(nnodes)).transpose()*this->MMat_*this->solution_[lambda_index].bottomRows(nnodes);
 			VectorXr U_hat_valid=(X_valid*FPCAinputKF.getLoadings())/U_hat_const;
