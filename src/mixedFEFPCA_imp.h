@@ -19,7 +19,10 @@
 #define JOB_END -2
 #define USE_COMM_WORLD -987654
 
-
+//IMPORTANT!!!
+//To fix the creation of objects with 3*ORDER+mydim%2
+//Need a better way to create them
+//
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
@@ -43,8 +46,8 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 		Psi_.makeCompressed();
 	}
 	else{
-	Triangle<ORDER*3, mydim, ndim> tri_activated;
-	Eigen::Matrix<Real,ORDER * 3,1> coefficients;
+	Triangle<3*ORDER+mydim%2, mydim, ndim> tri_activated;
+	Eigen::Matrix<Real,3*ORDER+mydim%2,1> coefficients;
 
 	Real evaluator;
 	for(UInt i=0; i<nlocations;i++)
@@ -59,9 +62,9 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 			#endif
 		}else
 		{
-			for(UInt node = 0; node < ORDER*3 ; ++node)
+			for(UInt node = 0; node < 3*ORDER+mydim%2 ; ++node)
 			{
-				coefficients = Eigen::Matrix<Real,ORDER * 3,1>::Zero();
+				coefficients = Eigen::Matrix<Real,3*ORDER+mydim%2,1>::Zero();
 				coefficients(node) = 1; //Activates only current base
 				evaluator = evaluate_point<ORDER, mydim, ndim>(tri_activated, fpcaData_.getLocations()[i], coefficients);
 				Psi_.insert(i, tri_activated[node].getId()) = evaluator;
