@@ -29,7 +29,7 @@ SEXP regression_skeleton(InputHandler &regressionData, SEXP Rmesh)
 	const std::vector<VectorXr>& solution = regression.getSolution();
 	const std::vector<Real>& dof = regression.getDOF();
 
-	//Copy result in R memory               
+	//Copy result in R memory                
 	SEXP result = NILSXP;
 	result = PROTECT(Rf_allocVector(VECSXP, 2));
 	SET_VECTOR_ELT(result, 0, Rf_allocMatrix(REALSXP, solution[0].size(), solution.size()));
@@ -361,15 +361,18 @@ SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEX
 
 	std::string validation=CHAR(STRING_ELT(Rvalidation,0));
 	
-	if(fPCAdata.getOrder() == 1 && ndim==2)
+	if(fPCAdata.getOrder() == 1 && mydim==2 && ndim==2)
 		return(FPCA_skeleton<IntegratorTriangleP2, 1, 2, 2>(fPCAdata, Rmesh, validation));
-	else if(fPCAdata.getOrder() == 2 && ndim==2)
+	else if(fPCAdata.getOrder() == 2 && mydim==2 && ndim==2)
 		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 2>(fPCAdata, Rmesh,validation));
-	else if(fPCAdata.getOrder() == 1 && ndim==3)
+	else if(fPCAdata.getOrder() == 1 && mydim==2 && ndim==3)
 		return(FPCA_skeleton<IntegratorTriangleP2, 1, 2, 3>(fPCAdata, Rmesh,validation));
-	else if(fPCAdata.getOrder() == 2 && ndim==3)
+	else if(fPCAdata.getOrder() == 2 && mydim==2 && ndim==3)
 		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 3>(fPCAdata, Rmesh,validation));
-			
+	else if(fPCAdata.getOrder() == 1 && mydim==3 && ndim==3)
+		return(FPCA_skeleton<IntegratorTetrahedronP2, 1, 3, 3>(fPCAdata, Rmesh,validation));
+	else if(fPCAdata.getOrder() == 1 && mydim==3 && ndim==3)
+		return(FPCA_skeleton<IntegratorTetrahedronP2, 1, 3, 3>(fPCAdata, Rmesh,validation));	
 	return(NILSXP);
 	 }      
 

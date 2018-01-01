@@ -31,6 +31,8 @@ if(class(x$FEMbasis$mesh)=="MESH2D"){
   }
 }else if(class(x$FEMbasis$mesh)=="MESH.2.5D"){
 	R_plot_manifold(x,...)
+}else if(class(x$FEMbasis$mesh)=="MESH.3D"){
+	R_plot_volume(x,...)
 }
 }
 

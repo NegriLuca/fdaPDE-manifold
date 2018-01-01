@@ -1062,3 +1062,52 @@ R_plot_manifold = function(FEM, ...){
     }
 }
 
+
+
+R_plot_volume = function(FEM,...){
+
+  if(!require(rgl)){
+    stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
+  }
+  if(!require(geometry)){
+    stop("The plot MESH.3D_function(...) requires the R package geometry, please install it and try again!")
+  }
+  
+  tetrahedrons = matrix(FEM$FEMbasis$mesh$tetrahedrons,nrow=FEM$FEMbasis$mesh$ntetrahedrons,ncol=4,byrow=TRUE)
+
+  nodes=matrix(FEM$FEMbasis$mesh$nodes,nrow=FEM$FEMbasis$mesh$nnodes,ncol=3,byrow=TRUE)
+  
+  ntetrahedrons = FEM$FEMbasis$mesh$ntetrahedrons
+  
+  coeff = FEM$coeff
+  
+  nsurf = dim(coeff)[[2]]
+  
+  p=heat.colors(128)
+  ncolors=128
+  for (isurf in 1:nsurf)
+  {	col=rep(0,ntetrahedrons)
+  	for(j in 1:ntetrahedrons)
+  		col[j]=mean(coeff[tetrahedrons[j,1],isurf]+coeff[tetrahedrons[j,2],isurf]+
+  			    coeff[tetrahedrons[j,3],isurf]+coeff[tetrahedrons[j,4],isurf])
+
+  diffrange = max(col)-min(col)
+  
+  col= (col - min(col))/diffrange*(ncolors-1)+1
+  col=p[col]
+
+  open3d()
+  axes3d()
+  rgl.pop("lights") 
+  light3d(specular="black") 
+  
+  tetramesh(tetrahedrons,nodes,col=col,alpha=0.7)
+    
+  aspect3d("iso")
+  rgl.viewpoint(0,-45)
+   if (nsurf > 1)
+    {readline("Press a button for the next plot...")}
+    }
+
+}
+

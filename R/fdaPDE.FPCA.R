@@ -104,7 +104,7 @@ smooth.FEM.FPCA<-function(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1,
 	  bigsol = CPP_smooth.manifold.FEM.FPCA(locations, datamatrix, FEMbasis$mesh,
 	  lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod, nrealizations)
 	  numnodes = FEMbasis$mesh$nnodes
-  } else if(class(FEMbasis$mesh) == 'MESH.2.5D'){
+  } else if(class(FEMbasis$mesh) == 'MESH.3D'){
 
 	  bigsol = NULL  
 	  print('C++ Code Execution')

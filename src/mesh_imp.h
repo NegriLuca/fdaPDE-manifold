@@ -373,7 +373,7 @@ Triangle<ORDER * 4,3,3> MeshHandler<ORDER,3,3>::getTriangle(Id id) const
 	for (int i=0; i<ORDER * 4; ++i)
 	{
 		id_current_point = triangles_[4*ORDER * id + i];
-		triangle_points[i]= Point(id_current_point, Identifier::NVAL, points_[4*id_current_point],points_[4*id_current_point+1],points_[4*id_current_point+2],points_[4*id_current_point+3]);
+		triangle_points[i]= Point(id_current_point, Identifier::NVAL, points_[3*id_current_point],points_[3*id_current_point+1],points_[3*id_current_point+2]);
 	}
 	return Triangle<ORDER * 4,3,3>(id, triangle_points);
 }

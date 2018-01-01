@@ -155,7 +155,7 @@ private:
 	Triangle<ORDER*4,3,3> t_;
 	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES> phiMapMaster_;
 	//Numero basi locali x Num coordinate x numero nodi integrazione
-	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> phiDerMapMaster_;
+	Eigen::Matrix<Real,3*ORDER, Integrator::NNODES*3> phiDerMapMaster_;
 	//Eigen::Matrix<Real,3*ORDER, Integrator::NNODES*2> invTrJPhiDerMapMaster_;
 	Eigen::Matrix<Real,3,3> metric_;
 	
@@ -191,8 +191,8 @@ public:
 	Point coorQuadPt(UInt iq)
 	{
 		return Point(t_.getM_J()(0,0)*Integrator::NODES[iq][0] + t_.getM_J()(0,1)*Integrator::NODES[iq][1]+t_.getM_J()(0,2)*Integrator::NODES[iq][2] + t_[0][0],
-				t_.getM_J()(1,0)*Integrator::NODES[iq][0] + t_.getM_J()(1,1)*Integrator::NODES[iq][1] + t_[0][1],
-				t_.getM_J()(2,0)*Integrator::NODES[iq][0] + t_.getM_J()(2,1)*Integrator::NODES[iq][1] + t_[0][2]);
+				t_.getM_J()(1,0)*Integrator::NODES[iq][0] + t_.getM_J()(1,1)*Integrator::NODES[iq][1]+t_.getM_J()(1,2)*Integrator::NODES[iq][2] + t_[0][1],
+				t_.getM_J()(2,0)*Integrator::NODES[iq][0] + t_.getM_J()(2,1)*Integrator::NODES[iq][1]+t_.getM_J()(2,2)*Integrator::NODES[iq][2] + t_[0][2]);
 	}
 	
 	UInt getGlobalIndex(UInt iq) 

@@ -268,7 +268,7 @@ void FiniteElement<Integrator, ORDER,3,3>::setPhiDerMaster()
 {
 	Eigen::Matrix<Real,3*ORDER,1> coefficients;
 	Eigen::Matrix<Real,3,1> der;
-	Eigen::Matrix<Real,3,1> der_transf;
+	//Eigen::Matrix<Real,3,1> der_transf;
 
 	for (auto i=0; i < 3*ORDER; i++)
 	{
@@ -279,8 +279,9 @@ void FiniteElement<Integrator, ORDER,3,3>::setPhiDerMaster()
 			der = evaluate_der_point<ORDER,3,3>(reference_,Integrator::NODES[iq],coefficients);
 			// we need J^(-1) nabla( phi)
 			//der_transf = t_.getM_invJ()*der;
-			phiDerMapMaster_(i,iq*2) = der[0];
-			phiDerMapMaster_(i,iq*2+1) = der[1];
+			phiDerMapMaster_(i,iq*3) = der[0];
+			phiDerMapMaster_(i,iq*3+1) = der[1];
+			phiDerMapMaster_(i,iq*3+2) = der[2];
 		}
 	}
 }
@@ -294,7 +295,7 @@ Real FiniteElement<Integrator, ORDER,3,3>::phiMaster(UInt i, UInt iq) const
 template <class Integrator, UInt ORDER>
 Real FiniteElement<Integrator, ORDER,3,3>::phiDerMaster(UInt i, UInt ic, UInt iq) const
 {
-	return phiDerMapMaster_(i, iq*2 + ic);
+	return phiDerMapMaster_(i, iq*3 + ic);
 }
 
 /*template <class Integrator, UInt ORDER>
