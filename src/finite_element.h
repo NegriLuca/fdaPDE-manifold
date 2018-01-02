@@ -155,13 +155,14 @@ private:
 	Triangle<ORDER*4,3,3> t_;
 	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES> phiMapMaster_;
 	//Numero basi locali x Num coordinate x numero nodi integrazione
-	Eigen::Matrix<Real,3*ORDER, Integrator::NNODES*3> phiDerMapMaster_;
-	//Eigen::Matrix<Real,3*ORDER, Integrator::NNODES*2> invTrJPhiDerMapMaster_;
+	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> phiDerMapMaster_;
+	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> invTrJPhiDerMapMaster_;
 	Eigen::Matrix<Real,3,3> metric_;
 	
 	void setPhiMaster();
 	void setPhiDerMaster();
-	//void setInvTrJPhiDerMaster();
+	void setInvTrJPhiDerMaster();
+	
 
 public:
 
@@ -207,7 +208,7 @@ public:
 	Real phiDerMaster(UInt i, UInt ic, UInt iq) const;
 
 	//Returns J^{-1} \nabla \hat{phi}
-	//Real invTrJPhiDerMaster(UInt i, UInt ic, UInt iq) const;
+	Real invTrJPhiDerMaster(UInt i, UInt ic, UInt iq) const;
 	
 	Eigen::Matrix<Real,3,3> metric()const {return metric_;};
 

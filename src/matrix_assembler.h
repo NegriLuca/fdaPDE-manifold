@@ -58,14 +58,26 @@ class Stiff{
 	   	return s;
 	}
 	
+	
 	template<class Integrator, UInt ORDER>
-	inline Real operator() (FiniteElement<Integrator, ORDER,3,3>& currentfe_, UInt i, UInt j,UInt k, UInt iq, UInt ic = 0)
+	inline Real operator() (FiniteElement<Integrator, ORDER,3,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0)
+	{
+	   	Real s = 0;
+	   	for (UInt icoor=0; icoor < 3; icoor ++)
+	   	{
+	   		s += currentfe_.invTrJPhiDerMaster(i, icoor, iq)*currentfe_.invTrJPhiDerMaster(j, icoor, iq);
+
+	   	}
+	   	return s;
+	}
+	
+	/*template<class Integrator, UInt ORDER>
+	inline Real operator() (FiniteElement<Integrator, ORDER,3,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0)
 	{
 		Real s = 0;
 		
 		Eigen::Matrix<Real,3,1> grad_phi_i;
 		Eigen::Matrix<Real,3,1> grad_phi_j;
-		Eigen::Matrix<Real,3,1> grad_phi_k;
 		
 		
 		grad_phi_i(0) = currentfe_.phiDerMaster(i, 0, iq);
@@ -74,14 +86,11 @@ class Stiff{
 		grad_phi_j(0) = currentfe_.phiDerMaster(j, 0, iq);
 		grad_phi_j(1) = currentfe_.phiDerMaster(j, 1, iq);
 		grad_phi_j(2) = currentfe_.phiDerMaster(j, 2, iq);
-		grad_phi_k(0) = currentfe_.phiDerMaster(k, 0, iq);
-		grad_phi_k(1) = currentfe_.phiDerMaster(k, 1, iq);
-		grad_phi_k(2) = currentfe_.phiDerMaster(k, 2, iq);
 		
 		s = grad_phi_i.dot(currentfe_.metric()*grad_phi_j);
 		
 	   	return s;
-	}
+	}*/
 	
 	
 };

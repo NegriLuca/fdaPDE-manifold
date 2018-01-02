@@ -270,8 +270,26 @@ void Triangle<NNODES,3,3>::computeProperties()
 	M_J_(0,2) = d3[0];			// (x4-x1)
 	M_J_(1,2) = d3[1];			// (y4-y1)
 	M_J_(2,2) = d3[2];			// (z4-z1)
-
-
+	
+	Real detMJ_ = M_J_(0,0) * (M_J_(1,1) * M_J_(2,2) - M_J_(1,2) * M_J_(2,1)) -
+		M_J_(0,1) * (M_J_(1,0) * M_J_(2,2) - M_J_(1,2) * M_J_(2,0)) +
+		M_J_(0,2) * (M_J_(1,0) * M_J_(2,1) - M_J_(1,1) * M_J_(2,0));
+	
+	
+	Real idetMJ = 1. / detMJ_;
+	
+	
+	M_invJ_(0,0) =  idetMJ * (M_J_(1, 1) * M_J_(2, 2) - M_J_(1, 2) * M_J_(2, 1));
+	M_invJ_(0,1) =  idetMJ * (M_J_(0, 2) * M_J_(2, 1) - M_J_(0, 1) * M_J_(2, 2));
+	M_invJ_(0,2) =  idetMJ * (M_J_(0, 0) * M_J_(2, 2) - M_J_(0, 2) * M_J_(2, 0));
+	M_invJ_(1,0) =  idetMJ * (M_J_(1, 2) * M_J_(2, 0) - M_J_(1, 0) * M_J_(2, 2));
+	M_invJ_(1,1) =  idetMJ * (M_J_(0, 0) * M_J_(2, 2) - M_J_(0, 2) * M_J_(2, 0));
+	M_invJ_(1,2) =  idetMJ * (M_J_(1, 0) * M_J_(0, 2) - M_J_(0, 0) * M_J_(1, 2));
+	M_invJ_(2,0) =  idetMJ * (M_J_(1, 0) * M_J_(2, 1) - M_J_(2, 0) * M_J_(1, 1));
+	M_invJ_(2,1) =  idetMJ * (M_J_(2, 0) * M_J_(0, 1) - M_J_(0, 0) * M_J_(2, 1));
+	M_invJ_(2,2) =  idetMJ * (M_J_(0, 0) * M_J_(1, 1) - M_J_(1, 0) * M_J_(0, 1));
+	
+	
 	G_J_=M_J_.transpose()*M_J_;
 
 	detJ_ = G_J_(0,0) * (G_J_(1,1) * G_J_(2,2) - G_J_(1,2) * G_J_(2,1)) -

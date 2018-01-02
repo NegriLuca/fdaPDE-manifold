@@ -319,6 +319,7 @@ public:
 
 	Real getDetJ() const {return detJ_;}
 	const Eigen::Matrix<Real,3,3>& getM_J() const {return M_J_;}
+	const Eigen::Matrix<Real,3,3>& getM_invJ() const {return M_invJ_;}
 	const Eigen::Matrix<Real,3,3>& getMetric() const {return metric_;} //inv(MJ^t*MJ)
 	Real getVolume() const{return Volume_;};
 	//Real getArea() const {return (std::sqrt(detJ_)); //sqrt(det(MJ^t*MJ))
@@ -344,6 +345,7 @@ private:
 	std::vector<Point> points_;
 	Eigen::Matrix<Real,3,3> M_J_;
 	Eigen::Matrix<Real,3,3> G_J_; //M_J^t*M_J
+	Eigen::Matrix<Real,3,3> M_invJ_;
 	Eigen::Matrix<Real,3,3> metric_; //inv(GJ)
 	Real detJ_;
 	Real Volume_;
@@ -426,7 +428,7 @@ inline Real evaluate_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, 
 
 
 template <UInt ORDER,UInt mydim, UInt ndim>
-inline Eigen::Matrix<Real,ndim,1> evaluate_der_point(const Triangle<3*ORDER+mydim%2,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER,1>& coefficients)
+inline Eigen::Matrix<Real,ndim,1> evaluate_der_point(const Triangle<3*ORDER+mydim%2,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER+mydim%2,1>& coefficients)
 {
 	//std::cerr<< "TRYING TO EVALUATE ORDER NOT IMPLEMENTED" << std::endl;
 	Eigen::Matrix<Real,ndim,1> null;
@@ -439,6 +441,7 @@ inline Eigen::Matrix<Real,2,1> evaluate_der_point<1,2,2>(const Triangle<3,2,2>& 
 	Eigen::Matrix<Real,2,3> B1;
 	B1 << t[1][1] - t[2][1], t[2][1] - t[0][1], t[0][1] - t[1][1],
 		t[2][0] - t[1][0], t[0][0] - t[2][0], t[1][0] - t[0][0];
+
 	B1 = B1 / (2 * t.getArea());
 
 	return(B1*coefficients);
@@ -463,9 +466,15 @@ inline Eigen::Matrix<Real,2,1> evaluate_der_point<2,2,2>(const Triangle<6,2,2>& 
 
 
 template <>
-inline Eigen::Matrix<Real,3,1> evaluate_der_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
-{
-	Eigen::Matrix<Real,3,3> B1;
+inline Eigen::Matrix<Real,3,1> evaluate_der_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,4,1>& coefficients)
+{	
+
+	Eigen::Matrix<Real,3,4> B1;
+	B1 << -1,1,0,0,
+	      -1,0,1,0,
+	      -1,0,0,1;
+	B1 = B1 / (6 * t.getVolume());
+	/*Eigen::Matrix<Real,3,3> B1;
 	B1(0,0)=-t.getM_J()(1,2)*t.getM_J()(2,1) + t.getM_J()(1,1)*t.getM_J()(2,2);
 	B1(0,1)= t.getM_J()(0,2)*t.getM_J()(2,1) - t.getM_J()(0,1)*t.getM_J()(2,2);
 	B1(0,2)=-t.getM_J()(0,2)*t.getM_J()(1,1) + t.getM_J()(0,1)*t.getM_J()(1,2);
@@ -476,9 +485,10 @@ inline Eigen::Matrix<Real,3,1> evaluate_der_point<1,3,3>(const Triangle<4,3,3>& 
 	B1(2,1)= t.getM_J()(0,1)*t.getM_J()(2,0) - t.getM_J()(0,0)*t.getM_J()(1,2);
 	B1(2,2)=-t.getM_J()(0,1)*t.getM_J()(1,0) + t.getM_J()(0,0)*t.getM_J()(1,1);
 	
-	B1 = B1 / std::sqrt(t.getDetJ());
+	B1 = B1 / (6*std::sqrt(t.getDetJ()));
+	*/
 
-	return(B1.transpose()*coefficients);
+	return(B1*coefficients);
 
 }
 

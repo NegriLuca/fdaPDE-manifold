@@ -261,6 +261,18 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 	Assembler::operKernel(stiff, mesh_, fe, AMat_);
 	Assembler::operKernel(mass, mesh_, fe, MMat_);
 	
+	
+	/*const static Eigen::IOFormat CSVFormat(Eigen::StreamPrecision,Eigen::DontAlignCols,", ","\n");
+	
+	std::string mass_name("Mass3D.csv");
+	std::string stiff_name("Stiff3D.csv");
+	
+	std::ofstream file_mass(mass_name.c_str());
+	std::ofstream file_stiff(stiff_name.c_str());
+	
+	file_mass << MatrixXr(MMat_).format(CSVFormat);
+	file_stiff << MatrixXr(AMat_).format(CSVFormat);*/
+	
 	scores_mat_.resize(fpcaData_.getNPC());
 	loadings_mat_.resize(fpcaData_.getNPC());
 	lambda_PC_.resize(fpcaData_.getNPC());

@@ -352,10 +352,10 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 }
 
 SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations){
-//Set data  
+//Set data                 
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds,RGCVmethod, Rnrealizations);
 
-//    
+//     
 	UInt mydim=INTEGER(Rmydim)[0]; 
 	UInt ndim=INTEGER(Rndim)[0]; 
 
