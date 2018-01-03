@@ -99,3 +99,50 @@ CPP_smooth.manifold.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim
   return(bigsol)
 }
 
+CPP_smooth.volume.FEM.FPCA<-function(locations, datamatrix, mesh, lambda, ndim, mydim,nPC, validation, NFolds,GCVmethod = 2, nrealizations = 100)
+{
+  # Indexes in C++ starts from 0, in R from 1, opportune transformation
+  # This is done in C++ now to optimize speed
+
+  if(is.null(locations))
+  {
+    locations<-matrix(nrow = 0, ncol = ndim)
+  }
+  
+   if(is.null(validation))
+   {
+  	validation="NoValidation"
+   }
+  
+  ## Set propr type for correct C++ reading
+  locations <- as.matrix(locations)
+  storage.mode(locations) <- "double"
+  datamatrix <- as.matrix(datamatrix)
+  storage.mode(datamatrix) <- "double"
+  storage.mode(mesh$order) <- "integer"
+  storage.mode(mesh$nnodes) <- "integer"
+  storage.mode(mesh$ntetrahedrons) <- "integer"
+  storage.mode(mesh$nodes) <- "double"
+  storage.mode(mesh$tetrahedrons) <- "integer"
+  storage.mode(lambda) <- "double"
+  storage.mode(ndim) <- "integer"
+  storage.mode(mydim) <- "integer"
+  nPC<-as.integer(nPC)
+  storage.mode(nPC)<-"integer"
+  validation<-as.character(validation)
+  storage.mode(validation)<-"character"
+  NFolds<-as.integer(NFolds)
+  storage.mode(NFolds)<-"integer"
+  
+  storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
+  ## Call C++ function
+  bigsol <- .Call("Smooth_FPCA", locations, datamatrix, mesh, 
+                  mesh$order, mydim, ndim, lambda,
+                  nPC, validation, NFolds,GCVmethod, nrealizations,
+                  package = "fdaPDE")
+
+  return(bigsol)
+}
+

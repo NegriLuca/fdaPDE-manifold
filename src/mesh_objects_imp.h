@@ -249,5 +249,187 @@ void Triangle<NNODES,2,3>::print(std::ostream & out) const
 
 
 
+//IMPLEMENTAZIONE myDim=3, nDim=3
+
+template <UInt NNODES>
+void Triangle<NNODES,3,3>::computeProperties()
+{
+
+	Triangle<NNODES,3,3> &t = *this;
+	Point d1(t[1][0]-t[0][0], t[1][1]-t[0][1], t[1][2]-t[0][2]);
+	Point d2(t[2][0]-t[0][0], t[2][1]-t[0][1], t[2][2]-t[0][2]);
+	Point d3(t[3][0]-t[0][0], t[3][1]-t[0][1], t[3][2]-t[0][2]);
+
+
+	M_J_(0,0) = d1[0];			// (x2-x1)
+	M_J_(1,0) = d1[1];			// (y2-y1)
+	M_J_(2,0) = d1[2];			// (z2-z1)
+	M_J_(0,1) = d2[0];			// (x3-x1)
+	M_J_(1,1) = d2[1];			// (y3-y1)
+	M_J_(2,1) = d2[2];			// (z3-z1)
+	M_J_(0,2) = d3[0];			// (x4-x1)
+	M_J_(1,2) = d3[1];			// (y4-y1)
+	M_J_(2,2) = d3[2];			// (z4-z1)
+	
+	Real detMJ_ = M_J_(0,0) * (M_J_(1,1) * M_J_(2,2) - M_J_(1,2) * M_J_(2,1)) -
+		M_J_(0,1) * (M_J_(1,0) * M_J_(2,2) - M_J_(1,2) * M_J_(2,0)) +
+		M_J_(0,2) * (M_J_(1,0) * M_J_(2,1) - M_J_(1,1) * M_J_(2,0));
+	
+	
+	Real idetMJ = 1. / detMJ_;
+	
+	
+	M_invJ_(0,0) =  idetMJ * (M_J_(1, 1) * M_J_(2, 2) - M_J_(1, 2) * M_J_(2, 1));
+	M_invJ_(0,1) =  idetMJ * (M_J_(0, 2) * M_J_(2, 1) - M_J_(0, 1) * M_J_(2, 2));
+	M_invJ_(0,2) =  idetMJ * (M_J_(0, 0) * M_J_(2, 2) - M_J_(0, 2) * M_J_(2, 0));
+	M_invJ_(1,0) =  idetMJ * (M_J_(1, 2) * M_J_(2, 0) - M_J_(1, 0) * M_J_(2, 2));
+	M_invJ_(1,1) =  idetMJ * (M_J_(0, 0) * M_J_(2, 2) - M_J_(0, 2) * M_J_(2, 0));
+	M_invJ_(1,2) =  idetMJ * (M_J_(1, 0) * M_J_(0, 2) - M_J_(0, 0) * M_J_(1, 2));
+	M_invJ_(2,0) =  idetMJ * (M_J_(1, 0) * M_J_(2, 1) - M_J_(2, 0) * M_J_(1, 1));
+	M_invJ_(2,1) =  idetMJ * (M_J_(2, 0) * M_J_(0, 1) - M_J_(0, 0) * M_J_(2, 1));
+	M_invJ_(2,2) =  idetMJ * (M_J_(0, 0) * M_J_(1, 1) - M_J_(1, 0) * M_J_(0, 1));
+	
+	
+	G_J_=M_J_.transpose()*M_J_;
+
+	detJ_ = G_J_(0,0) * (G_J_(1,1) * G_J_(2,2) - G_J_(1,2) * G_J_(2,1)) -
+		G_J_(0,1) * (G_J_(1,0) * G_J_(2,2) - G_J_(1,2) * G_J_(2,0)) +
+		G_J_(0,2) * (G_J_(1,0) * G_J_(2,1) - G_J_(1,1) * G_J_(2,0));
+
+	Real idet = 1. / detJ_;
+
+	metric_(0,0) =  idet * (G_J_(1, 1) * G_J_(2, 2) - G_J_(1, 2) * G_J_(2, 1));
+	metric_(0,1) =  idet * (G_J_(0, 2) * G_J_(2, 1) - G_J_(0, 1) * G_J_(2, 2));
+	metric_(0,2) =  idet * (G_J_(0, 0) * G_J_(2, 2) - G_J_(0, 2) * G_J_(2, 0));
+	metric_(1,0) =  idet * (G_J_(1, 2) * G_J_(2, 0) - G_J_(1, 0) * G_J_(2, 2));
+	metric_(1,1) =  idet * (G_J_(0, 0) * G_J_(2, 2) - G_J_(0, 2) * G_J_(2, 0));
+	metric_(1,2) =  idet * (G_J_(1, 0) * G_J_(0, 2) - G_J_(0, 0) * G_J_(1, 2));
+	metric_(2,0) =  idet * (G_J_(1, 0) * G_J_(2, 1) - G_J_(2, 0) * G_J_(1, 1));
+	metric_(2,1) =  idet * (G_J_(2, 0) * G_J_(0, 1) - G_J_(0, 0) * G_J_(2, 1));
+	metric_(2,2) =  idet * (G_J_(0, 0) * G_J_(1, 1) - G_J_(1, 0) * G_J_(0, 1));
+	
+	
+	
+	Eigen::Matrix<Real,4,4> m;
+	m(0,0) = 1;			
+	m(1,0) = 1;			
+	m(2,0) = 1;			
+	m(3,0) = 1;			
+	m(1,0) = t[0][0];			
+	m(1,1) = t[1][0];			
+	m(1,2) = t[2][0];			
+	m(1,4) = t[3][0];			
+	m(2,0) = t[0][1];			
+	m(2,1) = t[1][1];			
+	m(2,2) = t[2][1];			
+	m(2,3) = t[3][1];			
+	m(3,0) = t[0][2];			
+	m(3,1) = t[1][2];			
+	m(3,2) = t[2][2];			
+	m(3,3) = t[3][2];			
+	
+	
+	Volume_= 1./6*
+	std::abs(m(0,3) * m(1,2) * m(2,1) * m(3,0) - m(0,2) * m(1,3) * m(2,1) * m(3,0) -
+         	 m(0,3) * m(1,1) * m(2,2) * m(3,0) + m(0,1) * m(1,3) * m(2,2) * m(3,0) +
+         	 m(0,2) * m(1,1) * m(2,3) * m(3,0) - m(0,1) * m(1,2) * m(2,3) * m(3,0) -
+         	 m(0,3) * m(1,2) * m(2,0) * m(3,1) + m(0,2) * m(1,3) * m(2,0) * m(3,1) +
+         	 m(0,3) * m(1,0) * m(2,2) * m(3,1) - m(0,0) * m(1,3) * m(2,2) * m(3,1) -
+         	 m(0,2) * m(1,0) * m(2,3) * m(3,1) + m(0,0) * m(1,2) * m(2,3) * m(3,1) +
+         	 m(0,3) * m(1,1) * m(2,0) * m(3,2) - m(0,1) * m(1,3) * m(2,0) * m(3,2) -
+         	 m(0,3) * m(1,0) * m(2,1) * m(3,2) + m(0,0) * m(1,3) * m(2,1) * m(3,2) +
+         	 m(0,1) * m(1,0) * m(2,3) * m(3,2) - m(0,0) * m(1,1) * m(2,3) * m(3,2) -
+         	 m(0,2) * m(1,1) * m(2,0) * m(3,3) + m(0,1) * m(1,2) * m(2,0) * m(3,3) +
+         	 m(0,2) * m(1,0) * m(2,1) * m(3,3) - m(0,0) * m(1,2) * m(2,1) * m(3,3) -
+         	 m(0,1) * m(1,0) * m(2,2) * m(3,3) + m(0,0) * m(1,1) * m(2,2) * m(3,3));
+
+}
+
+
+	
+
+
+template <UInt NNODES>
+Eigen::Matrix<Real,4,1> Triangle<NNODES,3,3>::getBaryCoordinates(const Point& point) const{
+
+
+	Triangle<NNODES,3,3> t=*this;
+	Eigen::Matrix<Real,4,1> lambda;
+	Eigen::Matrix<Real,3,3> M_J_point;
+	Eigen::Matrix<Real,3,1> rhs;
+	Eigen::Matrix<Real,3,1> sol;
+	
+	Point d1(t[1][0]-t[0][0], t[1][1]-t[0][1], t[1][2]-t[0][2]);
+	Point d2(t[2][0]-t[0][0], t[2][1]-t[0][1], t[2][2]-t[0][2]);
+	Point d3(t[3][0]-t[0][0], t[3][1]-t[0][1], t[3][2]-t[0][2]);
+	
+
+
+	M_J_point(0,0) = d1[0];			// (x2-x1)
+	M_J_point(1,0) = d1[1];			// (y2-y1)
+	M_J_point(2,0) = d1[2];			// (z2-z1)
+	M_J_point(0,1) = d2[0];			// (x3-x1)
+	M_J_point(1,1) = d2[1];			// (y3-y1)
+	M_J_point(2,1) = d2[2];			// (z3-z1)
+	M_J_point(0,2) = d3[0];			// (x4-x1)
+	M_J_point(1,2) = d3[1];			// (y4-y1)
+	M_J_point(2,2) = d3[2];			// (z4-z1)
+	
+	
+	rhs(0)= point[0]-t[0][0];
+	rhs(1)= point[1]-t[0][1];
+	rhs(2)= point[2]-t[0][2];
+	
+	sol = M_J_point.colPivHouseholderQr().solve(rhs);
+	
+	lambda[1]=sol(0);
+	lambda[2]=sol(1);
+	lambda[3]=sol(2);
+		
+	lambda[0]=1-lambda[1]-lambda[2]-lambda[3];
+
+	return lambda;
+
+}
+
+
+// We solve 3 scalar equation in 2 unknowns(u,v)
+// u*(P1-P0)+v*(P2-P0)=P-P0
+// if the system ins solveable, P is in the plane (P1,P2,P0), if in addition
+// u,v>=0 and u+v<=1 then P is inside the triangle
+
+template <UInt NNODES>
+bool Triangle<NNODES,3,3>::isPointInside(const Point& point) const
+{
+	Real eps = 2.2204e-016;
+	Real tolerance = 10 * eps;
+
+	Triangle<NNODES,3,3> t=*this;
+	Eigen::Matrix<Real,4,1> bary_coeff = t.getBaryCoordinates(point);
+	return -tolerance <= bary_coeff[0] && -tolerance <= bary_coeff[1] && -tolerance <= bary_coeff[2] && -tolerance <= bary_coeff[3];
+}
+
+
+/*
+template <UInt NNODES>
+int Triangle<NNODES,2,3>::getPointDirection(const Point& point) const
+{
+
+	//da implementare
+	std::cerr<<"ancora da implementare";
+}
+*/
+
+template <UInt NNODES>
+void Triangle<NNODES,3,3>::print(std::ostream & out) const
+{
+	out<<"Tetrahedron -"<< id_ <<"- ";
+	for (UInt i=0; i<NNODES; ++i)
+		out<<points_[i].getId()<<"  ";
+	out<<std::endl;
+}
+
+
+
 
 #endif

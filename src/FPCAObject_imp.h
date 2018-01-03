@@ -61,8 +61,8 @@ void FPCAObject::setObservationData(const MatrixXr& datamatrix_)
 
 void FPCAObject::setLoadingsPsi(UInt nnodes, const VectorXr& f_sol,const SpMat& psi_)
 {	
-	//VectorXr load_=psi_*f_sol.topRows(nnodes);
-	VectorXr load_=psi_.transpose()*f_sol.topRows(nnodes);
+	VectorXr load_=psi_*f_sol.topRows(nnodes);
+	//VectorXr load_=psi_.transpose()*f_sol.topRows(nnodes);
 	loadings_=load_;
 	//std::cout<<"Load dim:"<<loadings_.size()<<std::endl;
 }

@@ -31,5 +31,28 @@ Point(0.0915762135, 0.816847573),
 Point(0.816847573, 0.0915762135)
 } };
 
+
+const std::vector<Real> IntegratorTetrahedronP2::WEIGHTS = std::vector<Real>{ {
+1./4,
+1./4,
+1./4,
+1./4
+} };
+
+const std::vector<Point> IntegratorTetrahedronP2::NODES = std::vector<Point> { {
+Point(0.5854101966249685 ,0.1381966011250105 ,0.1381966011250105),
+Point(0.1381966011250105 ,0.1381966011250105 ,0.1381966011250105),
+Point(0.1381966011250105 ,0.1381966011250105 ,0.5854101966249685),
+Point(0.1381966011250105 ,0.5854101966249685 ,0.1381966011250105)
+} };
+
+
+const std::vector<Real> IntegratorTetrahedronP1::WEIGHTS = std::vector<Real>{ {
+1
+} };
+
+const std::vector<Point> IntegratorTetrahedronP1::NODES = std::vector<Point> { {
+Point(1./4 ,1./4 ,1./4)
+} };
 //#endif
 

@@ -81,7 +81,7 @@ checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis,
     if(class(FEMbasis$mesh) == "MESH2D"){
     	if(nrow(observations) > nrow(FEMbasis$mesh$nodes))
      	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
-    }else if(class(FEMbasis$mesh) == "MESH.2.5D"){
+    }else if(class(FEMbasis$mesh) == "MESH.2.5D" || class(FEMbasis$mesh) == "MESH.3D"){
     	if(nrow(observations) > FEMbasis$mesh$nnodes)
      	 stop("Size of 'observations' is larger then the size of 'nodes' in the mesh")
     }
@@ -89,7 +89,7 @@ checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis,
   if(!is.null(locations))
   {
     if(ncol(locations) != ndim)
-      stop("'locations' must be a 2-columns matrix;")
+      stop("'locations' must be a ndim-columns matrix;")
     if(nrow(locations) != nrow(observations))
       stop("'locations' and 'observations' have incompatible size;")
   }
@@ -114,7 +114,7 @@ checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis,
      if(class(FEMbasis$mesh) == "MESH2D"){
 	    if(sum(BC$BC_indices>nrow(nrow(FEMbasis$mesh$nodes))) > 0)
 	      stop("At least one index in 'BC_indices' larger then the number of 'nodes' in the mesh;")
-    }else if((class(FEMbasis$mesh) == "MESH2D")){
+    }else if((class(FEMbasis$mesh) == "MESH.2.5D" || class(FEMbasis$mesh) == "MESH.3D")){
     	if(sum(BC$BC_indices>FEMbasis$mesh$nnodes) > 0)
 	      stop("At least one index in 'BC_indices' larger then the number of 'nodes' in the mesh;")
     	}

@@ -1,6 +1,6 @@
 #' Create a FEM basis
 #' 
-#' @param mesh A \code{MESH2D} or \code{MESH.2.5D} object representing the domain triangulation. See \link{create.MESH.2D}, \link{create.MESH.2.5D}.
+#' @param mesh A \code{MESH2D}, \code{MESH.2.5D} or \code{MESH.3D} object representing the domain triangulation. See \link{create.MESH.2D}, \link{create.MESH.2.5D}, \link{create.MESH.3D}.
 #' @return A  \code{FEMbasis} object. This contains the \code{mesh}, along with some additional quantities:
 #'
 #' if \code{class(mesh) == MESH2D}
@@ -11,12 +11,15 @@
 #' if \code{class(mesh) == MESH.2.5D}
 #' 	\item{\code{order}}{Either "1" or "2". Order of the Finite Element basis.}
 #' 	\item{\code{nbasis}}{Scalar. The number of basis.}
-#' @description Sets up a Finite Element basis. It requires a triangular mesh, a \code{MESH2D} or a \code{MESH.2.5D} object, as input. 
+#' if \code{class(mesh) == MESH.3D}
+#' 	\item{\code{order}}{Either "1" or "2". Order of the Finite Element basis.}
+#' 	\item{\code{nbasis}}{Scalar. The number of basis.}
+#' @description Sets up a Finite Element basis. It requires a triangular mesh, a \code{MESH2D}, \code{MESH.2.5D} or \code{MESH.3D} object, as input. 
 #' The basis' functions are globally continuos surfaces, that are polynomials once restricted to a triangle in the mesh. 
 #' Linear if (\code{order = 1}) in the input \code{mesh} and quadratic if (\code{order = 2}) in the input \code{mesh}
 #' Finite Element are currently implemented.
 #' @usage create.FEM.basis(mesh)
-#' @seealso \code{\link{create.MESH.2D}}, \code{\link{create.MESH.2.5D}}
+#' @seealso \code{\link{create.MESH.2D}}, \code{\link{create.MESH.2.5D}},\code{\link{create.MESH.3D}}
 #' @examples 
 #' ## Creates a simple triangulated domain with a concavity; this is a MESH2D object  
 #' mesh<-create.MESH.2D(nodes=rbind(c(0, 0), c(0, 1), c(0.5, 0.5), c(1, 1), c(1, 0)),
@@ -46,15 +49,13 @@ create.FEM.basis = function(mesh)
   class(FEMbasis) = "FEMbasis"
   
   FEMbasis
-  } else if (class(mesh) == "MESH.2.5D"){
+  } else if (class(mesh) == "MESH.2.5D" || class(mesh) == "MESH.3D"){
 
   	  FEMbasis = list(mesh = mesh, order = as.integer(mesh$order),nbasis = mesh$nnodes)
   	  class(FEMbasis) = "FEMbasis"
   	  FEMbasis
   }
-}
-
-
+ }
 #' Define a surface or spatial field by a Finite Element basis expansion
 #' 
 #' @param coeff A vector or a matrix containing the coefficients for the Finite Element basis expansion. The number of rows 

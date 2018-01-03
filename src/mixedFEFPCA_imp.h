@@ -19,7 +19,10 @@
 #define JOB_END -2
 #define USE_COMM_WORLD -987654
 
-
+//IMPORTANT!!!
+//To fix the creation of objects with 3*ORDER+mydim%2
+//Need a better way to create them
+//
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
@@ -43,8 +46,8 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 		Psi_.makeCompressed();
 	}
 	else{
-	Triangle<ORDER*3, mydim, ndim> tri_activated;
-	Eigen::Matrix<Real,ORDER * 3,1> coefficients;
+	Triangle<3*ORDER+mydim%2, mydim, ndim> tri_activated;
+	Eigen::Matrix<Real,3*ORDER+mydim%2,1> coefficients;
 
 	Real evaluator;
 	for(UInt i=0; i<nlocations;i++)
@@ -59,9 +62,9 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 			#endif
 		}else
 		{
-			for(UInt node = 0; node < ORDER*3 ; ++node)
+			for(UInt node = 0; node < 3*ORDER+mydim%2 ; ++node)
 			{
-				coefficients = Eigen::Matrix<Real,ORDER * 3,1>::Zero();
+				coefficients = Eigen::Matrix<Real,3*ORDER+mydim%2,1>::Zero();
 				coefficients(node) = 1; //Activates only current base
 				evaluator = evaluate_point<ORDER, mydim, ndim>(tri_activated, fpcaData_.getLocations()[i], coefficients);
 				Psi_.insert(i, tri_activated[node].getId()) = evaluator;
@@ -186,7 +189,8 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentage
 	Eigen::BDCSVD<MatrixXr> svd(fpcaData_.getDatamatrix(),Eigen::ComputeThinU|Eigen::ComputeThinV);
 	MatrixXr U_ALL(fpcaData_.getDatamatrix().rows(),fpcaData_.getDatamatrix().rows());
 	for(UInt i=0;i<svd.singularValues().rows();i++)
-		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt(svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i));
+		U_ALL.col(i)=svd.matrixU().col(i)*svd.singularValues().diagonal()[i]*std::sqrt((svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i)>0.0)?svd.matrixV().col(i).transpose()*MMat_*svd.matrixV().col(i):2.2204e-016*100);
+		
 	Real TotVar=(U_ALL.transpose()*U_ALL).trace()/fpcaData_.getDatamatrix().rows();
 	
 	cumsum_percentage_.resize(fpcaData_.getNPC());
@@ -228,9 +232,9 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(MatrixXr 
 			
 			if(fpcaData_.isLocationsByNodes())
 				FPCAinput.setLoadings(nnodes, solution_[lambda_index],fpcaData_.getObservationsIndices());
-			else
-				FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
-			
+			else 
+			FPCAinput.setLoadingsPsi(nnodes, solution_[lambda_index],Psi_);
+				
 			FPCAinput.setScores(datamatrixResiduals_);
 		}
 		
@@ -257,6 +261,18 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters()
 	Assembler::operKernel(stiff, mesh_, fe, AMat_);
 	Assembler::operKernel(mass, mesh_, fe, MMat_);
 	
+	
+	/*const static Eigen::IOFormat CSVFormat(Eigen::StreamPrecision,Eigen::DontAlignCols,", ","\n");
+	
+	std::string mass_name("Mass3D.csv");
+	std::string stiff_name("Stiff3D.csv");
+	
+	std::ofstream file_mass(mass_name.c_str());
+	std::ofstream file_stiff(stiff_name.c_str());
+	
+	file_mass << MatrixXr(MMat_).format(CSVFormat);
+	file_stiff << MatrixXr(AMat_).format(CSVFormat);*/
+	
 	scores_mat_.resize(fpcaData_.getNPC());
 	loadings_mat_.resize(fpcaData_.getNPC());
 	lambda_PC_.resize(fpcaData_.getNPC());
@@ -279,13 +295,18 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 		FPCAObject FPCAinput(this->datamatrixResiduals_);
 
 		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
-
+		
+	
 	this->scores_mat_[np]=FPCAinput.getScores();
 	this->loadings_mat_[np]=FPCAinput.getLoadings();
 	this->lambda_PC_[np]=this->fpcaData_.getLambda()[i];
 	
 	//Devo settare la datamatrix togliendo i risultati ottenuti
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[i].topRows(this->mesh_.num_nodes());
 	
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
@@ -298,6 +319,7 @@ void MixedFEFPCA<Integrator,ORDER, mydim, ndim>::apply()
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeCumulativePercentageExplained();
 }
+	
 
 ///CLASS MIXEDFEFPCAGCV
 
@@ -573,11 +595,14 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 		loadings_lambda_[i]=FPCAinput.getLoadings();
 		scores_lambda_[i]=FPCAinput.getScores();
 		
-			if(np==0) computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
-			computeGCV(FPCAinput,i);	
+		if(np==0) computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
+		
+		computeGCV(FPCAinput,i);			
 	}
 	
 	UInt index_best_GCV=std::distance(GCV_.begin(),std::min_element(GCV_.begin(),GCV_.end()));
+	
+	
 	
 	this->scores_mat_[np]=this->scores_lambda_[index_best_GCV];
 	this->loadings_mat_[np]=this->loadings_lambda_[index_best_GCV];
@@ -586,6 +611,10 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 	//Devo settare la datamatrix togliendo i risultati ottenuti
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
 	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[index_best_GCV].topRows(this->mesh_.num_nodes());
+
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
 	
@@ -661,8 +690,8 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::computeKFolds(MatrixXr & d
 					FPCAinputKF.setLoadings(nnodes, this->solution_[lambda_index],this->fpcaData_.getObservationsIndices());
 				else
 					FPCAinputKF.setLoadingsPsi(nnodes, this->solution_[lambda_index],this->Psi_);
-	
-			
+
+				
 				FPCAinputKF.setScores(X_clean_train);
 
 			}
@@ -703,6 +732,10 @@ void MixedFEFPCAKFold<Integrator,ORDER, mydim, ndim>::apply()
 	
 	//Devo settare la datamatrix togliendo i risultati ottenuti
 	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[index_best_KF].topRows(this->mesh_.num_nodes());
 	
 	//Normalize the loadings and unnormalize the scores
 	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);

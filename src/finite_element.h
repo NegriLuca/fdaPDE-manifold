@@ -145,6 +145,75 @@ public:
 
 };
 
+
+
+//Implementazione FiniteElement con mydim=3 e ndim=3
+template <class Integrator ,UInt ORDER>
+class FiniteElement<Integrator, ORDER, 3,3>{
+private:
+	Triangle<ORDER*4,3,3> reference_;
+	Triangle<ORDER*4,3,3> t_;
+	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES> phiMapMaster_;
+	//Numero basi locali x Num coordinate x numero nodi integrazione
+	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> phiDerMapMaster_;
+	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> invTrJPhiDerMapMaster_;
+	Eigen::Matrix<Real,3,3> metric_;
+	
+	void setPhiMaster();
+	void setPhiDerMaster();
+	void setInvTrJPhiDerMaster();
+	
+
+public:
+
+	//! This is an empty constructor
+    /*!
+        For efficiency and Expression Templates organization of the
+        code, the use of this class is based on the updateElement class
+    */
+	FiniteElement();
+	
+	//! A member updating the Finite Element properties
+    /*!
+      \param t a triangle from which to update the finite element properties
+    */
+	void updateElement(const Triangle<ORDER*4,3,3> &t);
+	
+	Real getVolumeReference()
+	{
+		return reference_.getVolume();
+	}
+
+	Real getDet()
+	{
+		return t_.getDetJ();
+	}
+
+	Point coorQuadPt(UInt iq)
+	{
+		return Point(t_.getM_J()(0,0)*Integrator::NODES[iq][0] + t_.getM_J()(0,1)*Integrator::NODES[iq][1]+t_.getM_J()(0,2)*Integrator::NODES[iq][2] + t_[0][0],
+				t_.getM_J()(1,0)*Integrator::NODES[iq][0] + t_.getM_J()(1,1)*Integrator::NODES[iq][1]+t_.getM_J()(1,2)*Integrator::NODES[iq][2] + t_[0][1],
+				t_.getM_J()(2,0)*Integrator::NODES[iq][0] + t_.getM_J()(2,1)*Integrator::NODES[iq][1]+t_.getM_J()(2,2)*Integrator::NODES[iq][2] + t_[0][2]);
+	}
+	
+	UInt getGlobalIndex(UInt iq) 
+	{
+		return Integrator::NNODES * t_.getId() + iq;
+	} 
+
+	//Returns \hat{phi}
+	Real phiMaster(UInt i, UInt iq) const;
+
+	//Returns \nabla \hat{phi}
+	Real phiDerMaster(UInt i, UInt ic, UInt iq) const;
+
+	//Returns J^{-1} \nabla \hat{phi}
+	Real invTrJPhiDerMaster(UInt i, UInt ic, UInt iq) const;
+	
+	Eigen::Matrix<Real,3,3> metric()const {return metric_;};
+
+};
+
 #include "finite_element_imp.h"
 
 #endif
