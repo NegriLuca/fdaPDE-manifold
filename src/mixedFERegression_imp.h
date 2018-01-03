@@ -15,8 +15,8 @@ void MixedFERegressionBase<InputHandler,Integrator,ORDER, mydim, ndim>::computeB
 	Psi_.resize(nlocations, nnodes);
 	//Psi_.reserve(Eigen::VectorXi::Constant(nlocations,ORDER*3));
 
-	Triangle<ORDER*3,mydim, ndim> tri_activated;
-	Eigen::Matrix<Real,ORDER * 3,1> coefficients;
+	Triangle<3*ORDER+mydim%2,mydim, ndim> tri_activated;
+	Eigen::Matrix<Real,3*ORDER+mydim%2,1> coefficients;
 
 	Real evaluator;
 	for(UInt i=0; i<nlocations;i++)
@@ -31,9 +31,9 @@ void MixedFERegressionBase<InputHandler,Integrator,ORDER, mydim, ndim>::computeB
 			#endif
 		}else
 		{
-			for(UInt node = 0; node < ORDER*3 ; ++node)
+			for(UInt node = 0; node < 3*ORDER+mydim%2 ; ++node)
 			{
-				coefficients = Eigen::Matrix<Real,ORDER * 3,1>::Zero();
+				coefficients = Eigen::Matrix<Real,3*ORDER+mydim%2,1>::Zero();
 				coefficients(node) = 1; //Activates only current base
 				evaluator = evaluate_point<ORDER, mydim, ndim>(tri_activated, regressionData_.getLocations()[i], coefficients);
 				Psi_.insert(i, tri_activated[node].getId()) = evaluator;

@@ -209,6 +209,10 @@ SEXP regression_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Ro
 		return(regression_skeleton<RegressionData,IntegratorTriangleP2, 1, 2, 3>(regressionData, Rmesh));
    else if(regressionData.getOrder()==2 && ndim==3)
 		return(regression_skeleton<RegressionData,IntegratorTriangleP4, 2, 2, 3>(regressionData, Rmesh));
+	else if(regressionData.getOrder() == 1 && mydim==3 && ndim==3)
+		return(regression_skeleton<RegressionData,IntegratorTetrahedronP2, 1, 3, 3>(regressionData, Rmesh));
+	else if(regressionData.getOrder() == 1 && mydim==3 && ndim==3)
+		return(regression_skeleton<RegressionData,IntegratorTetrahedronP2, 1, 3, 3>(regressionData, Rmesh));
     return(NILSXP);
 }
 
