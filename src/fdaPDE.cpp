@@ -211,8 +211,8 @@ SEXP regression_Laplace(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Ro
 		return(regression_skeleton<RegressionData,IntegratorTriangleP4, 2, 2, 3>(regressionData, Rmesh));
 	else if(regressionData.getOrder() == 1 && mydim==3 && ndim==3)
 		return(regression_skeleton<RegressionData,IntegratorTetrahedronP2, 1, 3, 3>(regressionData, Rmesh));
-	else if(regressionData.getOrder() == 1 && mydim==3 && ndim==3)
-		return(regression_skeleton<RegressionData,IntegratorTetrahedronP2, 1, 3, 3>(regressionData, Rmesh));
+	//else if(regressionData.getOrder() == 1 && mydim==3 && ndim==3)
+	//	return(regression_skeleton<RegressionData,IntegratorTetrahedronP2, 1, 3, 3>(regressionData, Rmesh));
     return(NILSXP);
 }
 
@@ -375,8 +375,8 @@ SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEX
 		return(FPCA_skeleton<IntegratorTriangleP4, 2, 2, 3>(fPCAdata, Rmesh,validation));
 	else if(fPCAdata.getOrder() == 1 && mydim==3 && ndim==3)
 		return(FPCA_skeleton<IntegratorTetrahedronP2, 1, 3, 3>(fPCAdata, Rmesh,validation));
-	else if(fPCAdata.getOrder() == 1 && mydim==3 && ndim==3)
-		return(FPCA_skeleton<IntegratorTetrahedronP2, 1, 3, 3>(fPCAdata, Rmesh,validation));	
+	//else if(fPCAdata.getOrder() == 1 && mydim==3 && ndim==3)
+	//	return(FPCA_skeleton<IntegratorTetrahedronP2, 1, 3, 3>(fPCAdata, Rmesh,validation));	
 	return(NILSXP);
 	 }      
 
