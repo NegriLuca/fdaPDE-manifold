@@ -1079,6 +1079,8 @@ R_plot_volume = function(FEM,...){
   
   ntetrahedrons = FEM$FEMbasis$mesh$ntetrahedrons
   
+  tet=t(rbind(tetrahedrons[,-1],tetrahedrons[,-2],tetrahedrons[,-3],tetrahedrons[,-4]))
+  
   coeff = FEM$coeff
   
   nsurf = dim(coeff)[[2]]
@@ -1090,7 +1092,11 @@ R_plot_volume = function(FEM,...){
   	for(j in 1:ntetrahedrons)
   		col[j]=mean(coeff[tetrahedrons[j,1],isurf]+coeff[tetrahedrons[j,2],isurf]+
   			    coeff[tetrahedrons[j,3],isurf]+coeff[tetrahedrons[j,4],isurf])
-
+	
+	
+  col=rep(1,3) %o% col
+ 
+  
   diffrange = max(col)-min(col)
   
   col= (col - min(col))/diffrange*(ncolors-1)+1
@@ -1101,7 +1107,9 @@ R_plot_volume = function(FEM,...){
   rgl.pop("lights") 
   light3d(specular="black") 
   
-  tetramesh(tetrahedrons,nodes,col=col,alpha=0.7)
+  rgl.triangles(nodes[tet,1],nodes[tet,2],nodes[tet,3],col=col,alpha=0.7,...)
+  
+  #tetramesh(tetrahedrons,nodes,col=col,alpha=0.7)
     
   aspect3d("iso")
   rgl.viewpoint(0,-45)
