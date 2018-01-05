@@ -1031,7 +1031,8 @@ R_plot_manifold = function(FEM, ...){
   
   mesh = FEMbasis$mesh
   
-  p = heat.colors(100)
+  p=jet.col(n=128,alpha=0.8)
+  #p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
   palette(p)
   
   ncolor=length(p)
@@ -1057,7 +1058,7 @@ R_plot_manifold = function(FEM, ...){
                   color = "black",...)
     aspect3d("iso")
     rgl.viewpoint(0,-45)
-    if (nsurf > 1)
+    if (nsurf > 1 && isurf<nsurf)
     {readline("Press a button for the next plot...")}
     }
 }
@@ -1069,9 +1070,9 @@ R_plot_volume = function(FEM,...){
   if(!require(rgl)){
     stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
   }
-  if(!require(geometry)){
-    stop("The plot MESH.3D_function(...) requires the R package geometry, please install it and try again!")
-  }
+ # if(!require(geometry)){
+ #   stop("The plot MESH.3D_function(...) requires the R package geometry, please install it and try again!")
+ # }
   
   tetrahedrons = matrix(FEM$FEMbasis$mesh$tetrahedrons,nrow=FEM$FEMbasis$mesh$ntetrahedrons,ncol=4,byrow=TRUE)
 
@@ -1085,8 +1086,9 @@ R_plot_volume = function(FEM,...){
   
   nsurf = dim(coeff)[[2]]
   
-  p=heat.colors(128)
-  ncolors=128
+  p=jet.col(n=128,alpha=0.8)
+  #p <- colorRampPalette(c("#0E1E44","#3E6DD8","#68D061","#ECAF53", "#EB5F5F","#E11F1C"))(128)
+  ncolors=length(p)
   for (isurf in 1:nsurf)
   {	col=rep(0,ntetrahedrons)
   	for(j in 1:ntetrahedrons)
@@ -1113,7 +1115,7 @@ R_plot_volume = function(FEM,...){
     
   aspect3d("iso")
   rgl.viewpoint(0,-45)
-   if (nsurf > 1)
+   if (nsurf > 1 && isurf<nsurf)
     {readline("Press a button for the next plot...")}
     }
 
