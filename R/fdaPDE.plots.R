@@ -156,23 +156,113 @@ plot.MESH.3D<-function(mesh,...){
   if(!require(rgl)){
     stop("The plot MESH.2.5D_function(...) requires the R package rgl, please install it and try again!")
   }
-  if(!require(geometry)){
-    stop("The plot MESH.3D_function(...) requires the R package geometry, please install it and try again!")
-  }
+  #if(!require(geometry)){
+   # stop("The plot MESH.3D_function(...) requires the R package geometry, please install it and try again!")
+ # }
   
   tetrahedrons = matrix(mesh$tetrahedrons,nrow=mesh$ntetrahedrons,ncol=4,byrow=TRUE)
-
+  ntetrahedrons=mesh$ntetrahedrons
+  
   nodes=matrix(mesh$nodes,nrow=mesh$nnodes,ncol=3,byrow=TRUE)
+ 
+  tet=t(rbind(tetrahedrons[,-1],tetrahedrons[,-2],tetrahedrons[,-3],tetrahedrons[,-4]))
   
   open3d()
   axes3d()
   rgl.pop("lights") 
   light3d(specular="black") 
   
-  tetramesh(tetrahedrons,nodes,alpha=0.7,col="white")
+  #rgl.points(x = nodes[ ,1], y = nodes[ ,2], 
+  #                z=nodes[,3],col="black", ...)
+                  
+  #rgl.lines(x = nodes[edges ,1], y = nodes[edges ,2], 
+  #                z=nodes[edges,3],col="black",...)
+  
+  
+  rgl.triangles(nodes[tet,1],nodes[tet,2],nodes[tet,3],col="white",...)
+  #tetramesh(tetrahedrons,nodes,alpha=0.7,col="white")
     
   aspect3d("iso")
   rgl.viewpoint(0,-45)
 
 }
 
+isosurfaces.FEMevaluated<-function(FEMevaluated,levels,...)
+{
+  if(!require(plot3Drgl)){
+    stop("The isosurfaces.FEMevaluated_function(...) requires the R package plot3Drgl,   please install it and try again!")
+  }
+  if (is.null(FEMevaluated)) 
+    stop("FEMevaluated required;  is NULL.")
+  if(class(FEMevaluated) != "FEMevaluated")
+    stop("'FEMevaluated' is not of class 'FEMevaluated'")
+    if (is.null(levels)) 
+    stop("levels required;  is NULL.")
+  
+  ndata=length(FEMevaluated$evaluated_values)
+  
+  for(idata in 1:ndata)
+  {
+   	isosurf3Drgl(x=FEMevaluated$x,y=FEMevaluated$y,z=FEMevaluated$z,colvar=FEMevaluated$evaluated_values[[idata]],level=levels,col=jet.col(length(levels),alpha=0.7), ...)
+   	axes3d()
+	rgl.pop("lights") 
+  	light3d(specular="black")
+  	aspect3d("iso")
+  	rgl.viewpoint(0,-45)
+  	
+  	if (ndata > 1 && idata<ndata)
+    	{readline("Press a button for the next plot...")}
+    }
+ } 
+ 
+slices.FEMevaluated<-function(FEMevaluated,xs=0,ys=NULL,zs=NULL,...)
+{
+  if(!require(plot3Drgl)){
+    stop("The isosurfaces.FEMevaluated_function(...) requires the R package plot3Drgl,   please install it and try again!")
+  }
+  if (is.null(FEMevaluated)) 
+    stop("FEMevaluated required;  is NULL.")
+  if(class(FEMevaluated) != "FEMevaluated")
+    stop("'FEMevaluated' is not of class 'FEMevaluated'")
+  
+  ndata=length(FEMevaluated$evaluated_values)
+  
+  for(idata in 1:ndata)
+  {
+   	slice3Drgl(x=FEMevaluated$x,y=FEMevaluated$y,z=FEMevaluated$z,colvar=FEMevaluated$evaluated_values[[idata]],xs=xs,ys=ys,zs=zs, ...)
+   	axes3d()
+	rgl.pop("lights") 
+  	light3d(specular="black")
+  	aspect3d("iso")
+  	rgl.viewpoint(0,-45)
+  	
+  	if (ndata > 1 && idata<ndata)
+    	{readline("Press a button for the next plot...")}
+    }
+ } 
+ 
+ slicecontours.FEMevaluated<-function(FEMevaluated,xs=0,ys=NULL,zs=NULL,...)
+{
+  if(!require(plot3Drgl)){
+    stop("The isosurfaces.FEMevaluated_function(...) requires the R package plot3Drgl,   please install it and try again!")
+  }
+  if (is.null(FEMevaluated)) 
+    stop("FEMevaluated required;  is NULL.")
+  if(class(FEMevaluated) != "FEMevaluated")
+    stop("'FEMevaluated' is not of class 'FEMevaluated'")
+  
+  ndata=length(FEMevaluated$evaluated_values)
+  
+  for(idata in 1:ndata)
+  {
+   	slicecont3Drgl(x=FEMevaluated$x,y=FEMevaluated$y,z=FEMevaluated$z,colvar=FEMevaluated$evaluated_values[[idata]],xs=xs,ys=ys,zs=zs,border="white", ...)
+   	axes3d()
+	rgl.pop("lights") 
+  	light3d(specular="black")
+  	aspect3d("iso")
+  	rgl.viewpoint(0,-45)
+  	
+  	if (ndata > 1 && idata<ndata)
+    	{readline("Press a button for the next plot...")}
+    }
+ } 
