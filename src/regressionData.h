@@ -30,6 +30,8 @@ class  RegressionData{
 		//Other parameters
 		UInt order_;
 		std::vector<Real> lambda_;
+		UInt GCVmethod_;
+		UInt nrealizations_;      // Number of relizations for the stochastic estimation of GCV
 
 		std::vector<Real> bc_values_;
 		std::vector<UInt> bc_indices_;
@@ -41,6 +43,7 @@ class  RegressionData{
 		void setLocations(SEXP Rlocations);
 		void setObservations(SEXP Robservations);
 		void setCovariates(SEXP Rcovariates);
+		void setNrealizations(SEXP Rnrealizations);
 		#endif
 
 	public:
@@ -77,7 +80,7 @@ class  RegressionData{
 
 		#ifdef R_VERSION_
 		explicit RegressionData(SEXP Rlocations, SEXP Robservations, SEXP Rorder, SEXP Rlambda, SEXP Rcovariates,
-				   SEXP RBCIndices, SEXP RBCValues, SEXP DOF);
+				   SEXP RBCIndices, SEXP RBCValues, SEXP DOF,SEXP RGCVmethod, SEXP Rnrealizations);
 		#endif
 
 		explicit RegressionData(std::vector<Point>& locations, VectorXr& observations, UInt order, std::vector<Real> lambda, MatrixXr& covariates , std::vector<UInt>& bc_indices, std::vector<Real>& bc_values, bool DOF);
@@ -106,6 +109,12 @@ class  RegressionData{
 		inline std::vector<UInt> const & getDirichletIndices() const {return bc_indices_;}
 		//! A method returning the values to apply for Dirichlet Conditions
 		inline std::vector<Real> const & getDirichletValues() const {return bc_values_;}
+		//! A method returning the method that should be used to compute the GCV:
+		//! 1: exact calculation
+		//! 2: stochastic estimation
+		inline UInt const & getGCVmethod() const {return GCVmethod_;}
+		//! A method returning the number of vectors to use to stochastically estimate the edf
+		inline UInt const & getNrealizations() const {return nrealizations_;}
 };
 
 
@@ -119,7 +128,7 @@ class  RegressionDataElliptic:public RegressionData
 	public:
 		#ifdef R_VERSION_
 		explicit RegressionDataElliptic(SEXP Rlocations, SEXP Robservations, SEXP Rorder, SEXP Rlambda, SEXP RK, SEXP Rbeta,
-				 SEXP Rc, SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF);
+				 SEXP Rc, SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF,SEXP RGCVmethod, SEXP Rnrealizations);
 		#endif
 
 		explicit RegressionDataElliptic(std::vector<Point>& locations, VectorXr& observations, UInt order, std::vector<Real> lambda, Eigen::Matrix<Real,2,2>& K,	Eigen::Matrix<Real,2,1>& beta,
@@ -141,7 +150,7 @@ class RegressionDataEllipticSpaceVarying:public RegressionData
 	public:
 		#ifdef R_VERSION_
 		explicit RegressionDataEllipticSpaceVarying(SEXP Rlocations, SEXP Robservations, SEXP Rorder, SEXP Rlambda, SEXP RK, SEXP Rbeta,
-				 SEXP Rc, SEXP Ru, SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF);
+				 SEXP Rc, SEXP Ru, SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF,SEXP RGCVmethod, SEXP Rnrealizations);
 		#endif
 
 

@@ -60,7 +60,7 @@
 #' print(ZincMeuseCovar$beta)
 
 
-smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
+smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE,GCVmethod = 2, nrealizations = 100)
 {
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
@@ -75,7 +75,7 @@ smooth.FEM.basis<-function(locations = NULL, observations, FEMbasis, lambda, cov
  	stop('Unknown mesh class')
  }
   ##################### Checking parameters, sizes and conversion ################################
-  checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
+  checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL,GCVmethod , nrealizations)
   
   ## Coverting to format for internal usage
   if(!is.null(locations))
@@ -107,7 +107,7 @@ if(class(FEMbasis$mesh) == 'MESH2D'){
   }else
   {
     print('C++ Code Execution')
-    bigsol = CPP_smooth.FEM.basis(locations, observations, FEMbasis, lambda, covariates,ndim,mydim, BC, GCV)
+    bigsol = CPP_smooth.FEM.basis(locations, observations, FEMbasis, lambda, covariates,ndim,mydim, BC, GCV,GCVmethod, nrealizations)
   }
   
   numnodes = nrow(FEMbasis$mesh$nodes)
@@ -116,14 +116,14 @@ if(class(FEMbasis$mesh) == 'MESH2D'){
 
 	  bigsol = NULL  
 	  print('C++ Code Execution')
-	  bigsol = CPP_smooth.manifold.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV)
+	  bigsol = CPP_smooth.manifold.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV,GCVmethod, nrealizations)
 	  
 	  numnodes = FEMbasis$mesh$nnodes
   }else if(class(FEMbasis$mesh) == 'MESH.3D'){
 
 	  bigsol = NULL  
 	  print('C++ Code Execution')
-	  bigsol = CPP_smooth.volume.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV)
+	  bigsol = CPP_smooth.volume.FEM.basis(locations, observations, FEMbasis$mesh, lambda, covariates, ndim, mydim, BC, GCV,GCVmethod, nrealizations)
 	  
 	  numnodes = FEMbasis$mesh$nnodes
   }
@@ -208,7 +208,7 @@ if(class(FEMbasis$mesh) == 'MESH2D'){
 #' 
 #' # Evaluate solution in three points
 #' eval.FEM(FEM_CPP_PDE$fit.FEM, locations = rbind(c(0,0),c(0.5,0),c(-2,-2)))
-smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
+smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE,GCVmethod = 2, nrealizations = 100)
 {
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
@@ -219,7 +219,7 @@ smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda,
  	stop('Unknown mesh class')
  }
   ##################### Checking parameters, sizes and conversion ################################
-  checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = PDE_parameters, PDE_parameters_func = NULL)
+  checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = PDE_parameters, PDE_parameters_func = NULL,GCVmethod , nrealizations)
   
   ## Coverting to format for internal usage
   if(!is.null(locations))
@@ -253,7 +253,7 @@ smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda,
   }else
   {
     print('C++ Code Execution')
-    bigsol = CPP_smooth.FEM.PDE.basis(locations, observations, FEMbasis, lambda, PDE_parameters, covariates,ndim, mydim, BC, GCV)
+    bigsol = CPP_smooth.FEM.PDE.basis(locations, observations, FEMbasis, lambda, PDE_parameters, covariates,ndim, mydim, BC, GCV,GCVmethod, nrealizations)
   }
   
   numnodes = nrow(FEMbasis$mesh$nodes)
@@ -365,7 +365,7 @@ smooth.FEM.PDE.basis<-function(locations = NULL, observations, FEMbasis, lambda,
 #' FEM_CPP_PDE = smooth.FEM.PDE.sv.basis(observations = observations, 
 #'              FEMbasis = FEMbasis, lambda = lambda, PDE_parameters = PDE_parameters)
 #' plot(FEM_CPP_PDE$fit.FEM)
-smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE)
+smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE,GCVmethod = 2, nrealizations = 100)
 {
  if(class(FEMbasis$mesh) == "MESH2D"){
  	ndim = 2
@@ -376,7 +376,7 @@ smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lamb
  	stop('Unknown mesh class')
  }
   ##################### Checking parameters, sizes and conversion ################################
-  checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = PDE_parameters)
+  checkSmoothingParameters(locations, observations, FEMbasis, lambda, covariates, BC, GCV, CPP_CODE, PDE_parameters_constant = NULL, PDE_parameters_func = PDE_parameters,GCVmethod , nrealizations)
   
   ## Coverting to format for internal usage
   if(!is.null(locations))
@@ -402,7 +402,7 @@ smooth.FEM.PDE.sv.basis<-function(locations = NULL, observations, FEMbasis, lamb
   }else
   {
     print('C++ Code Execution')
-    bigsol = CPP_smooth.FEM.PDE.sv.basis(locations, observations, FEMbasis, lambda, PDE_parameters, covariates, ndim, mydim, BC, GCV)
+    bigsol = CPP_smooth.FEM.PDE.sv.basis(locations, observations, FEMbasis, lambda, PDE_parameters, covariates, ndim, mydim, BC, GCV,GCVmethod, nrealizations)
   }
   
   numnodes = nrow(FEMbasis$mesh$nodes)

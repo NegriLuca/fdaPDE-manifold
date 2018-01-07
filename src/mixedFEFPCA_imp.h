@@ -577,6 +577,97 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeGCV(FPCAObject& FPCAi
 }
 
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
+void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::computeIterationsGCV(MatrixXr & datamatrixResiduals_, UInt nnodes, UInt np)
+{	
+		
+		
+		UInt niter=20;
+		FPCAObject FPCAinput(this->datamatrixResiduals_);
+		bool dof_computed=0;
+		UInt best_GCV=0;
+		std::vector<SpMat> AMat_lambda_vec;
+		std::vector<SpMat> MMat_lambda_vec;
+		
+		AMat_lambda_vec.resize(this->fpcaData_.getLambda().size());
+		MMat_lambda_vec.resize(this->fpcaData_.getLambda().size());
+		for(auto j=0;j<niter;j++)
+		{	
+			
+			FPCAinput.setObservationData(datamatrixResiduals_);
+			for(auto i = 0; i<this->fpcaData_.getLambda().size(); ++i)
+			{
+			Real lambda = this->fpcaData_.getLambda()[i];
+			if(j==0){
+			AMat_lambda_vec[i] = (-lambda)*this->AMat_;
+			MMat_lambda_vec[i] = (-lambda)*this->MMat_;
+			this->buildCoeffMatrix(this->DMat_, AMat_lambda_vec[i], MMat_lambda_vec[i]);
+			this->sparseSolver_.analyzePattern(this->coeffmatrix_);
+			}
+			else
+			
+			this->buildCoeffMatrix(this->DMat_, AMat_lambda_vec[i], MMat_lambda_vec[i]);
+			
+			this->sparseSolver_.factorize(this->coeffmatrix_);
+			this->solution_[i].resize(this->coeffmatrix_.rows());
+			VectorXr rightHandData;
+			this->computeRightHandData(rightHandData,FPCAinput);
+			this->b_ = VectorXr::Zero(2*nnodes);
+			this->b_.topRows(nnodes)=rightHandData;
+			
+			this->solution_[i]=this->sparseSolver_.solve(this->b_);
+			if(this->sparseSolver_.info()!=Eigen::Success)
+			{
+			//std::cerr<<"solving failed!"<<std::endl;
+			}
+			if(this->fpcaData_.isLocationsByNodes())
+				FPCAinput.setLoadings(nnodes, this->solution_	[i],this->fpcaData_.getObservationsIndices());
+			else 
+			FPCAinput.setLoadingsPsi(nnodes, this->solution_[i],this->Psi_);
+				
+			FPCAinput.setScores(this->datamatrixResiduals_);
+			loadings_lambda_[i]=FPCAinput.getLoadings();
+			scores_lambda_[i]=FPCAinput.getScores();
+			if(np==0 && dof_computed==0)
+			computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
+			
+			computeGCV(FPCAinput,i);
+			}
+			dof_computed=1;
+			UInt index_best_GCV=std::distance(GCV_.begin(),std::min_element(GCV_.begin(),GCV_.end()));
+			if(this->fpcaData_.isLocationsByNodes())
+				FPCAinput.setLoadings(nnodes, this->solution_	[index_best_GCV],this->fpcaData_.getObservationsIndices());
+			else 
+			FPCAinput.setLoadingsPsi(nnodes, this->solution_[index_best_GCV],this->Psi_);
+				
+			FPCAinput.setScores(this->datamatrixResiduals_);
+			best_GCV=index_best_GCV;
+		}
+		
+		if(this->fpcaData_.isLocationsByNodes())
+		{
+			UInt nlocations=nnodes;
+			FPCAinput.finalizeLoadings(this->fpcaData_.getObservationsIndices(),nlocations);
+		}
+	this->scores_mat_[np]=FPCAinput.getScores();
+	this->loadings_mat_[np]=FPCAinput.getLoadings();
+	this->lambda_PC_[np]=this->fpcaData_.getLambda()[best_GCV];
+	
+	//Devo settare la datamatrix togliendo i risultati ottenuti
+	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
+	
+	//Change for locations
+	if(!this->fpcaData_.isLocationsByNodes())
+	this->loadings_mat_[np]=this->solution_[best_GCV].topRows(this->mesh_.num_nodes());
+
+	//Normalize the loadings and unnormalize the scores
+	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
+	
+	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
+	
+	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
+}
+
+template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
 {
    MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::SetAndFixParameters();
@@ -586,41 +677,10 @@ void MixedFEFPCAGCV<Integrator,ORDER, mydim, ndim>::apply()
    this->var_.resize(this->fpcaData_.getLambda().size());
    loadings_lambda_.resize(this->fpcaData_.getLambda().size());
    scores_lambda_.resize(this->fpcaData_.getLambda().size());
+
    for(auto np=0;np<this->fpcaData_.getNPC();np++){
-
-	for(auto i = 0; i<this->fpcaData_.getLambda().size(); ++i)
-	{	
-		FPCAObject FPCAinput(this->datamatrixResiduals_);
-		MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeIterations(this->datamatrixResiduals_,FPCAinput,i,this->mesh_.num_nodes());
-		loadings_lambda_[i]=FPCAinput.getLoadings();
-		scores_lambda_[i]=FPCAinput.getScores();
-		
-		if(np==0) computeDegreesOfFreedom(i,this->fpcaData_.getLambda()[i]);
-		
-		computeGCV(FPCAinput,i);			
-	}
 	
-	UInt index_best_GCV=std::distance(GCV_.begin(),std::min_element(GCV_.begin(),GCV_.end()));
-	
-	
-	
-	this->scores_mat_[np]=this->scores_lambda_[index_best_GCV];
-	this->loadings_mat_[np]=this->loadings_lambda_[index_best_GCV];
-	this->lambda_PC_[np]=this->fpcaData_.getLambda()[index_best_GCV];
-	
-	//Devo settare la datamatrix togliendo i risultati ottenuti
-	this->datamatrixResiduals_=this->datamatrixResiduals_-this->scores_mat_[np]*this->loadings_mat_[np].transpose();
-	
-	//Change for locations
-	if(!this->fpcaData_.isLocationsByNodes())
-	this->loadings_mat_[np]=this->solution_[index_best_GCV].topRows(this->mesh_.num_nodes());
-
-	//Normalize the loadings and unnormalize the scores
-	Real load_norm=std::sqrt(this->loadings_mat_[np].transpose()*this->MMat_*this->loadings_mat_[np]);
-	
-	this->loadings_mat_[np]=this->loadings_mat_[np]/load_norm;
-	
-	this->scores_mat_[np]=this->scores_mat_[np]*load_norm;
+	computeIterationsGCV(this->datamatrixResiduals_,this->mesh_.num_nodes(),np);
 	
 	}
 	MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeVarianceExplained();

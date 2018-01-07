@@ -1,4 +1,4 @@
-checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL)
+checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL,GCVmethod = 2,nrealizations = 100)
 {
   #################### Parameter Check #########################
   if(!is.null(locations))
@@ -67,6 +67,12 @@ checkSmoothingParameters<-function(locations = NULL, observations, FEMbasis, lam
     if(!is.function(PDE_parameters_func$u))
       stop("'u' in 'PDE_parameters' is not a function")
   }
+  
+  if (GCVmethod != 1 && GCVmethod != 2)
+    stop("GCVmethod must be either 1(exact calculation) or 2(stochastic estimation)")
+
+  if( !is.numeric(nrealizations) || nrealizations < 1)
+    stop("nrealizations must be a positive integer")
 }
 
 checkSmoothingParametersSize<-function(locations = NULL, observations, FEMbasis, lambda, covariates = NULL, BC = NULL, GCV = FALSE, CPP_CODE = TRUE, PDE_parameters_constant = NULL, PDE_parameters_func = NULL, ndim, mydim)
