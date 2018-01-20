@@ -1,4 +1,4 @@
-CPP_smooth.volume.FEM.basis<-function(locations, observations, mesh, lambda, covariates = NULL, ndim, mydim, BC = NULL, GCV)
+CPP_smooth.volume.FEM.basis<-function(locations, observations, mesh, lambda, covariates = NULL, ndim, mydim, BC = NULL, GCV,GCVmethod = 2, nrealizations = 100)
 {
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   # This is done in C++ now to optimize speed
@@ -50,10 +50,13 @@ CPP_smooth.volume.FEM.basis<-function(locations, observations, mesh, lambda, cov
   GCV = as.integer(GCV)
   storage.mode(GCV)<-"integer"
   
+  storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
   ## Call C++ function
   bigsol <- .Call("regression_Laplace", locations, data, mesh, 
                   mesh$order, mydim, ndim, lambda, covariates,
-                  BC$BC_indices, BC$BC_values, GCV,
+                  BC$BC_indices, BC$BC_values, GCV,GCVmethod, nrealizations,
                   package = "fdaPDE")
 
   return(bigsol)

@@ -1,6 +1,6 @@
 #dyn.load("../Release/fdaPDE.so")
 
-CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covariates = NULL,ndim, mydim, BC = NULL, GCV)
+CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covariates = NULL,ndim, mydim, BC = NULL, GCV,GCVmethod = 2, nrealizations = 100)
 {
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
   ##TO BE CHANGED SOON: LOW PERFORMANCES, IMPLIES COPY OF PARAMETERS
@@ -53,15 +53,18 @@ CPP_smooth.FEM.basis<-function(locations, observations, FEMbasis, lambda, covari
   GCV = as.integer(GCV)
   storage.mode(GCV)<-"integer"
   
+   storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
   ## Call C++ function
   bigsol <- .Call("regression_Laplace", locations, observations, FEMbasis$mesh, 
                   FEMbasis$order, mydim, ndim, lambda, covariates,
-                  BC$BC_indices, BC$BC_values, GCV,
+                  BC$BC_indices, BC$BC_values, GCV,GCVmethod, nrealizations,
                   PACKAGE = "fdaPDE")
   return(bigsol)
 }
 
-CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, ndim, mydim, BC = NULL, GCV)
+CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, ndim, mydim, BC = NULL, GCV,GCVmethod = 2, nrealizations = 100)
 {
 
   # Indexes in C++ starts from 0, in R from 1, opportune transformation  
@@ -118,15 +121,18 @@ CPP_smooth.FEM.PDE.basis<-function(locations, observations, FEMbasis, lambda, PD
   storage.mode(PDE_parameters$b)<-"double"
   storage.mode(PDE_parameters$c)<-"double"
   
+   storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
   ## Call C++ function
   bigsol <- .Call("regression_PDE", locations, observations, FEMbasis$mesh, 
                   FEMbasis$order, mydim, ndim, lambda, PDE_parameters$K, PDE_parameters$b, PDE_parameters$c, covariates, 
-                  BC$BC_indices, BC$BC_values, GCV,
+                  BC$BC_indices, BC$BC_values, GCV,GCVmethod, nrealizations,
                   PACKAGE = "fdaPDE")
   return(bigsol)
 }
 
-CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, ndim, mydim, BC = NULL, GCV)
+CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda, PDE_parameters, covariates = NULL, ndim, mydim, BC = NULL, GCV,GCVmethod = 2, nrealizations = 100)
 {
   
   # Indexes in C++ starts from 0, in R from 1, opportune transformation
@@ -191,10 +197,13 @@ CPP_smooth.FEM.PDE.sv.basis<-function(locations, observations, FEMbasis, lambda,
   storage.mode(PDE_param_eval$c)<-"double"
   storage.mode(PDE_param_eval$u)<-"double"
   
+   storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
   ## Call C++ function
   bigsol <- .Call("regression_PDE_space_varying", locations, observations, FEMbasis$mesh, 
                   FEMbasis$order,mydim, ndim, lambda, PDE_param_eval$K, PDE_param_eval$b, PDE_param_eval$c, PDE_param_eval$u, covariates, 
-                  BC$BC_indices, BC$BC_values, GCV,
+                  BC$BC_indices, BC$BC_values, GCV,GCVmethod, nrealizations,
                   PACKAGE = "fdaPDE")
   return(bigsol)
 }
@@ -385,6 +394,8 @@ CPP_get.FEM.PDE.Matrix<-function(FEMbasis, PDE_parameters)
   BC$BC_values<-vector(length=0)
   lambda = 0
   GCV = 0
+  GCVmethod = 0
+  nrealizations = 0
   
   ## Set propr type for correct C++ reading
   
@@ -408,10 +419,13 @@ CPP_get.FEM.PDE.Matrix<-function(FEMbasis, PDE_parameters)
   storage.mode(PDE_parameters$b)<-"double"
   storage.mode(PDE_parameters$c)<-"double"
   
+  storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
   ## Call C++ function
   triplets <- .Call("get_FEM_PDE_matrix", locations, observations, FEMbasis$mesh, 
                   FEMbasis$order,mydim, ndim, lambda, PDE_parameters$K, PDE_parameters$b, PDE_parameters$c, covariates,
-                  BC$BC_indices, BC$BC_values, GCV,
+                  BC$BC_indices, BC$BC_values, GCV,GCVmethod, nrealizations,
                   PACKAGE = "fdaPDE")
 
   A = sparseMatrix(i = triplets[[1]][,1], j=triplets[[1]][,2], x = triplets[[2]], dims = c(nrow(FEMbasis$mesh$nodes),nrow(FEMbasis$mesh$nodes)))
@@ -443,6 +457,8 @@ CPP_get.FEM.PDE.sv.Matrix<-function(FEMbasis, PDE_parameters)
   BC$BC_values<-vector(length=0)
   lambda = 0
   GCV = 0
+  GCVmethod = 0
+  nrealizations = 0
   
   PDE_param_eval = NULL
   points_eval = matrix(CPP_get_evaluations_points(mesh = FEMbasis$mesh, order = FEMbasis$order),ncol = 2)
@@ -473,10 +489,13 @@ CPP_get.FEM.PDE.sv.Matrix<-function(FEMbasis, PDE_parameters)
   storage.mode(PDE_param_eval$c)<-"double"
   storage.mode(PDE_param_eval$u)<-"double"
   
+  storage.mode(nrealizations) = "integer"
+  storage.mode(GCVmethod) = "integer"
+  
   ## Call C++ function
   triplets <- .Call("get_FEM_PDE_space_varying_matrix", locations, observations, FEMbasis$mesh, 
                   FEMbasis$order,mydim, ndim, lambda, PDE_param_eval$K, PDE_param_eval$b, PDE_param_eval$c, PDE_param_eval$u, covariates,
-                  BC$BC_indices, BC$BC_values, GCV,
+                  BC$BC_indices, BC$BC_values, GCV,GCVmethod, nrealizations,
                   PACKAGE = "fdaPDE")
   
   A = sparseMatrix(i = triplets[[1]][,1], j=triplets[[1]][,2], x = triplets[[2]], dims = c(nrow(FEMbasis$mesh$nodes),nrow(FEMbasis$mesh$nodes)))

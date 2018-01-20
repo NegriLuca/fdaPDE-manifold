@@ -111,6 +111,8 @@ protected:
 	void computeDegreesOfFreedomExact(UInt output_index, Real lambda);
 	void computeDegreesOfFreedomStochastic(UInt output_index, Real lambda);
 	
+	void computeIterationsGCV(MatrixXr &datamatrixResiduals_, UInt nnodes, UInt np);
+	
 	void computeGCV(FPCAObject& FPCAinput,UInt output_index);
 	void computeDegreesOfFreedom(UInt output_index);
 public:
