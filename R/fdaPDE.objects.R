@@ -12,7 +12,7 @@
 #' 	\item{\code{order}}{Either "1" or "2". Order of the Finite Element basis.}
 #' 	\item{\code{nbasis}}{Scalar. The number of basis.}
 #' if \code{class(mesh) == MESH.3D}
-#' 	\item{\code{order}}{Either "1" or "2". Order of the Finite Element basis.}
+#' 	\item{\code{order}}{"1". Order of the Finite Element basis.}
 #' 	\item{\code{nbasis}}{Scalar. The number of basis.}
 #' @description Sets up a Finite Element basis. It requires a triangular mesh, a \code{MESH2D}, \code{MESH.2.5D} or \code{MESH.3D} object, as input. 
 #' The basis' functions are globally continuos surfaces, that are polynomials once restricted to a triangle in the mesh. 

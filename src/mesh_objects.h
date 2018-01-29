@@ -89,7 +89,7 @@ class Edge: public Identifier{
     //std::array<std::reference_wrapper<Point>, NNODES> M_points;
   };
 
-//! This is an abstract template class called Triangle
+//! This is an abstract template class called Element
 /*!
  * mydim is the dimension of the object: e.g. a triangle has mydim=2, a tethraedron
  *       has mydim = 3
@@ -99,7 +99,7 @@ class Edge: public Identifier{
 */
 
 template <UInt NNODES,UInt mydim, UInt ndim>
-class Triangle : public Identifier {
+class Element : public Identifier {
 } ;
 
 
@@ -119,18 +119,18 @@ class Triangle : public Identifier {
  * 		1	      6	      2
 */
 template <UInt NNODES>
-class Triangle<NNODES,2,2> : public Identifier {
+class Element<NNODES,2,2> : public Identifier {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     static const UInt numVertices=3;
     static const UInt numSides=3;
 	static const UInt myDim=2;
 
-    //! This constructor creates an "empty" Triangle, with an Id Not Valid
-	Triangle():Identifier(NVAL){points_.resize(NNODES);}
+    //! This constructor creates an "empty" Element, with an Id Not Valid
+	Element():Identifier(NVAL){points_.resize(NNODES);}
 
-	//! This constructor creates a Triangle, given its Id and an std array with the three object Point the will define the Triangle
-    Triangle(Id id, const std::vector<Point>& points) : Identifier(id),points_(points)
+	//! This constructor creates an Element, given its Id and an std array with the three object Point the will define the Element
+    Element(Id id, const std::vector<Point>& points) : Identifier(id),points_(points)
 	{ this->computeProperties(); }
 
 	//! Overloading of the operator [],  taking the Node number and returning a node as Point object.
@@ -154,13 +154,13 @@ public:
 	//! A member returning the area of the finite element
 	    /*!
 	      \return a Real value representing the area of the triangle from which we updated the element
-	      \sa  updateElement(Triangle<Integrator::NNODES> t)
+	      \sa  updateElement(Element<Integrator::NNODES> t)
 	    */
 	Real getArea() const {return (0.5 * detJ_);}
 
 	Eigen::Matrix<Real,3,1> getBaryCoordinates(const Point& point) const;
 
-	//! A member that tests if a Point is located inside a Triangle.
+	//! A member that tests if a Point is located inside an Element.
     /*!
       \param point a Point object.
       \return True if the point is inside the triangle
@@ -193,7 +193,7 @@ private:
 
 
 template <UInt NNODES>
-const int Triangle<NNODES,2,2>::myDim;
+const int Element<NNODES,2,2>::myDim;
 
 //! A function for the evaluation of point value in a triangle.
 /*!
@@ -223,18 +223,18 @@ const int Triangle<NNODES,2,2>::myDim;
 
 
 template <UInt NNODES>
-class Triangle<NNODES,2,3> : public Identifier {
+class Element<NNODES,2,3> : public Identifier {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     static const UInt numVertices=3;
     static const UInt numSides=3;
 	static const UInt myDim=2;
 
-    //! This constructor creates an "empty" Triangle, with an Id Not Valid
-	Triangle():Identifier(NVAL){points_.resize(NNODES);}
+    //! This constructor creates an "empty" Element, with an Id Not Valid
+	Element():Identifier(NVAL){points_.resize(NNODES);}
 
-	//! This constructor creates a Triangle, given its Id and an std array with the three object Point the will define the Triangle
-    Triangle(Id id, const std::vector<Point> points) : Identifier(id),points_(points)
+	//! This constructor creates an Element, given its Id and an std array with the three object Point the will define the Element
+    Element(Id id, const std::vector<Point> points) : Identifier(id),points_(points)
 	{ this->computeProperties(); }
 
 	//! Overloading of the operator [],  taking the Node number and returning a node as Point object.
@@ -285,11 +285,10 @@ private:
 
 //fine implementazione triangolo 3d
 
-
-//Implementation of a tetrahedron. We call it a "Triangle" with 4 vertices, mydim=3 and ndim=3
+//!  This class implements a Tetrahedron as an objects composed by four or ten nodes, embedded in a 3-dimensional space. Currently, only the 4 nodes version is implemented. The tetrahedron is an Element with mydim=3 and ndim=3
 
 template <UInt NNODES>
-class Triangle<NNODES,3,3> : public Identifier {
+class Element<NNODES,3,3> : public Identifier {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     static const UInt numVertices=4;
@@ -297,10 +296,10 @@ public:
     static const UInt myDim=3;
 
     //! This constructor creates an "empty" Tetrahedron, with an Id Not Valid
-	Triangle():Identifier(NVAL){points_.resize(NNODES);}
+	Element():Identifier(NVAL){points_.resize(NNODES);}
 
 	//! This constructor creates a Tetrahedron, given its Id and an std array with the three object Point the will define the Tetrahedron
-    Triangle(Id id, const std::vector<Point> points) : Identifier(id),points_(points)
+    Element(Id id, const std::vector<Point> points) : Identifier(id),points_(points)
 	{ this->computeProperties(); }
 
 	//! Overloading of the operator [],  taking the Node number and returning a node as Point object.
@@ -327,14 +326,14 @@ public:
 
 	Eigen::Matrix<Real,4,1> getBaryCoordinates(const Point& point) const; //! DA VEDERE
 
-	//! A member that tests if a Point is located inside a Triangle.
+	//! A member that tests if a Point is located inside an Element.
     /*!
       \param point a Point object.
-      \return True if the point is inside the triangle
+      \return True if the point is inside the tetrahedron
     */
 	bool isPointInside(const Point& point) const;
 
-	//! A member that prints the main properties of the triangle
+	//! A member that prints the main properties of the tetrahedron
     /*!
       \param out a std::outstream.
     */
@@ -361,15 +360,15 @@ private:
 
 
 
-template <UInt ORDER, UInt mydim, UInt ndim>
-inline Real evaluate_point(const Triangle<3*ORDER+mydim%2,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER+mydim%2,1>& coefficients)
+template <UInt Nodes, UInt mydim, UInt ndim>
+inline Real evaluate_point(const Element<Nodes,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,Nodes,1>& coefficients)
 {
 	//std::cerr<< "TRYING TO EVALUATE ORDER NOT IMPLEMENTED" << std::endl;
 	return 0;
 }
 
 template <>
-inline Real evaluate_point<1,2,2>(const Triangle<3,2,2>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
+inline Real evaluate_point<3,2,2>(const Element<3,2,2>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
 {
 	Eigen::Matrix<Real,3,1> bary_coeff = t.getBaryCoordinates(point);
 	//std::cout<< "B-coord: "<<bary_coeff<<std::endl;
@@ -378,7 +377,7 @@ inline Real evaluate_point<1,2,2>(const Triangle<3,2,2>& t, const Point& point, 
 }
 
 template <>
-inline Real evaluate_point<2,2,2>(const Triangle<6,2,2>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
+inline Real evaluate_point<6,2,2>(const Element<6,2,2>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
 {
 	Eigen::Matrix<Real,3,1> bary_coeff = t.getBaryCoordinates(point);
 	return( coefficients[0]*(2*bary_coeff[0]*bary_coeff[0]- bary_coeff[0]) +
@@ -398,7 +397,7 @@ inline Real evaluate_point<2,2,2>(const Triangle<6,2,2>& t, const Point& point, 
 // (observe that, if the point is inside the triangle, gamma=0)
 // then the solution u(p)=u(p0)+alpa*(u(p1)-u(p0)+beta*(u(p2)-u(p0))
 template <>
-inline Real evaluate_point<1,2,3>(const Triangle<3,2,3>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
+inline Real evaluate_point<3,2,3>(const Element<3,2,3>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
 {
 	Eigen::Matrix<Real,3,1> bary_coeff=t.getBaryCoordinates(point);
 	return(coefficients.dot(bary_coeff));
@@ -406,7 +405,7 @@ inline Real evaluate_point<1,2,3>(const Triangle<3,2,3>& t, const Point& point, 
 }
 
 template <>
-inline Real evaluate_point<2,2,3>(const Triangle<6,2,3>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
+inline Real evaluate_point<6,2,3>(const Element<6,2,3>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
 {
 	Eigen::Matrix<Real,3,1> bary_coeff = t.getBaryCoordinates(point);
 	return( coefficients[0]*(2*bary_coeff[0]*bary_coeff[0]- bary_coeff[0]) +
@@ -417,9 +416,9 @@ inline Real evaluate_point<2,2,3>(const Triangle<6,2,3>& t, const Point& point, 
             coefficients[5]*(4*bary_coeff[0]* bary_coeff[1]) );
 }
 
-//! implementation for tetrahedra
+//! Implementation for tetrahedrons
 template <>
-inline Real evaluate_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,4,1>& coefficients)
+inline Real evaluate_point<4,3,3>(const Element<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,4,1>& coefficients)
 {
 	Eigen::Matrix<Real,4,1> bary_coeff=t.getBaryCoordinates(point);
 	return(coefficients.dot(bary_coeff));
@@ -427,8 +426,8 @@ inline Real evaluate_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, 
 
 
 
-template <UInt ORDER,UInt mydim, UInt ndim>
-inline Eigen::Matrix<Real,ndim,1> evaluate_der_point(const Triangle<3*ORDER+mydim%2,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,3*ORDER+mydim%2,1>& coefficients)
+template <UInt Nodes,UInt mydim, UInt ndim>
+inline Eigen::Matrix<Real,ndim,1> evaluate_der_point(const Element<Nodes,mydim,ndim>& t, const Point& point, const Eigen::Matrix<Real,Nodes,1>& coefficients)
 {
 	//std::cerr<< "TRYING TO EVALUATE ORDER NOT IMPLEMENTED" << std::endl;
 	Eigen::Matrix<Real,ndim,1> null;
@@ -436,7 +435,7 @@ inline Eigen::Matrix<Real,ndim,1> evaluate_der_point(const Triangle<3*ORDER+mydi
 }
 
 template <>
-inline Eigen::Matrix<Real,2,1> evaluate_der_point<1,2,2>(const Triangle<3,2,2>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
+inline Eigen::Matrix<Real,2,1> evaluate_der_point<3,2,2>(const Element<3,2,2>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
 {
 	Eigen::Matrix<Real,2,3> B1;
 	B1 << t[1][1] - t[2][1], t[2][1] - t[0][1], t[0][1] - t[1][1],
@@ -449,7 +448,7 @@ inline Eigen::Matrix<Real,2,1> evaluate_der_point<1,2,2>(const Triangle<3,2,2>& 
 }
 
 template <>
-inline Eigen::Matrix<Real,2,1> evaluate_der_point<2,2,2>(const Triangle<6,2,2>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
+inline Eigen::Matrix<Real,2,1> evaluate_der_point<6,2,2>(const Element<6,2,2>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
 {
 	Eigen::Matrix<Real,3,1> L = t.getBaryCoordinates(point);
 	Eigen::Matrix<Real,2,3> B1;
@@ -466,7 +465,7 @@ inline Eigen::Matrix<Real,2,1> evaluate_der_point<2,2,2>(const Triangle<6,2,2>& 
 
 
 template <>
-inline Eigen::Matrix<Real,3,1> evaluate_der_point<1,3,3>(const Triangle<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,4,1>& coefficients)
+inline Eigen::Matrix<Real,3,1> evaluate_der_point<4,3,3>(const Element<4,3,3>& t, const Point& point, const Eigen::Matrix<Real,4,1>& coefficients)
 {	
 
 	Eigen::Matrix<Real,3,4> B1;
@@ -492,60 +491,6 @@ inline Eigen::Matrix<Real,3,1> evaluate_der_point<1,3,3>(const Triangle<4,3,3>& 
 
 }
 
-// First we change coordinates from (x,y,z) to (alpha,beta,gamma)
-// [du/dalpha, du/dbeta, du/dgamma] =   | dx/dalpha, dy/dalpha, dz/dalpha |*[du/dx,du/dy,du/dz]
-//                                      | dx/dbeta,  dy/dbeta,  dz/dbeta  |
-//                                      | dx/dgamma, dy/dgamma, dz/dgamma |
-//
-/*
-template <>
-inline Eigen::Matrix<Real,3,1> evaluate_der_point<1,2,3>(const Triangle<3,2,3>& t, const Point& point, const Eigen::Matrix<Real,3,1>& coefficients)
-{	//primo metodo
-	Eigen::Matrix<Real,3,3> A;
-	Eigen::Matrix<Real,3,1> b;
-
-	A(0,0) = t[1][0]-t[0][0];
-	A(1,0) = t[2][0]-t[0][0];
-	A(2,0) = (t[1][1]-t[0][1])*(t[2][2]-t[0][2]) - (t[1][2]-t[0][2])*(t[2][1]-t[0][1]);
-	A(0,1) = t[1][1]-t[0][1];
-	A(1,1) = t[2][1]-t[0][1];
-	A(2,1) = (t[2][2]-t[0][2])*(t[2][0]-t[0][0]) - (t[1][0]-t[0][0])*(t[2][2]-t[0][2]);
-	A(0,2) = t[1][2]-t[0][2];
-	A(1,2) = t[2][2]-t[0][2];
-	A(2,2) = (t[1][0]-t[0][0])*(t[2][1]-t[0][1]) - (t[1][1]-t[0][1])*(t[2][0]-t[0][0]);
-
-
-	b(0) = coefficients[1]-coefficients[0];
-	b(1) = coefficients[2]-coefficients[0];
-	b(2) = 0;
-
-	return(A.fullPivHouseholderQr().solve(b));
-
-	//secondo metodo
-	Eigen::Matrix<Real,3,3> B1;
-	B1 << t[1][1] - t[2][1], t[2][1] - t[0][1], t[0][1] - t[1][1],
-		t[2][0] - t[1][0], t[0][0] - t[2][0], t[1][0] - t[0][0],
-		t[2][0] - t[1][0], t[0][0] - t[2][0], t[1][0] - t[0][0];
-	B1 = B1 / (2 * t.getArea());
-
-	return(B1*coefficients);
-
-}
-
-template <>
-inline Eigen::Matrix<Real,3,1> evaluate_der_point<2,2,3>(const Triangle<6,2,3>& t, const Point& point, const Eigen::Matrix<Real,6,1>& coefficients)
-{
-	Eigen::Matrix<Real,3,1> L = t.getBaryCoordinates(point);
-	Eigen::Matrix<Real,2,3> B1;
-	B1 << t[1][1] - t[2][1], t[2][1] - t[0][1], t[0][1] - t[1][1],
-		t[2][0] - t[1][0], t[0][0] - t[2][0], t[1][0] - t[0][0];
-	B1 = B1 / (2 * t.getArea());
-	Eigen::Matrix<Real,3,6> B2;
-	B2 << 4*L[0]-1, 0       , 0       , 0        , 4*L[2], 4*L[1],
-		  0       , 4*L[1]-1, 0       , 4*L[2]   , 0     , 4*L[0],
-		  0       , 0       , 4*L[2]-1, 4*L[1]   , 4*L[0], 0     ;
-	return(B1*B2*coefficients);
-}*/
 
 
 #include "mesh_objects_imp.h"

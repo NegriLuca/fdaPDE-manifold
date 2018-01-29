@@ -15,7 +15,7 @@
 #'  \code{BC_values}, a vector with the values that the spatial field must take at the nodes indicated in \code{BC_indices}.
 #' @param GCV Boolean. If \code{TRUE} the following quantities are computed: the trace of the smoothing matrix, the estimated error standard deviation,  and 
 #'        the Generalized Cross Validation criterion, for each value of the smoothing parameter specified in \code{lambda}.
-#' @param CPP_CODE Boolean. If \code{TRUE} the computation relies on the C++ implementation of the algorithm. This usually ensures a much faster computation. In case of data over a 2D manifold in a 3D space, only the C++ computation is available.
+#' @param CPP_CODE Boolean. If \code{TRUE} the computation relies on the C++ implementation of the algorithm. This usually ensures a much faster computation. In case of data over a 2D manifold in a 3D space or a 3D volume, only the C++ computation is available.
 #' @return A list with the following variables:
 #' \item{\code{fit.FEM}}{A \code{FEM} object that represents the fitted spatial field.}
 #' \item{\code{PDEmisfit.FEM}}{A \code{FEM} object that represents the Laplacian of the estimated spatial field.}

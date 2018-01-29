@@ -49,31 +49,23 @@ class  FPCAData{
 
 		/*!
 			It initializes the object storing the R given objects. This is the simplest of the two possible interfaces with R
-			\param Robservations an R-vector containing the values of the observations.
-			\param Rdesmat an R-matrix containing the design matrix for the regression.
+			\param Rdatamatrix an R-matrix containing the datamatrix.
+			
+			\param Rlocations an R-matrix containing the location of the observations.
+			
 			\param Rorder an R-integer containing the order of the approximating basis.
 			\param Rlambda an R-double containing the penalization term of the empirical evidence respect to the prior one.
-			\param Rbindex an R-integer containing the indexes of the nodes the user want to apply a Dirichlet Condition,
-					the other are automatically considered in Neumann Condition.
-			\param Rbvalues an R-double containing the value to impose for the Dirichlet condition, on the indexes specified in Rbindex
+			
+			\param RnPC an R-integer specifying the number of principal components to compute.
+			
+			\param RnFolds an R-integer specifying the number of folds to use if K-Fold cross validation method is chosen.
+			
+			\param RGCVmethod an R-integer specifying if the GCV computation has to be exact(if = 1) or stochastic (if = 2).
+			
+			\param Rnrealizations an R-integer specifying the number of realizations to use when computing the GCV stochastically.
+		
 		*/
 
-
-		//! A complete version of the constructor.
-		/*!
-			It initializes the object storing the R given objects. This is the simplest of the two possible interfaces with R
-			\param Robservations an R-vector containing the values of the observations.
-			\param Rdesmat an R-matrix containing the design matrix for the regression.
-			\param Rorder an R-integer containing the order of the approximating basis.
-			\param Rlambda an R-double containing the penalization term of the empirical evidence respect to the prior one.
-			\param Rbindex an R-integer vector containing the indexes of the nodes the user want to apply a Dirichlet Condition,
-					the other are automatically considered in Neumann Condition.
-			\param Rbvalues an R-double vector containing the value to impose for the Dirichlet condition, on the indexes specified in Rbindex
-			\param Rc an R-double that contains the coefficient of the REACTION term
-			\param Rbeta an R-double 2-dim vector that contains the coefficients for the TRANSPORT coefficients.
-			\param RK an R-double 2X2 matrix containing the coefficients for a anisotropic DIFFUSION term.
-			\param (UNSUPPORTED put it zero) Ru an R-double vector of length #triangles that contaiins the forcing term integrals.
-		*/
 		FPCAData(){};
 
 		#ifdef R_VERSION_

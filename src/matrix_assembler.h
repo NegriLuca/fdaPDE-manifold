@@ -59,6 +59,15 @@ class Stiff{
 	}
 	
 	
+	//! A definition of operator () taking three arguments.
+    /*!
+     * Evaluates the stiffness operator (i,j) of the current superficial finite element.
+     * \param currentfe_ is an object of class FiniteElement<Integrator, ORDER,3,3>, current finite element
+     * \param i is an unsigned int, current finite element local index
+     * \param j is an unsigned int, current finite element local index
+     * returns a double.
+     */
+	
 	template<class Integrator, UInt ORDER>
 	inline Real operator() (FiniteElement<Integrator, ORDER,3,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0)
 	{
@@ -70,27 +79,6 @@ class Stiff{
 	   	}
 	   	return s;
 	}
-	
-	/*template<class Integrator, UInt ORDER>
-	inline Real operator() (FiniteElement<Integrator, ORDER,3,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0)
-	{
-		Real s = 0;
-		
-		Eigen::Matrix<Real,3,1> grad_phi_i;
-		Eigen::Matrix<Real,3,1> grad_phi_j;
-		
-		
-		grad_phi_i(0) = currentfe_.phiDerMaster(i, 0, iq);
-		grad_phi_i(1) = currentfe_.phiDerMaster(i, 1, iq);
-		grad_phi_i(2) = currentfe_.phiDerMaster(i, 2, iq);
-		grad_phi_j(0) = currentfe_.phiDerMaster(j, 0, iq);
-		grad_phi_j(1) = currentfe_.phiDerMaster(j, 1, iq);
-		grad_phi_j(2) = currentfe_.phiDerMaster(j, 2, iq);
-		
-		s = grad_phi_i.dot(currentfe_.metric()*grad_phi_j);
-		
-	   	return s;
-	}*/
 	
 	
 };
@@ -249,6 +237,15 @@ class Mass{
     	return currentfe_.phiMaster(i,iq)*  currentfe_.phiMaster(j,iq);
     };
     
+    
+    //! A definition of operator () taking three arguments.
+    /*!
+     * Evaluates the mass operator (i,j) of the current finite element.
+     * \param currentfe_ is an object of class FiniteElement<Integrator, ORDER,3,3>, current planar finite element
+     * \param i is an unsigned int, current finite element local index
+     * \param j is an unsigned int, current finite element local index
+     * returns a double.
+     */
     template <class Integrator ,UInt ORDER>
     inline Real operator() (FiniteElement<Integrator, ORDER,3,3>& currentfe_, UInt i, UInt j, UInt iq, UInt ic = 0)
     {
@@ -599,7 +596,6 @@ dot(const Function& a, const EOExpr<B>&  b){
 //template<UInt mydim, UInt ndim>
 class Assembler{
 	private:
-
 	public:
 	  //! A constructor
 	  //Assembler (){};

@@ -9,9 +9,9 @@ eval.FEM(FEM, locations, CPP_CODE = TRUE)
 \arguments{
 \item{FEM}{A \code{FEM} object to be evaluated.}
 
-\item{locations}{A 2-colums(in case of planar mesh) or 3-columns(in case of 2D manifold in a 3D space) matrix with the spatial locations where the FEM object should be evaluated.}
+\item{locations}{A 2-colums(in case of planar mesh) or 3-columns(in case of 2D manifold in a 3D space or a 3D volume) matrix with the spatial locations where the FEM object should be evaluated.}
 
-\item{CPP_CODE}{Boolean. If \code{TRUE} the computation relies on the C++ implementation of a Visibility Walk Algorithm (Devillers et al. 2001). This usually ensures a fast computation. In case of the 2D manifold in a 3D space, only the C++ method is available.}
+\item{CPP_CODE}{Boolean. If \code{TRUE} the computation relies on the C++ implementation of a Visibility Walk Algorithm (Devillers et al. 2001). This usually ensures a fast computation. In case of the 2D manifold in a 3D space or a 3D volume, only the C++ method is available.}
 }
 \value{
 A matrix of numeric evaluations of the \code{FEM} object. Each row indicates the location where the evaluation has been taken, the column indicates the 

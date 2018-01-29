@@ -124,15 +124,15 @@ SEXP get_integration_points_skeleton(SEXP Rmesh)
 	FiniteElement<Integrator,ORDER, mydim, ndim> fe;
 
 	SEXP result;
-	PROTECT(result=Rf_allocVector(REALSXP, 2*Integrator::NNODES*mesh.num_triangles()));
-	for(UInt i=0; i<mesh.num_triangles(); i++)
+	PROTECT(result=Rf_allocVector(REALSXP, 2*Integrator::NNODES*mesh.num_elements()));
+	for(UInt i=0; i<mesh.num_elements(); i++)
 	{
-		fe.updateElement(mesh.getTriangle(i));
+		fe.updateElement(mesh.getElement(i));
 		for(UInt l = 0;l < Integrator::NNODES; l++)
 		{
 			Point p = fe.coorQuadPt(l);
 			REAL(result)[i*Integrator::NNODES + l] = p[0];
-			REAL(result)[mesh.num_triangles()*Integrator::NNODES + i*Integrator::NNODES + l] = p[1];
+			REAL(result)[mesh.num_elements()*Integrator::NNODES + i*Integrator::NNODES + l] = p[1];
 		}
 	}
 
@@ -238,7 +238,7 @@ SEXP regression_PDE(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder
 SEXP regression_PDE_space_varying(SEXP Rlocations, SEXP Robservations, SEXP Rmesh, SEXP Rorder,SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RK, SEXP Rbeta, SEXP Rc, SEXP Ru,
 				   SEXP Rcovariates, SEXP RBCIndices, SEXP RBCValues, SEXP DOF, SEXP RGCVmethod, SEXP Rnrealizations)
 {
-    //Set data
+    //Set data 
 	RegressionDataEllipticSpaceVarying regressionData(Rlocations, Robservations, Rorder, Rlambda, RK, Rbeta, Rc, Ru, Rcovariates, RBCIndices, RBCValues, DOF,  RGCVmethod, Rnrealizations);
 	
 	UInt mydim=INTEGER(Rmydim)[0];
@@ -353,8 +353,28 @@ SEXP get_FEM_PDE_space_varying_matrix(SEXP Rlocations, SEXP Robservations, SEXP 
 	return(NILSXP);
 }
 
+
+
+//! This function manages the various options for SF-PCA
+/*!
+	This function is than called from R code.
+	\param Rdatamatrix an R-matrix containing the datamatrix of the problem.
+	\param Rlocations an R-matrix containing the location of the observations.
+	\param Rmesh an R-object containg the output mesh from Trilibrary
+	\param Rorder an R-integer containing the order of the approximating basis.
+	\param Rmydim an R-integer containing the dimension of the problem we are considering.
+	\param Rndim an R-integer containing the dimension of the space in which the location are.
+	\param Rlambda an R-double containing the penalization term of the empirical evidence respect to the prior one.
+	\param RnPC an R-integer specifying the number of principal components to compute.
+	\param Rvalidation an R-string containing the method to use for the cross-validation of the penalization term lambda.
+	\param RnFolds an R-integer specifying the number of folds to use if K-Fold cross validation method is chosen.		
+	\param RGCVmethod an R-integer specifying if the GCV computation has to be exact(if = 1) or stochastic (if = 2).		
+	\param Rnrealizations an R-integer specifying the number of realizations to use when computing the GCV stochastically.
+	
+	\return R-vector containg the coefficients of the solution
+*/
 SEXP Smooth_FPCA(SEXP Rlocations, SEXP Rdatamatrix, SEXP Rmesh, SEXP Rorder, SEXP Rmydim, SEXP Rndim, SEXP Rlambda, SEXP RnPC, SEXP Rvalidation, SEXP RnFolds,SEXP RGCVmethod, SEXP Rnrealizations){
-//Set data                 
+//Set data                  
 	FPCAData fPCAdata(Rlocations, Rdatamatrix, Rorder, Rlambda, RnPC, RnFolds,RGCVmethod, Rnrealizations);
 
 //     
