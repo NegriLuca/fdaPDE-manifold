@@ -4,10 +4,10 @@
 
 
 template <UInt NNODES>
-void Triangle<NNODES,2,2>::computeProperties()
+void Element<NNODES,2,2>::computeProperties()
 {
 
-	Triangle<NNODES,2,2> &t = *this;
+	Element<NNODES,2,2> &t = *this;
 	Point d1(t[1][0]-t[0][0], t[1][1]-t[0][1]);
 	Point d2(t[2][0]-t[0][0], t[2][1]-t[0][1]);   //Point d2 = t[2] - t[0]; reimplementare sottrazione
 
@@ -30,9 +30,9 @@ void Triangle<NNODES,2,2>::computeProperties()
 }
 
 template <UInt NNODES>
-Eigen::Matrix<Real,3,1> Triangle<NNODES,2,2>::getBaryCoordinates(const Point& point) const{
+Eigen::Matrix<Real,3,1> Element<NNODES,2,2>::getBaryCoordinates(const Point& point) const{
 
-	Triangle<NNODES,2,2> t=*this;
+	Element<NNODES,2,2> t=*this;
 	Eigen::Matrix<Real,3,1> lambda;
 	Eigen::Matrix<Real,4,1> bary_coef;
 	//Real eps = 2.2204e-016,
@@ -66,7 +66,7 @@ Eigen::Matrix<Real,3,1> Triangle<NNODES,2,2>::getBaryCoordinates(const Point& po
 
 
 template <UInt NNODES>
-bool Triangle<NNODES,2,2>::isPointInside(const Point& point) const
+bool Element<NNODES,2,2>::isPointInside(const Point& point) const
 {
 	Real eps = 2.2204e-016,
 		 tolerance = 10 * eps;
@@ -82,7 +82,7 @@ bool Triangle<NNODES,2,2>::isPointInside(const Point& point) const
 
 // TO BE FIXED: if one dir -1, try with others
 template <UInt NNODES>
-int Triangle<NNODES,2,2>::getPointDirection(const Point& point) const
+int Element<NNODES,2,2>::getPointDirection(const Point& point) const
 {
 	Real eps = 2.2204e-016,
 		 tolerance = 10 * eps;
@@ -101,7 +101,7 @@ int Triangle<NNODES,2,2>::getPointDirection(const Point& point) const
 
 
 template <UInt NNODES>
-void Triangle<NNODES,2,2>::print(std::ostream & out) const
+void Element<NNODES,2,2>::print(std::ostream & out) const
 {
 	out<<"Triangle -"<< id_ <<"- ";
 	for (UInt i=0; i<NNODES; ++i)
@@ -116,10 +116,10 @@ void Triangle<NNODES,2,2>::print(std::ostream & out) const
 //IMPLEMENTAZIONE myDim=2, nDim=3
 
 template <UInt NNODES>
-void Triangle<NNODES,2,3>::computeProperties()
+void Element<NNODES,2,3>::computeProperties()
 {
 
-	Triangle<NNODES,2,3> &t = *this;
+	Element<NNODES,2,3> &t = *this;
 	Point d1(t[1][0]-t[0][0], t[1][1]-t[0][1], t[1][2]-t[0][2]);
 	Point d2(t[2][0]-t[0][0], t[2][1]-t[0][1], t[2][2]-t[0][2]);
 
@@ -151,10 +151,10 @@ void Triangle<NNODES,2,3>::computeProperties()
 }
 
 template <UInt NNODES>
-Eigen::Matrix<Real,3,1> Triangle<NNODES,2,3>::getBaryCoordinates(const Point& point) const{
+Eigen::Matrix<Real,3,1> Element<NNODES,2,3>::getBaryCoordinates(const Point& point) const{
 
 
-	Triangle<NNODES,2,3> t=*this;
+	Element<NNODES,2,3> t=*this;
 	Eigen::Matrix<Real,3,1> lambda;
 	Real detJ_point;
 	Eigen::Matrix<Real,3,2> M_J_point;
@@ -192,13 +192,13 @@ Eigen::Matrix<Real,3,1> Triangle<NNODES,2,3>::getBaryCoordinates(const Point& po
 // u,v>=0 and u+v<=1 then P is inside the triangle
 
 template <UInt NNODES>
-bool Triangle<NNODES,2,3>::isPointInside(const Point& point) const
+bool Element<NNODES,2,3>::isPointInside(const Point& point) const
 {
 	//Real eps = 2.2204e-016;
 		 //tolerance = 10 * eps;
 // First: check consistency trough Rouchè-Capelli theorem
 
-	Triangle<NNODES,2,3> t=*this;
+	Element<NNODES,2,3> t=*this;
 
 	Eigen::Matrix<Real,3,2> A;
 	Eigen::Matrix<Real,3,1> b;
@@ -239,7 +239,7 @@ int Triangle<NNODES,2,3>::getPointDirection(const Point& point) const
 */
 
 template <UInt NNODES>
-void Triangle<NNODES,2,3>::print(std::ostream & out) const
+void Element<NNODES,2,3>::print(std::ostream & out) const
 {
 	out<<"Triangle -"<< id_ <<"- ";
 	for (UInt i=0; i<NNODES; ++i)
@@ -252,10 +252,10 @@ void Triangle<NNODES,2,3>::print(std::ostream & out) const
 //IMPLEMENTAZIONE myDim=3, nDim=3
 
 template <UInt NNODES>
-void Triangle<NNODES,3,3>::computeProperties()
+void Element<NNODES,3,3>::computeProperties()
 {
 
-	Triangle<NNODES,3,3> &t = *this;
+	Element<NNODES,3,3> &t = *this;
 	Point d1(t[1][0]-t[0][0], t[1][1]-t[0][1], t[1][2]-t[0][2]);
 	Point d2(t[2][0]-t[0][0], t[2][1]-t[0][1], t[2][2]-t[0][2]);
 	Point d3(t[3][0]-t[0][0], t[3][1]-t[0][1], t[3][2]-t[0][2]);
@@ -350,10 +350,10 @@ void Triangle<NNODES,3,3>::computeProperties()
 
 
 template <UInt NNODES>
-Eigen::Matrix<Real,4,1> Triangle<NNODES,3,3>::getBaryCoordinates(const Point& point) const{
+Eigen::Matrix<Real,4,1> Element<NNODES,3,3>::getBaryCoordinates(const Point& point) const{
 
 
-	Triangle<NNODES,3,3> t=*this;
+	Element<NNODES,3,3> t=*this;
 	Eigen::Matrix<Real,4,1> lambda;
 	Eigen::Matrix<Real,3,3> M_J_point;
 	Eigen::Matrix<Real,3,1> rhs;
@@ -393,35 +393,20 @@ Eigen::Matrix<Real,4,1> Triangle<NNODES,3,3>::getBaryCoordinates(const Point& po
 }
 
 
-// We solve 3 scalar equation in 2 unknowns(u,v)
-// u*(P1-P0)+v*(P2-P0)=P-P0
-// if the system ins solveable, P is in the plane (P1,P2,P0), if in addition
-// u,v>=0 and u+v<=1 then P is inside the triangle
-
 template <UInt NNODES>
-bool Triangle<NNODES,3,3>::isPointInside(const Point& point) const
+bool Element<NNODES,3,3>::isPointInside(const Point& point) const
 {
 	Real eps = 2.2204e-016;
 	Real tolerance = 10 * eps;
 
-	Triangle<NNODES,3,3> t=*this;
+	Element<NNODES,3,3> t=*this;
 	Eigen::Matrix<Real,4,1> bary_coeff = t.getBaryCoordinates(point);
 	return -tolerance <= bary_coeff[0] && -tolerance <= bary_coeff[1] && -tolerance <= bary_coeff[2] && -tolerance <= bary_coeff[3];
 }
 
 
-/*
 template <UInt NNODES>
-int Triangle<NNODES,2,3>::getPointDirection(const Point& point) const
-{
-
-	//da implementare
-	std::cerr<<"ancora da implementare";
-}
-*/
-
-template <UInt NNODES>
-void Triangle<NNODES,3,3>::print(std::ostream & out) const
+void Element<NNODES,3,3>::print(std::ostream & out) const
 {
 	out<<"Tetrahedron -"<< id_ <<"- ";
 	for (UInt i=0; i<NNODES; ++i)

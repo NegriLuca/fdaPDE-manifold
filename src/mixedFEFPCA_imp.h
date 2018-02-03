@@ -19,11 +19,6 @@
 #define JOB_END -2
 #define USE_COMM_WORLD -987654
 
-//IMPORTANT!!!
-//To fix the creation of objects with 3*ORDER+mydim%2
-//Need a better way to create them
-//
-
 template<typename Integrator, UInt ORDER, UInt mydim, UInt ndim>
 void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 
@@ -46,8 +41,10 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 		Psi_.makeCompressed();
 	}
 	else{
-	Triangle<3*ORDER+mydim%2, mydim, ndim> tri_activated;
-	Eigen::Matrix<Real,3*ORDER+mydim%2,1> coefficients;
+	//Constexpr is used for selecting the right number of nodes to pass as a template parameter to the Element object.In case of planar domain(i.e. mydim==2), we have that the number of nodes is 3*ORDER. In case of volumetric domain (i.e. mydim==3), we have that the number of nodes is 4 nodes if ORDER==1 and 10 nodes if ORDER==2, so the expression is 6*ORDER-2. ORDER==2 if mydim==3 is not yet implemented.
+	constexpr UInt Nodes = mydim==2? 3*ORDER : 6*ORDER-2;
+	Element<Nodes, mydim, ndim> tri_activated;
+	Eigen::Matrix<Real,Nodes,1> coefficients;
 
 	Real evaluator;
 	for(UInt i=0; i<nlocations;i++)
@@ -62,11 +59,11 @@ void MixedFEFPCABase<Integrator,ORDER, mydim, ndim>::computeBasisEvaluations(){
 			#endif
 		}else
 		{
-			for(UInt node = 0; node < 3*ORDER+mydim%2 ; ++node)
+			for(UInt node = 0; node < Nodes ; ++node)
 			{
-				coefficients = Eigen::Matrix<Real,3*ORDER+mydim%2,1>::Zero();
+				coefficients = Eigen::Matrix<Real,Nodes,1>::Zero();
 				coefficients(node) = 1; //Activates only current base
-				evaluator = evaluate_point<ORDER, mydim, ndim>(tri_activated, fpcaData_.getLocations()[i], coefficients);
+				evaluator = evaluate_point<Nodes, mydim, ndim>(tri_activated, fpcaData_.getLocations()[i], coefficients);
 				Psi_.insert(i, tri_activated[node].getId()) = evaluator;
 			}
 		}

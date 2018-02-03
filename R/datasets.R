@@ -78,3 +78,22 @@ NULL
 #'
 #'@name sphereData
 NULL
+
+#' Sphere3Ddata
+#'
+#' A dataset with information about the connectivity matrix and the nodes locations of a sphere geometry. It containes:
+#' \itemize{
+#' 	\item nodes. A #nodes-by-3 matrix specifying the locations of each node.
+#' 	\item tetrahedrons. A #tetrahedrons-by-4 matrix specifying the indices of the nodes in each tetrahedron.
+#'	   }
+#' This dataset is used to create a \code{MESH.3D} object with the function \code{create.MESH.3D} 
+#'
+#'@name sphere3Ddata
+NULL
+
+#' Sphere3D
+#'
+#'A tetrahedral mesh of a volume representing a sphere geometry.This is a \code{MESH.3D} object created with \code{create.MESH.3D}.
+#'
+#'@name sphere3D
+NULL

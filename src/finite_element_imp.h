@@ -15,7 +15,7 @@ FiniteElement<Integrator, ORDER,2,2>::FiniteElement()
 	reference_nodes.push_back(Point(1,0));
 	reference_nodes.push_back(Point(0,1));
 
-	reference_ = Triangle<ORDER*3,2,2> (Id(0), reference_nodes);
+	reference_ = Element<3*ORDER,2,2> (Id(0), reference_nodes);
 
 	//How it will be used, it does not depend on J^-1 -> set one time
 	setPhiMaster();
@@ -24,11 +24,11 @@ FiniteElement<Integrator, ORDER,2,2>::FiniteElement()
 
 
 template <class Integrator, UInt ORDER>
-void FiniteElement<Integrator, ORDER,2,2>::updateElement(const Triangle<ORDER*3,2,2> &t)
+void FiniteElement<Integrator, ORDER,2,2>::updateElement(const Element<3*ORDER,2,2> &t)
 {
 	t_ = t;
 
-	//it does depend on J^-1 -> set for each triangle
+	//it does depend on J^-1 -> set for each element
 	setInvTrJPhiDerMaster();
 
 }
@@ -43,7 +43,7 @@ void FiniteElement<Integrator, ORDER,2,2>::setPhiMaster()
 		coefficients(i) = 1;
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
-			Real phi = evaluate_point<ORDER>(reference_,Integrator::NODES[iq],coefficients);
+			Real phi = evaluate_point<3*ORDER,2,2>(reference_,Integrator::NODES[iq],coefficients);
 			phiMapMaster_(i,iq) = phi;
 		}
 	}
@@ -62,7 +62,7 @@ void FiniteElement<Integrator, ORDER,2,2>::setPhiDerMaster()
 		coefficients(i) = 1;
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
-			der = evaluate_der_point<ORDER>(reference_,Integrator::NODES[iq],coefficients);
+			der = evaluate_der_point<3*ORDER,2,2>(reference_,Integrator::NODES[iq],coefficients);
 			// we need J^(-1) nabla( phi)
 			//der_transf = t_.getM_invJ()*der;
 			phiDerMapMaster_(i,iq*2) = der[0];
@@ -121,7 +121,7 @@ FiniteElement<Integrator, ORDER,2,3>::FiniteElement()
 	reference_nodes.push_back(Point(1,0));
 	reference_nodes.push_back(Point(0,1));
 
-	reference_ = Triangle<ORDER*3,2,2> (Id(0), reference_nodes);
+	reference_ = Element<3*ORDER,2,2> (Id(0), reference_nodes);
 
 	//How it will be used, it does not depend on J^-1 -> set one time
 	setPhiMaster();
@@ -130,11 +130,11 @@ FiniteElement<Integrator, ORDER,2,3>::FiniteElement()
 
 
 template <class Integrator, UInt ORDER>
-void FiniteElement<Integrator, ORDER,2,3>::updateElement(const Triangle<ORDER*3,2,3> &t)
+void FiniteElement<Integrator, ORDER,2,3>::updateElement(const Element<3*ORDER,2,3> &t)
 {
 	t_ = t;
 
-	//it does depend on J^-1 -> set for each triangle
+	//it does depend on J^-1 -> set for each element
 	metric_ = t.getMetric();
 
 }
@@ -149,7 +149,7 @@ void FiniteElement<Integrator, ORDER,2,3>::setPhiMaster()
 		coefficients(i) = 1;
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
-			Real phi = evaluate_point<ORDER>(reference_,Integrator::NODES[iq],coefficients);
+			Real phi = evaluate_point<3*ORDER>(reference_,Integrator::NODES[iq],coefficients);
 			phiMapMaster_(i,iq) = phi;
 		}
 	}
@@ -168,7 +168,7 @@ void FiniteElement<Integrator, ORDER,2,3>::setPhiDerMaster()
 		coefficients(i) = 1;
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
-			der = evaluate_der_point<ORDER,2,2>(reference_,Integrator::NODES[iq],coefficients);
+			der = evaluate_der_point<3*ORDER,2,2>(reference_,Integrator::NODES[iq],coefficients);
 			// we need J^(-1) nabla( phi)
 			//der_transf = t_.getM_invJ()*der;
 			phiDerMapMaster_(i,iq*2) = der[0];
@@ -229,7 +229,7 @@ FiniteElement<Integrator, ORDER,3,3>::FiniteElement()
 	reference_nodes.push_back(Point(0,1,0));
 	reference_nodes.push_back(Point(0,0,1));
 
-	reference_ = Triangle<ORDER*4,3,3> (Id(0), reference_nodes);
+	reference_ = Element<6*ORDER-2,3,3> (Id(0), reference_nodes);
 
 	//How it will be used, it does not depend on J^-1 -> set one time
 	setPhiMaster();
@@ -238,11 +238,11 @@ FiniteElement<Integrator, ORDER,3,3>::FiniteElement()
 
 
 template <class Integrator, UInt ORDER>
-void FiniteElement<Integrator, ORDER,3,3>::updateElement(const Triangle<ORDER*4,3,3> &t)
+void FiniteElement<Integrator, ORDER,3,3>::updateElement(const Element<6*ORDER-2,3,3> &t)
 {
 	t_ = t;
 
-	//it does depend on J^-1 -> set for each triangle
+	//it does depend on J^-1 -> set for each element
 	setInvTrJPhiDerMaster();
 
 }
@@ -250,14 +250,14 @@ void FiniteElement<Integrator, ORDER,3,3>::updateElement(const Triangle<ORDER*4,
 template <class Integrator, UInt ORDER>
 void FiniteElement<Integrator, ORDER,3,3>::setPhiMaster()
 {
-	Eigen::Matrix<Real,4*ORDER,1> coefficients;
-	for (auto i=0; i < 4*ORDER; i++)
+	Eigen::Matrix<Real,6*ORDER-2,1> coefficients;
+	for (auto i=0; i < 6*ORDER-2; i++)
 	{
-		coefficients = MatrixXr::Zero(4*ORDER,1);
+		coefficients = MatrixXr::Zero(6*ORDER-2,1);
 		coefficients(i) = 1;
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
-			Real phi = evaluate_point<ORDER>(reference_,Integrator::NODES[iq],coefficients);
+			Real phi = evaluate_point<6*ORDER-2,3,3>(reference_,Integrator::NODES[iq],coefficients);
 			phiMapMaster_(i,iq) = phi;
 		}
 	}
@@ -266,17 +266,17 @@ void FiniteElement<Integrator, ORDER,3,3>::setPhiMaster()
 template <class Integrator, UInt ORDER>
 void FiniteElement<Integrator, ORDER,3,3>::setPhiDerMaster()
 {
-	Eigen::Matrix<Real,4*ORDER,1> coefficients;
+	Eigen::Matrix<Real,6*ORDER-2,1> coefficients;
 	Eigen::Matrix<Real,3,1> der;
 	//Eigen::Matrix<Real,3,1> der_transf;
 
-	for (auto i=0; i < 4*ORDER; i++)
+	for (auto i=0; i < 6*ORDER-2; i++)
 	{
-		coefficients = MatrixXr::Zero(4*ORDER,1);
+		coefficients = MatrixXr::Zero(6*ORDER-2,1);
 		coefficients(i) = 1;
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
-			der = evaluate_der_point<ORDER,3,3>(reference_,Integrator::NODES[iq],coefficients);
+			der = evaluate_der_point<6*ORDER-2,3,3>(reference_,Integrator::NODES[iq],coefficients);
 			// we need J^(-1) nabla( phi)
 			//der_transf = t_.getM_invJ()*der;
 			phiDerMapMaster_(i,iq*3) = der[0];
@@ -293,7 +293,7 @@ void FiniteElement<Integrator, ORDER,3,3>::setInvTrJPhiDerMaster()
 	Eigen::Matrix<Real,3,1> der;
 	Eigen::Matrix<Real,3,1> der_transf;
 
-	for (auto i=0; i < 4*ORDER; i++)
+	for (auto i=0; i < 6*ORDER-2; i++)
 	{
 		for (auto iq=0; iq < Integrator::NNODES; iq++)
 		{
@@ -329,30 +329,6 @@ Real FiniteElement<Integrator, ORDER,3,3>::invTrJPhiDerMaster(UInt i, UInt ic, U
 	return invTrJPhiDerMapMaster_(i, iq*3 + ic);
 }
 
-/*template <class Integrator, UInt ORDER>
-Real FiniteElement<Integrator, ORDER,2,2>::invTrJPhiDerMaster(UInt i, UInt ic, UInt iq) const
-{
-	return invTrJPhiDerMapMaster_(i, iq*2 + ic);
-}
 
-template <class Integrator, UInt ORDER>
-void FiniteElement<Integrator, ORDER,2,2>::setInvTrJPhiDerMaster()
-{
-	Eigen::Matrix<Real,2,1> der;
-	Eigen::Matrix<Real,2,1> der_transf;
-
-	for (auto i=0; i < 3*ORDER; i++)
-	{
-		for (auto iq=0; iq < Integrator::NNODES; iq++)
-		{
-			der[0] = phiDerMaster(i, 0, iq);
-			der[1] = phiDerMaster(i, 1, iq);
-			// we need J^(-T) nabla( phi)
-			der_transf = t_.getM_invJ().transpose()*der;
-			invTrJPhiDerMapMaster_(i,iq*2) = der_transf[0];
-			invTrJPhiDerMapMaster_(i,iq*2+1) = der_transf[1];
-		}
-	}
-}*/
 
 #endif

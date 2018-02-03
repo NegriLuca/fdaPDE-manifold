@@ -5,10 +5,10 @@
 #include "integration.h"
 #include "mesh_objects.h"
 
-//!  This class implements all properties of a Triangular Finite Element
+//!  This class implements all properties of a Triangular or Tetrahedral Finite Element
 /*!
  * This class is the most important one of the entire code
- * and implements everything needed by a triangular finite elemnt
+ * and implements everything needed by a triangular or tetrahedral finite elemnt
  * 
  * It takes as a template parameter a class that implements the mathod used
  * for determining the mass, stiff and grad matrices
@@ -22,8 +22,8 @@ class FiniteElement{
 template <class Integrator ,UInt ORDER>
 class FiniteElement<Integrator, ORDER, 2,2>{
 private:
-	Triangle<ORDER*3,2,2> reference_;
-	Triangle<ORDER*3,2,2> t_;
+	Element<3*ORDER,2,2> reference_;
+	Element<3*ORDER,2,2> t_;
 	Eigen::Matrix<Real,3*ORDER, Integrator::NNODES> phiMapMaster_;
 	//Numero basi locali x Num coordinate x numero nodi integrazione
 	Eigen::Matrix<Real,3*ORDER, Integrator::NNODES*2> phiDerMapMaster_;
@@ -44,9 +44,9 @@ public:
 	
 	//! A member updating the Finite Element properties
     /*!
-      \param t a triangle from which to update the finite element properties
+      \param t an element from which to update the finite element properties
     */
-	void updateElement(const Triangle<ORDER*3,2,2> &t);
+	void updateElement(const Element<3*ORDER,2,2> &t);
 	
 	Real getAreaReference()
 	{
@@ -83,8 +83,8 @@ public:
 template <class Integrator ,UInt ORDER>
 class FiniteElement<Integrator, ORDER, 2,3>{
 private:
-	Triangle<ORDER*3,2,2> reference_;
-	Triangle<ORDER*3,2,3> t_;
+	Element<3*ORDER,2,2> reference_;
+	Element<3*ORDER,2,3> t_;
 	Eigen::Matrix<Real,3*ORDER, Integrator::NNODES> phiMapMaster_;
 	//Numero basi locali x Num coordinate x numero nodi integrazione
 	Eigen::Matrix<Real,3*ORDER, Integrator::NNODES*2> phiDerMapMaster_;
@@ -106,9 +106,9 @@ public:
 	
 	//! A member updating the Finite Element properties
     /*!
-      \param t a triangle from which to update the finite element properties
+      \param t an element from which to update the finite element properties
     */
-	void updateElement(const Triangle<ORDER*3,2,3> &t);
+	void updateElement(const Element<3*ORDER,2,3> &t);
 	
 	Real getAreaReference()
 	{
@@ -151,12 +151,12 @@ public:
 template <class Integrator ,UInt ORDER>
 class FiniteElement<Integrator, ORDER, 3,3>{
 private:
-	Triangle<ORDER*4,3,3> reference_;
-	Triangle<ORDER*4,3,3> t_;
-	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES> phiMapMaster_;
+	Element<6*ORDER-2,3,3> reference_;
+	Element<6*ORDER-2,3,3> t_;
+	Eigen::Matrix<Real,6*ORDER-2, Integrator::NNODES> phiMapMaster_;
 	//Numero basi locali x Num coordinate x numero nodi integrazione
-	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> phiDerMapMaster_;
-	Eigen::Matrix<Real,4*ORDER, Integrator::NNODES*3> invTrJPhiDerMapMaster_;
+	Eigen::Matrix<Real,6*ORDER-2, Integrator::NNODES*3> phiDerMapMaster_;
+	Eigen::Matrix<Real,6*ORDER-2, Integrator::NNODES*3> invTrJPhiDerMapMaster_;
 	Eigen::Matrix<Real,3,3> metric_;
 	
 	void setPhiMaster();
@@ -175,9 +175,9 @@ public:
 	
 	//! A member updating the Finite Element properties
     /*!
-      \param t a triangle from which to update the finite element properties
+      \param t an element from which to update the finite element properties
     */
-	void updateElement(const Triangle<ORDER*4,3,3> &t);
+	void updateElement(const Element<6*ORDER-2,3,3> &t);
 	
 	Real getVolumeReference()
 	{

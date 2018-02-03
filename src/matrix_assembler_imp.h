@@ -11,15 +11,15 @@ void Assembler::operKernel(EOExpr<A> oper,const MeshHandler<ORDER,2,2>& mesh,
 	std::vector<coeff> triplets;
 
 
-  	for(auto t=0; t<mesh.num_triangles(); t++)
+  	for(auto t=0; t<mesh.num_elements(); t++)
   	{
-		fe.updateElement(mesh.getTriangle(t));
+		fe.updateElement(mesh.getElement(t));
 
 		// Vector of vertices indices (link local to global indexing system)
 		std::vector<UInt> identifiers;
-		identifiers.resize(ORDER*3);
-		for( auto q=0; q<ORDER*3; q++)
-			identifiers[q]=mesh.getTriangle(t)[q].id();
+		identifiers.resize(3*ORDER);
+		for( auto q=0; q<3*ORDER; q++)
+			identifiers[q]=mesh.getElement(t)[q].id();
 
 		//localM=localMassMatrix(currentelem);
 		for(int i = 0; i < 3*ORDER; i++)
@@ -51,16 +51,16 @@ void Assembler::forcingTerm(const MeshHandler<ORDER,2,2>& mesh,
 
 	forcingTerm = VectorXr::Zero(mesh.num_nodes());
 
-  	for(auto t=0; t<mesh.num_triangles(); t++)
+  	for(auto t=0; t<mesh.num_elements(); t++)
   	{
-		fe.updateElement(mesh.getTriangle(t));
+		fe.updateElement(mesh.getElement(t));
 
 		// Vector of vertices indices (link local to global indexing system)
 		std::vector<UInt> identifiers;
-				identifiers.resize(ORDER*3);
+				identifiers.resize(3*ORDER);
 
-		for( auto q=0; q<ORDER*3; q++)
-			identifiers[q]=mesh.getTriangle(t)[q].id();
+		for( auto q=0; q<3*ORDER; q++)
+			identifiers[q]=mesh.getElement(t)[q].id();
 
 
 		//localM=localMassMatrix(currentelem);
@@ -91,15 +91,15 @@ void Assembler::operKernel(EOExpr<A> oper,const MeshHandler<ORDER,2,3>& mesh,
 	std::vector<coeff> triplets;
 
 
-  	for(auto t=0; t<mesh.num_triangles(); t++)
+  	for(auto t=0; t<mesh.num_elements(); t++)
   	{
-		fe.updateElement(mesh.getTriangle(t));
+		fe.updateElement(mesh.getElement(t));
 
 		// Vector of vertices indices (link local to global indexing system)
 		std::vector<UInt> identifiers;
-		identifiers.resize(ORDER*3);
-		for( auto q=0; q<ORDER*3; q++)
-			identifiers[q]=mesh.getTriangle(t)[q].id();
+		identifiers.resize(3*ORDER);
+		for( auto q=0; q<3*ORDER; q++)
+			identifiers[q]=mesh.getElement(t)[q].id();
 
 		//localM=localMassMatrix(currentelem);
 		for(int i = 0; i < 3*ORDER; i++)
@@ -133,16 +133,16 @@ void Assembler::forcingTerm(const MeshHandler<ORDER,2,3>& mesh,
 
 	forcingTerm = VectorXr::Zero(mesh.num_nodes());
 
-  	for(auto t=0; t<mesh.num_triangles(); t++)
+  	for(auto t=0; t<mesh.num_elements(); t++)
   	{
-		fe.updateElement(mesh.getTriangle(t));
+		fe.updateElement(mesh.getElement(t));
 
 		// Vector of vertices indices (link local to global indexing system)
 		std::vector<UInt> identifiers;
-				identifiers.resize(ORDER*3);
+				identifiers.resize(3*ORDER);
 
-		for( auto q=0; q<ORDER*3; q++)
-			identifiers[q]=mesh.getTriangle(t)[q].id();
+		for( auto q=0; q<3*ORDER; q++)
+			identifiers[q]=mesh.getElement(t)[q].id();
 
 
 		//localM=localMassMatrix(currentelem);
@@ -173,20 +173,20 @@ void Assembler::operKernel(EOExpr<A> oper,const MeshHandler<ORDER,3,3>& mesh,
 	std::vector<coeff> triplets;
 
 
-  	for(auto t=0; t<mesh.num_triangles(); t++)
+  	for(auto t=0; t<mesh.num_elements(); t++)
   	{
-		fe.updateElement(mesh.getTriangle(t));
+		fe.updateElement(mesh.getElement(t));
 
 		// Vector of vertices indices (link local to global indexing system)
 		std::vector<UInt> identifiers;
-		identifiers.resize(ORDER*4);
-		for( auto q=0; q<ORDER*4; q++)
-			identifiers[q]=mesh.getTriangle(t)[q].id();
+		identifiers.resize(6*ORDER-2);
+		for( auto q=0; q<6*ORDER-2; q++)
+			identifiers[q]=mesh.getElement(t)[q].id();
 
 		//localM=localMassMatrix(currentelem);
-		for(int i = 0; i < 4*ORDER; i++)
+		for(int i = 0; i < 6*ORDER-2; i++)
 		{
-			for(int j = 0; j < 4*ORDER; j++)
+			for(int j = 0; j < 6*ORDER-2; j++)
 			{
 				Real s=0;
 
@@ -215,20 +215,20 @@ void Assembler::forcingTerm(const MeshHandler<ORDER,3,3>& mesh,
 
 	forcingTerm = VectorXr::Zero(mesh.num_nodes());
 
-  	for(auto t=0; t<mesh.num_triangles(); t++)
+  	for(auto t=0; t<mesh.num_elements(); t++)
   	{
-		fe.updateElement(mesh.getTriangle(t));
+		fe.updateElement(mesh.getElement(t));
 
 		// Vector of vertices indices (link local to global indexing system)
 		std::vector<UInt> identifiers;
-				identifiers.resize(ORDER*4);
+				identifiers.resize(6*ORDER-2);
 
-		for( auto q=0; q<ORDER*4; q++)
-			identifiers[q]=mesh.getTriangle(t)[q].id();
+		for( auto q=0; q<6*ORDER-2; q++)
+			identifiers[q]=mesh.getElement(t)[q].id();
 
 
 		//localM=localMassMatrix(currentelem);
-		for(int i = 0; i < 4*ORDER; i++)
+		for(int i = 0; i < 6*ORDER-2; i++)
 		{
 			Real s=0;
 

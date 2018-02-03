@@ -4,16 +4,16 @@
 \alias{smooth.FEM.FPCA}
 \title{Smooth Functional Principal Component Analysis}
 \usage{
-smooth.FEM.FPCA(locations = NULL, datamatrix, FEMbasis, lambda, GCV = FALSE, nPC=1)
+smooth.FEM.FPCA(locations = NULL, datamatrix, FEMbasis, lambda, nPC=1, validation=NULL,NFolds=5,GCVmethod = 2, nrealizations = 100)
 }
 \arguments{
 \item{locations}{A #observations-by-ndim matrix where each row specifies the spatial coordinates \code{x} and \code{y} (and \code{z} if ndim=3) of the corresponding column of observations in the matrix \code{datamatrix}.
 This parameter can be \code{NULL}. In this case the spatial coordinates of the corresponding observations are assigned as specified in \code{datamatrix}.}
 
 \item{datamatrix}{A matrix of dimensions #samples-by-#points(or #observations) with the observed data values over the domain for each sample. 
-The locations of the observations can be specified with the \code{locations} argument. 
-Otherwise if only the datamatrix is given, these are considered to be located in the corresponding node in the table.
+The locations of the observations can be specified with the \code{locations} argument.
 The datamatrix needs to have zero mean.
+Otherwise if only the datamatrix is given, these are considered to be located in the corresponding node in the table
 \code{nodes} of the mesh. In this last case, a column with \code{NA} value in the \code{datamatrix} indicates that there is no observation associated to the corresponding
  node.}
 
@@ -21,9 +21,15 @@ The datamatrix needs to have zero mean.
 
 \item{lambda}{A scalar or vector of smoothing parameters.}
 
-\item{GCV}{Boolean. If \code{TRUE} the best parameter \code{lambda}(among those values of the smoothing parameter specified in \code{lambda}) for each Principal Component is selected according to the Generalized Cross Validation criterion.}
-
 \item{nPC}{An integer specifying the number of Principal Components to compute.}
+
+\item{validation}{String. If \code{lambda} is a vector, it has to be specified as \code{"GCV"} or \code{"KFold"}. This parameter specify which method of cross-validation is used to select the best parameter \code{lambda} among those values of the smoothing parameter specified in \code{lambda} for each Principal Component.}
+
+\item{NFolds}{An integer specifying the number of folds to use if the KFold cross-validation method for the selection of the best parameter \code{lambda} is chosen. Default value is 5.}
+
+\item{GCVmethod}{If set to 1 perform an exact (but possibly slow) computation of the GCV index. If set to 2 approximate the GCV with a stochastic algorithm.}
+
+\item{nrealizations}{The number of realizations to be used in the stochastic algorithm for the estimation of GCV.}
 }
 \value{
 A list with the following variables:
@@ -32,9 +38,10 @@ A list with the following variables:
 \item{\code{lambda}}{A vector of length #PrincipalComponents where each value is \code{lambda} chosen for that Principal Component.}
 \item{\code{variance_explained}}{A vector of length #PrincipalComponents where each value represent the variance explained by that component.}
 \item{\code{ cumsum_percentage}}{A vector of length #PrincipalComponents containing the cumulative percentage of the variance explained by the first components.}
+\item{\code{var}}{If GCV is \code{TRUE} and GCVmethod = 2, a scalar or vector with the sample variance of the realizations of the stochastic edf estimator for each value of the smoothing parameter specified in \code{lambda}.}
 }
 \description{
-This function implements a smooth functional principal component analysis over a planar mesh or a smooth manifold. In order to perform some regularization, the calculation involves the Laplacian of the spatial field. The computation relies only on the C++ implementation of the algorithm.
+This function implements a smooth functional principal component analysis over a planar mesh, a smooth manifold or a volume. In order to perform some regularization, the calculation involves the Laplacian of the spatial field. The computation relies only on the C++ implementation of the algorithm.
 }
 \examples{
 library(fdaPDE)

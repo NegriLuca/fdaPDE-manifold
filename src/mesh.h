@@ -30,7 +30,7 @@ public:
     */
 
     MeshHandler(Real* points, UInt* edges, UInt* triangles, UInt* neighbors, UInt num_nodes, UInt num_edges, UInt num_triangles):
-			points_(points), edges_(edges), triangles_(triangles), neighbors_(neighbors), num_nodes_(num_nodes), num_edges_(num_edges), num_triangles_(num_triangles) {};
+			points_(points), edges_(edges), elements_(triangles), neighbors_(neighbors), num_nodes_(num_nodes), num_edges_(num_edges), num_elements_(num_triangles) {};
 
     #ifdef R_VERSION_
 	MeshHandler(SEXP Rmesh);
@@ -48,7 +48,7 @@ public:
     /*!
       \return The number of nodes in the mesh
     */
-    UInt num_triangles() const {return num_triangles_;}
+    UInt num_elements() const {return num_elements_;}
 
     //! A normal member returning an unsigned integer value.
     /*!
@@ -70,52 +70,52 @@ public:
     */
     Edge getEdge(Id id);
 
-   //! A normal member setting a Triangle
+   //! A normal member setting an Element
         /*!
          * \param id an Id argument
-          \return The triangle with order coerent to that of the mesh with the specified id
+          \return The element with order coerent to that of the mesh with the specified id
         */
-    //void setTriangle(Triangle<ORDER * 3,2,2>& tri, Id id) const;
+    //void setElement(Element<3*ORDER,2,2>& tri, Id id) const;
 
-    //! A normal member returning a Triangle
+    //! A normal member returning an Element
     /*!
      * \param id an Id argument 
-      \return The triangle with order coerent to that of the mesh with the specified id
+      \return The element with order coerent to that of the mesh with the specified id
     */ 
-    Triangle<ORDER * 3,2,2>  getTriangle(Id id) const;
+    Element<3*ORDER,2,2>  getElement(Id id) const;
 
-    //The "number" neighbor of triangle i is opposite the "number" corner of triangle i
-    //! A normal member returning the Neighbors of a triangle
+    //The "number" neighbor of element i is opposite the "number" corner of element i
+    //! A normal member returning the Neighbors of a element
     /*!
-     * \param id the id of the triangle
+     * \param id the id of the element
      * \param number the number of the vertex
-      \return The triangle that has as an edge the one opposite to the specified
+      \return The element that has as an edge the one opposite to the specified
       vertex
     */
-    Triangle<ORDER * 3,2,2> getNeighbors(Id id_triangle, UInt number) const;
+    Element<3*ORDER,2,2> getNeighbors(Id id_element, UInt number) const;
 
     void printPoints(std::ostream & out);
     void printEdges(std::ostream & out);
-    void printTriangles(std::ostream & out);
+    void printElements(std::ostream & out);
     void printNeighbors(std::ostream & out);
 
-     //! A normal member returning the triangle on which a point is located
+     //! A normal member returning the element on which a point is located
     /*!
-     * This method implements a simply research between all triangle of the mesh
+     * This method implements a simply research between all the elements of the mesh
      * \param point the point we want to locate
-      \return The triangle that contains the point
+      \return The element that contains the point
     */
-    Triangle<ORDER * 3,2,2> findLocationNaive(Point point) const;
+    Element<3*ORDER,2,2> findLocationNaive(Point point) const;
 
-     //! A normal member returning the triangle on which a point is located
+     //! A normal member returning the element on which a point is located
     /*!
      * This method implements a Visibility Walk Algorithm (further details in: Walking in a triangulation, Devillers et al)
      * \param point the point we want to locate
-     * \param starting_triangles a vector of points that specifies the poposed starting
+     * \param starting_elements a vector of points that specifies the poposed starting
      * points for the walking algorithm
-      \return The triangle that contains the point
+      \return The element that contains the point
     */
-    Triangle<ORDER * 3,2,2> findLocationWalking(const Point& point, const Triangle<ORDER * 3,2,2>& starting_triangle) const;
+    Element<3*ORDER,2,2> findLocationWalking(const Point& point, const Element<3*ORDER,2,2>& starting_element) const;
 
     //int readMesh(std::string const & file);
 	//double measure()const;
@@ -126,11 +126,11 @@ private:
 	#endif
 	Real *points_;
 	UInt *edges_;
-	UInt *triangles_;
+	UInt *elements_;
 	UInt *neighbors_;
 
 	UInt *border_edges; //contiene lista id_edges al bordo
-	UInt num_nodes_, num_edges_, num_triangles_;
+	UInt num_nodes_, num_edges_, num_elements_;
 
 };
 
@@ -149,7 +149,7 @@ public:
 	//! A constructor.
     
     MeshHandler(Real* points, UInt* triangles, UInt num_nodes, UInt num_triangles):
-			points_(points), triangles_(triangles), num_nodes_(num_nodes), num_triangles_(num_triangles) {};
+			points_(points), elements_(triangles), num_nodes_(num_nodes), num_elements_(num_triangles) {};
 	
 	//! A constructor.
     /*!
@@ -187,7 +187,7 @@ public:
     /*!
       \return The number of nodes in the mesh
     */
-    UInt num_triangles() const {return num_triangles_;}
+    UInt num_elements() const {return num_elements_;}
 
     //! A normal member returning a Point
     /*!
@@ -196,24 +196,24 @@ public:
     */
     Point getPoint(Id id);
 
-    //! A normal member returning a Triangle
+    //! A normal member returning an Element
     /*!
      * \param id an Id argument
-      \return The triangle with order coerent to that of the mesh with the specified id
+      \return The element with order coerent to that of the mesh with the specified id
     */
-    Triangle<ORDER * 3,2,3>  getTriangle(Id id) const;
+    Element<3*ORDER,2,3>  getElement(Id id) const;
 
     void printPoints(std::ostream & out);
-    void printTriangles(std::ostream & out);
+    void printElements(std::ostream & out);
    
 
-     //! A normal member returning the triangle on which a point is located
+     //! A normal member returning the element on which a point is located
     /*!
-     * This method implements a simply research between all triangle of the mesh
+     * This method implements a simply research between all the elements of the mesh
      * \param point the point we want to locate
-      \return The triangle that contains the point
+      \return The element that contains the point
     */
-    Triangle<ORDER * 3,2,3> findLocationNaive(Point point) const;
+    Element<3*ORDER,2,3> findLocationNaive(Point point) const;
 
 
 private:
@@ -222,10 +222,10 @@ private:
 	#endif
 
 	std::vector<Real> points_;
-	std::vector<UInt> triangles_;
+	std::vector<UInt> elements_;
 
 
-	UInt num_nodes_, num_triangles_;
+	UInt num_nodes_, num_elements_;
 
 };
 
@@ -243,8 +243,8 @@ public:
 	typedef int UInt;
 	//! A constructor.
     
-    MeshHandler(Real* points, UInt* triangles, UInt num_nodes, UInt num_triangles):
-			points_(points), triangles_(triangles), num_nodes_(num_nodes), num_triangles_(num_triangles) {};
+    MeshHandler(Real* points, UInt* tetrahedrons, UInt num_nodes, UInt num_tetrahedrons):
+			points_(points), elements_(tetrahedrons), num_nodes_(num_nodes), num_elements_(num_tetrahedrons) {};
 	
 	//! A constructor.
     /*!
@@ -264,9 +264,9 @@ public:
 
 	//! A normal member returning an unsigned integer value.
     /*!
-      \return The number of nodes in the mesh
+      \return The number of elements in the mesh
     */
-    UInt num_triangles() const {return num_triangles_;}
+    UInt num_elements() const {return num_elements_;}
 
     //! A normal member returning a Point
     /*!
@@ -275,24 +275,24 @@ public:
     */
     Point getPoint(Id id);
 
-    //! A normal member returning a Triangle
+    //! A normal member returning an Element
     /*!
      * \param id an Id argument
-      \return The triangle with order coerent to that of the mesh with the specified id
+      \return The element with order coerent to that of the mesh with the specified id
     */
-    Triangle<ORDER * 4,3,3>  getTriangle(Id id) const;
+    Element<6*ORDER-2,3,3>  getElement(Id id) const;
 
     void printPoints(std::ostream & out);
-    void printTriangles(std::ostream & out);
+    void printElements(std::ostream & out);
    
 
-     //! A normal member returning the triangle on which a point is located
+     //! A normal member returning the element on which a point is located
     /*!
-     * This method implements a simply research between all triangle of the mesh
+     * This method implements a simply research between all the elements of the mesh
      * \param point the point we want to locate
-      \return The triangle that contains the point
+      \return The element that contains the point
     */
-    Triangle<ORDER * 4,3,3> findLocationNaive(Point point) const;
+    Element<6*ORDER-2,3,3> findLocationNaive(Point point) const;
 
 
 private:
@@ -301,10 +301,10 @@ private:
 	#endif
 
 	std::vector<Real> points_;
-	std::vector<UInt> triangles_;
+	std::vector<UInt> elements_;
 
 
-	UInt num_nodes_, num_triangles_;
+	UInt num_nodes_, num_elements_;
 
 };
 
