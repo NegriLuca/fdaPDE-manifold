@@ -1092,8 +1092,8 @@ R_plot_volume = function(FEM,...){
   for (isurf in 1:nsurf)
   {	col=rep(0,ntetrahedrons)
   	for(j in 1:ntetrahedrons)
-  		col[j]=mean(coeff[tetrahedrons[j,1],isurf]+coeff[tetrahedrons[j,2],isurf]+
-  			    coeff[tetrahedrons[j,3],isurf]+coeff[tetrahedrons[j,4],isurf])
+  		col[j]=mean(c(coeff[tetrahedrons[j,1],isurf],coeff[tetrahedrons[j,2],isurf],
+  			    coeff[tetrahedrons[j,3],isurf],coeff[tetrahedrons[j,4],isurf]))
 	
 	
   col=rep(1,3) %o% col
